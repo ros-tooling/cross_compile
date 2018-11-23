@@ -1,0 +1,66 @@
+# Copyright (c) 2018, ARM Limited.
+# SPDX-License-Identifier: Apache-2.0
+
+FROM ubuntu:bionic
+
+# Set timezone
+RUN echo 'Etc/UTC' > /etc/timezone && \
+    ln -s /usr/share/zoneinfo/Etc/UTC /etc/localtime && \
+    apt-get update && apt-get install -q -y tzdata && rm -rf /var/lib/apt/lists/*
+
+# 1. Install development tools
+RUN apt-get update
+RUN apt-get install -y \
+    build-essential \
+    cmake \
+    git \
+    wget \
+    curl \
+    lsb-core \
+    bash-completion
+
+# Download the Cross-compiler for aarch64/arm and qemu
+RUN apt install -y \
+    qemu-user-static \
+    g++-aarch64-linux-gnu \
+    g++-arm-linux-gnueabihf
+
+# ROS2 tools
+RUN apt update
+RUN apt install -y \
+    python3-pip
+
+RUN python3 -m pip install -U \
+    colcon-common-extensions \
+    rosdep \
+    vcstool
+
+# Install Docker
+RUN apt-get install -y \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    software-properties-common
+RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+RUN apt-key fingerprint 0EBFCD88
+RUN add-apt-repository \
+   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+   $(lsb_release -cs) \
+   stable"
+RUN apt-get update
+RUN apt-get install -y docker-ce
+
+# 2. Download ROS2 src
+ENV CC_WS /root/cc_ws
+
+WORKDIR $CC_WS/ros2_ws
+RUN mkdir src
+RUN wget https://raw.githubusercontent.com/ros2/ros2/release-latest/ros2.repos
+RUN vcs-import src < ros2.repos
+
+WORKDIR $CC_WS
+run mkdir qemu-user-static
+RUN cp /usr/bin/qemu-*-static qemu-user-static
+
+ENTRYPOINT ["ros2_ws/src/ros2/cross_compile/entry_point.sh"]
+CMD ["bash"]
