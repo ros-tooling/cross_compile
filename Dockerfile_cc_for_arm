@@ -55,8 +55,9 @@ ENV CC_WS /root/cc_ws
 
 WORKDIR $CC_WS/ros2_ws
 RUN mkdir src
-RUN wget https://raw.githubusercontent.com/ros2/ros2/release-latest/ros2.repos
+RUN wget https://raw.githubusercontent.com/ros2/ros2/release-bouncy/ros2.repos
 RUN vcs-import src < ros2.repos
+RUN git clone https://github.com/ros2/cross_compile.git src/ros2/cross_compile
 
 WORKDIR $CC_WS
 run mkdir qemu-user-static
