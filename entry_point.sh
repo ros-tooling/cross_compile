@@ -32,13 +32,6 @@ export SYSROOT=$CC_WS/sysroot_docker
 export PYTHON_SOABI=cpython-36m-$TARGET_TRIPLE
 export ROS2_INSTALL_PATH=$CC_WS/ros2_ws/install
 
-
-# Hack to build class-loader
-## This is temporarily required because this libraires are not found on the
-## specified SYSROOT
-ln -s `pwd`/sysroot_docker/lib/$TARGET_TRIPLE/libz.so.1 /usr/lib/$TARGET_TRIPLE/libz.so
-ln -s `pwd`/sysroot_docker/lib/$TARGET_TRIPLE/libpcre.so.3 /usr/lib/$TARGET_TRIPLE/libpcre.so
-
 # Ignore some package
 touch \
     ros2_ws/src/ros2/rviz/COLCON_IGNORE \
