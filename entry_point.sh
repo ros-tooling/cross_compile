@@ -1,7 +1,10 @@
+#!/usr/bin/env bash
+
 # Copyright (c) 2018, ARM Limited.
 # SPDX-License-Identifier: Apache-2.0
 
-#!/bin/bash -e
+# Exit on error
+set -e
 
 # 3. Prepare the sysroot
 if [ ! -d "$CC_WS/sysroot_docker" ]; then
