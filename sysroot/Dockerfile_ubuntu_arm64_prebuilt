@@ -25,7 +25,7 @@ RUN curl http://repo.ros2.org/repos.key | apt-key add -
 RUN sh -c 'echo "deb [arch=amd64,arm64] http://repo.ros2.org/ubuntu/main \
     `lsb_release -cs` main" > /etc/apt/sources.list.d/ros2-latest.list'
 
-ENV ROS_DISTRO bouncy
+ENV ROS_DISTRO crystal
 RUN apt-get update && apt-get install -y \
     ros-$ROS_DISTRO-desktop && \
     rm -rf /var/lib/apt/lists/*

@@ -45,7 +45,7 @@ ln -s `pwd`/sysroot_docker/lib/$TARGET_TRIPLE/libpcre.so.3 /usr/lib/$TARGET_TRIP
 # Ignore some package
 touch \
     ros2_ws/src/ros2/rviz/COLCON_IGNORE \
-    ros2_ws/src/ros2/robot_state_publisher/COLCON_IGNORE
+    ros2_ws/src/ros-visualization/COLCON_IGNORE
 
 cd ros2_ws
 
