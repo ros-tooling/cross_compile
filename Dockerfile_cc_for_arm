@@ -52,7 +52,7 @@ RUN apt-get install -y docker-ce
 
 # 2. Download ROS2 src
 ENV CC_WS /root/cc_ws
-ARG ROS2_VERSION=release-bouncy
+ARG ROS2_VERSION=release-latest
 
 WORKDIR $CC_WS/ros2_ws
 RUN mkdir src
