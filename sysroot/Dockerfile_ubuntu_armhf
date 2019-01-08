@@ -81,3 +81,7 @@ RUN rosdep install --from-paths src \
         urdfdom_headers \
         libpoco-dev \
         libpocofoundation9"
+
+WORKDIR /
+RUN apt-get install -y symlinks
+RUN symlinks -rc .
