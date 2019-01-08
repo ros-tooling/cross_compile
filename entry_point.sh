@@ -38,8 +38,6 @@ export ROS2_INSTALL_PATH=$CC_WS/ros2_ws/install
 # Ignore some package
 touch \
     ros2_ws/src/ros2/rviz/COLCON_IGNORE \
-    ros2_ws/src/ros2/demos/intra_process_demo/COLCON_IGNORE \
-    ros2_ws/src/ros2/demos/image_tools/COLCON_IGNORE \
     ros2_ws/src/ros2/robot_state_publisher/COLCON_IGNORE
 
 cd ros2_ws
