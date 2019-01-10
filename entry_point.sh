@@ -16,7 +16,7 @@ if [ ! -d "$CC_WS/sysroot_docker" ]; then
     docker container export -o sysroot_docker.tar aarch64_sysroot
     mkdir sysroot_docker
 
-    tar -C sysroot_docker -xf sysroot_docker.tar lib usr
+    tar -C sysroot_docker -xf sysroot_docker.tar lib usr etc
 
     # Remove docker container
     docker rm aarch64_sysroot
