@@ -9,17 +9,17 @@ set -e
 # 3. Prepare the sysroot
 if [ ! -d "$CC_WS/sysroot_docker" ]; then
     # Build sysroot image
-    docker build -t aarch64_ros2:latest -f ./ros2_ws/src/ros2/cross_compile/sysroot/Dockerfile_ubuntu_arm64 .
-    docker run --name aarch64_sysroot aarch64_ros2:latest
+    docker build -t arm_ros2:latest -f ./ros2_ws/src/ros2/cross_compile/sysroot/Dockerfile_ubuntu_arm .
+    docker run --name arm_sysroot arm_ros2:latest
 
     # Export sysroot image
-    docker container export -o sysroot_docker.tar aarch64_sysroot
+    docker container export -o sysroot_docker.tar arm_sysroot
     mkdir sysroot_docker
 
     tar -C sysroot_docker -xf sysroot_docker.tar lib usr etc
 
     # Remove docker container
-    docker rm aarch64_sysroot
+    docker rm arm_sysroot
 fi
 
 # 4. Build
