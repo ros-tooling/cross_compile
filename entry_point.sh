@@ -35,6 +35,13 @@ export SYSROOT=$CC_WS/sysroot_docker
 export PYTHON_SOABI=cpython-36m-$TARGET_TRIPLE
 export ROS2_INSTALL_PATH=$CC_WS/ros2_ws/install
 
+# Hack to find Poco
+## This is temporarily required to find the Poco libraries on the SYSROOT.
+## The exported target comming with the pre-build binaries has a hard-coded
+## path to "/usr/lib/<arch>/libz.so" and "/usr/lib/<arch>/libpcre.so"
+ln -s `pwd`/sysroot_docker/lib/$TARGET_TRIPLE/libz.so.1 /usr/lib/$TARGET_TRIPLE/libz.so
+ln -s `pwd`/sysroot_docker/lib/$TARGET_TRIPLE/libpcre.so.3 /usr/lib/$TARGET_TRIPLE/libpcre.so
+
 # Ignore some package
 touch \
     ros2_ws/src/ros2/rviz/COLCON_IGNORE \

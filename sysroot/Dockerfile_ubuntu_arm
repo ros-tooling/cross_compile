@@ -65,8 +65,7 @@ RUN python3 -m pip install -U \
 
 RUN apt install --no-install-recommends -y \
     libasio-dev \
-    libtinyxml2-dev \
-    libssl-dev
+    libtinyxml2-dev
 
 WORKDIR /ros2_ws
 RUN rosdep init
@@ -79,9 +78,7 @@ RUN rosdep install --from-paths src \
         fastrtps \
         libopensplice67 \
         rti-connext-dds-5.3.1 \
-        urdfdom_headers \
-        libpoco-dev \
-        libpocofoundation9"
+        urdfdom_headers"
 
 WORKDIR /
 RUN apt-get install -y symlinks
