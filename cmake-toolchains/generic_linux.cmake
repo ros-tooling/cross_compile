@@ -29,6 +29,12 @@ set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 # Specify the python SOABI
 set(PYTHON_SOABI $ENV{PYTHON_SOABI})
 
+if(NOT TARGET Qt5::moc)
+  set(QT_MOC_EXECUTABLE /usr/bin/moc)
+  add_executable(Qt5::moc IMPORTED)
+  set_property(TARGET Qt5::moc PROPERTY IMPORTED_LOCATION ${QT_MOC_EXECUTABLE})
+endif()
+
 # This assumes that pthread will be available on the target system
 # (this emulates that the return of the TRY_RUN is a return code "0")
 set(THREADS_PTHREAD_ARG "0"
