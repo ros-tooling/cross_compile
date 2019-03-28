@@ -1,0 +1,21 @@
+# Raspbian Stretch Lite
+FROM raspbian/stretch
+
+ENV LANG en_US.UTF-8
+ENV LC_ALL C.UTF-8
+ENV DEBIAN_FRONTEND noninteractive
+
+RUN apt update
+
+# install Fast-RTPS dependencies
+RUN apt install --no-install-recommends -y libasio-dev libtinyxml2-dev
+
+# dependencies resolved by rosdep
+RUN apt install --no-install-recommends -y libeigen3-dev libtinyxml2-dev python3-yaml libcurl4-openssl-dev curl pkg-config libcppunit-dev libpcre3-dev cmake clang-format libyaml-dev python3-flake8 pyflakes3 cppcheck libboost-all-dev liblog4cxx-dev python3-pkg-resources libxml2-utils libopencv-dev libogg-dev libtinyxml-dev libconsole-bridge-dev uncrustify libtheora-dev python3-pytest libpoco-dev pydocstyle zlib1g-dev python3-empy python3-setuptools python3-numpy python3-pep8
+
+# additional python packages via pip
+RUN apt install --no-install-recommends -y python3-pip
+# error: invalid command 'bdist_wheel'
+RUN pip3 install wheel
+# install python3-lark-parser, python3-opencv
+RUN pip3 install lark-parser opencv-python
