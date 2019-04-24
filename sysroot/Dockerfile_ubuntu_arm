@@ -72,7 +72,7 @@ RUN rosdep init
 RUN rosdep update
 RUN rosdep install --from-paths src \
     --ignore-src \
-    --rosdistro bouncy -y \
+    --rosdistro crystal -y \
     --skip-keys "console_bridge \
         fastcdr \
         fastrtps \
