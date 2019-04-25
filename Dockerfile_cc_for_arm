@@ -28,12 +28,14 @@ RUN apt install -y \
 # ROS2 tools
 RUN apt update
 RUN apt install -y \
-    python3-pip
+    python3-pip \
+    python3-numpy
 
 RUN python3 -m pip install -U \
     colcon-common-extensions \
     rosdep \
-    vcstool
+    vcstool \
+    lark-parser
 
 # Install Docker
 RUN apt-get install -y \
