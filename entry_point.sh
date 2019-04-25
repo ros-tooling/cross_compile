@@ -27,9 +27,8 @@ fi
 export TARGET_ARCH=aarch64
 export TARGET_TRIPLE=aarch64-linux-gnu
 
-export CC=/usr/bin/$TARGET_TRIPLE-gcc
-export CXX=/usr/bin/$TARGET_TRIPLE-g++
-export CROSS_COMPILE=/usr/bin/$TARGET_TRIPLE-
+export CROSS_COMPILE_C=/usr/bin/$TARGET_TRIPLE-gcc
+export CROSS_COMPILE_CXX=/usr/bin/$TARGET_TRIPLE-g++
 
 export SYSROOT=$CC_WS/sysroot_docker
 export PYTHON_SOABI=cpython-36m-$TARGET_TRIPLE

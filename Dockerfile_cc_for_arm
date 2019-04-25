@@ -25,6 +25,12 @@ RUN apt install -y \
     g++-aarch64-linux-gnu \
     g++-arm-linux-gnueabihf
 
+# Install gxx-6 compiler and toolchain for RPi
+RUN apt-get install -y \
+  gcc-6 \
+  g++-6 \
+  g++-6-arm-linux-gnueabihf
+
 # ROS2 tools
 RUN apt update
 RUN apt install -y \
@@ -34,6 +40,9 @@ RUN python3 -m pip install -U \
     colcon-common-extensions \
     rosdep \
     vcstool
+
+RUN python3 -m pip install -U \
+  git+https://github.com/lark-parser/lark.git@0.7d
 
 # Install Docker
 RUN apt-get install -y \
@@ -63,6 +72,7 @@ RUN git clone https://github.com/ros2/cross_compile.git src/ros2/cross_compile
 WORKDIR $CC_WS
 run mkdir qemu-user-static
 RUN cp /usr/bin/qemu-*-static qemu-user-static
+
 
 ENTRYPOINT ["ros2_ws/src/ros2/cross_compile/entry_point.sh"]
 CMD ["bash"]
