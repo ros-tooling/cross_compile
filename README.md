@@ -12,12 +12,10 @@ The supported ROS2 distributions are:
  - `crystal`
  - `dashing`
 
-
 The supported architectures are:
 
  - `raspbian`
  - `ubuntu-arm64`
-
 
 ## Requirements
 
@@ -26,7 +24,6 @@ The supported architectures are:
 If you want to generate the sysroots using the provided scripts, ensure that you have support for building and running ARM Docker containers.
 
 ## Build
-
 
     bash build.sh
 
@@ -144,7 +141,6 @@ Now you can cross-compile the workspace
 
 The provided workspace will be mounted as a volume and it will be populated with the output of the cross-compilation.
 
-
 #### Install
 
 Copy the `install/lib` directory from the cross-compiled workspace to your target system.
@@ -160,7 +156,6 @@ Note that if you place the libraries in a place different from the `usr/lib` dir
 For example:
 
     export LD_LIBRARY_PATH=~/ros2_crystal:$LD_LIBRARY_PATH
-
 
 ## Add support for additional target architectures
 
