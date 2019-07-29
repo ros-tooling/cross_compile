@@ -71,6 +71,15 @@ Summary: 0 packages finished [0.16s]
 **Solution:** Check that the workspace contains a `src` directory with the source code that you want to cross-compile. Moreover, it is important that the packages are actually present in the workspace and that they are not only symlinked.
 
 
+#### The compiler is not able to compile a simple test program
+
+This error will happen as soon as the first C or C++ package are being compiled.
+
+**Possible reasons:** The most common reason is that the compiler can't find its required dependencies, which should be specified in the sysroot.
+
+**Solution:** Ensure that a sysroot has been built and it's named `sysroots/<architecture-name>`. If it exists, ensure that it's correctly set in the toolchain file.
+
+
 #### Linker missing libPocoFoundation and or libyaml
 
 While cross-compiling the ROS2 SDK you may get the following or a similar error
