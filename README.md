@@ -1,8 +1,7 @@
-# ROS2 cross-compilation tools
+# Cross-compilation assets
 
-This directory contains Docker-based tools for cross-compiling ROS2 packages for embedded platforms.
-
-If you are interested in additional resources about cross-compilation, check the [**ROS2 Cross-compilation official guide**](https://index.ros.org/doc/ros2/Tutorials/Cross-compilation) or the references at the bottom of this page.
+These are cross-compiling assets for ROS2.
+Documentation is in the wiki: https://index.ros.org/doc/ros2/Tutorials/Cross-compilation
 
 A list of common cross-compilation issues and solutions is provided in the [troubleshooting page](troubleshooting.md).
 
@@ -24,8 +23,7 @@ The supported architectures are:
 
  - Docker
 
-If you don't have Docker installed follow [this link](../docker_setup.md).
-Ensure that you have support for building and running ARM Docker containers.
+If you want to generate the sysroots using the provided scripts, ensure that you have support for building and running ARM Docker containers.
 
 ## Build
 
@@ -179,9 +177,3 @@ For example, if you want to add a target named `my_architecture` you need the fo
  - A bash script that sets compilation flags for the toolchain named `cmake-toolchains/my_architecture.sh`
  - A sysroot named `sysroots/my_architecture` or a script `sysroots/my_architecture_get_sysroot.sh` to generate it.
 
-
-## References
-
- - [ROS2 cross-compilation official tools](https://github.com/ros2/cross_compile)
- - [ROS2 step by step cross-compilation on ARM](https://github.com/ros2-for-arm/ros2/wiki/ROS2-on-arm-architecture)
- - [ROS2 RaspberryPi cross-compilation](https://github.com/alsora/ros2-raspberrypi)
