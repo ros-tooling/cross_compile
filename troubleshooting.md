@@ -17,7 +17,43 @@ standard_init_linux.go:207: exec user process caused "exec format error"
 
 **Possible reasons:** You are trying to build an ARM Docker image on an X86_64 machine. This requires running some ARM binaries which are not supported by default.
 
-**Solution:** Follow the `Allow Docker to run and build ARM containers` instructions in [our Docker setup](../docker_setup).
+**Solution:** By default with Docker in Ubuntu it is not possible to use ARM containers, while it is possible with Mac OS and Windows.
+There are several solutions to this problem and not all may work depending on your Ubuntu or Kernel version. You should try them one after the other until you find something working for you.
+
+ - SOLUTION 1
+
+        ```
+        sudo apt-get install qemu-user-static
+        sudo systemctl restart systemd-binfmt.service
+        ```
+
+ - SOLUTION 2 
+
+        ```
+	git clone https://github.com/computermouth/qemu-static-conf.git
+	sudo mkdir -p /lib/binfmt.d
+	sudo cp qemu-static-conf/*.conf /lib/binfmt.d/
+	sudo systemctl restart systemd-binfmt.service
+        ```
+
+ - SOLUTION 3
+  	This solution has to be repeated for each Dockerfile 
+
+	```
+	cd <Dockerfile_directory>
+	sudo apt-get install qemu-user-static
+	mkdir qemu-user-static
+	cp /usr/bin/qemu-*-static qemu-user-static
+	```
+
+	Then add a line to your Dockerfile, immediately after the `FROM` command and before any other instruction.
+
+	```
+	COPY qemu-arm-static /usr/bin
+	```
+
+
+
 
 ## Cross-compilation issues
 
