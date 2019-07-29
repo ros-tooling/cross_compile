@@ -1,0 +1,11 @@
+
+FROM ros2_cc_base
+LABEL maintainer="Alberto Soragna asoragna at irobot dot com"
+
+
+###### INSTALL UBUNTU ARM64 CROSS-COMPILATION REQUIREMENTS
+
+# Install the Cross-compiler for aarch64/arm
+RUN apt install -y \
+  g++-aarch64-linux-gnu \
+  g++-arm-linux-gnueabihf

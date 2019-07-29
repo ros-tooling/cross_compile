@@ -1,0 +1,25 @@
+
+# Copyright (c) 2018, ARM Limited.
+# SPDX-License-Identifier: Apache-2.0
+
+FROM arm64v8/ubuntu:bionic
+
+# get ROS2 apt sources
+RUN apt-get update && apt-get install -y \
+  curl \
+  gnupg2 \
+  lsb-release
+RUN curl http://repo.ros2.org/repos.key | apt-key add -
+RUN sh -c 'echo "deb [arch=amd64,arm64] http://repo.ros2.org/ubuntu/main \
+  `lsb_release -cs` main" > /etc/apt/sources.list.d/ros2-latest.list'
+RUN apt-get update
+
+RUN apt-get install --no-install-recommends -y \
+  liblog4cxx-dev \
+  libtinyxml2-dev \
+  libeigen3-dev \
+  libtinyxml-dev \
+  python3-numpy
+
+# transform absolute simbolic links into relative ones
+RUN apt-get install -y symlinks && symlinks -cr /lib /etc /opt /usr

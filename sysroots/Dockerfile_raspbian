@@ -1,0 +1,46 @@
+# the base image is raspbian stretch lite version
+FROM raspbian/stretch
+LABEL maintainer="asoragna at irobot dot com"
+
+# working directory
+ENV HOME /root
+WORKDIR $HOME
+
+# python3.6 dependencies
+RUN apt-get update && apt-get install -y \
+  build-essential tk-dev libncurses5-dev libncursesw5-dev libreadline6-dev libdb5.3-dev libgdbm-dev libsqlite3-dev libssl-dev libbz2-dev libexpat1-dev liblzma-dev zlib1g-dev
+# build python3.6
+RUN wget https://www.python.org/ftp/python/3.6.5/Python-3.6.5.tar.xz
+RUN tar xf Python-3.6.5.tar.xz
+WORKDIR Python-3.6.5
+RUN ./configure --prefix=/usr
+RUN make
+RUN make install
+
+# minimal ROS2 dependencies
+# libc6 is requried because raspbian stretch lite lacks some pthread support
+RUN apt-get update && apt-get install -y \
+  liblog4cxx-dev \
+  libtinyxml2-dev \
+  libc6-dev
+
+# get ROS2 apt sources
+RUN apt-get install -y \
+  curl \
+  lsb-release
+RUN curl http://repo.ros2.org/repos.key | apt-key add -
+RUN sh -c 'echo "deb [arch=amd64,arm64] http://repo.ros2.org/ubuntu/main \
+`lsb_release -cs` main" > /etc/apt/sources.list.d/ros2-latest.list'
+RUN apt-get update
+
+# numpy --> required for python message_idl_generation
+RUN apt-get update && apt-get install -y python3-numpy
+RUN ln -s /usr/lib/python3/dist-packages/numpy/core/include/numpy /usr/include/numpy
+
+# install eigen (required for orocos-kdl and tf2) and tinyxml
+RUN apt-get update && apt-get install -y \
+  libeigen3-dev \
+  libtinyxml-dev
+
+# transform absolute simbolic links into relative ones
+RUN apt-get install -y symlinks && symlinks -cr /lib /etc /opt /usr
