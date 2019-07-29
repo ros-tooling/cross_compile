@@ -49,9 +49,7 @@ RUN apt-get update && apt-get install -y \
   python3-numpy
 
 RUN pip3 install -U \
-  argcomplete \
-  git+https://github.com/lark-parser/lark.git@0.7d
-
+  argcomplete
 
 ###### ADDITIONAL SCRIPTS AND ENVIRONMENT VARIABLES
 
