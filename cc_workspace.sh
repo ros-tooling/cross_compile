@@ -28,8 +28,8 @@ THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 
 WORKSPACE_PATH=$1
 SYSROOT_PATH="$THIS_DIR/sysroots/$TARGET_ARCHITECTURE"
-TOOLCHAIN_PATH="$THIS_DIR/toolchains/generic_linux.cmake"
-TOOLCHAIN_VARIABLES_PATH="$THIS_DIR/toolchains/"$TARGET_ARCHITECTURE".sh"
+TOOLCHAIN_PATH="$THIS_DIR/cmake-toolchains/generic_linux.cmake"
+TOOLCHAIN_VARIABLES_PATH="$THIS_DIR/cmake-toolchains/"$TARGET_ARCHITECTURE".sh"
 
 docker run -it \
     --volume $WORKSPACE_PATH:/root/ws \

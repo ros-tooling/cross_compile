@@ -1,3 +1,14 @@
+# Copyright (c) 2018, ARM Limited.
+# SPDX-License-Identifier: Apache-2.0
+
+if("$ENV{TARGET_ARCH}" STREQUAL "" OR
+   "$ENV{CROSS_COMPILER_C}" STREQUAL "" OR
+   "$ENV{CROSS_COMPILER_CXX}" STREQUAL "" OR
+   "$ENV{SYSROOT}" STREQUAL "" OR
+   "$ENV{PYTHON_SOABI}" STREQUAL "")
+    message(FATAL_ERROR "Target environment variables not defined")
+endif()
+
 set(CMAKE_SYSTEM_NAME Linux)
 set(CMAKE_SYSTEM_VERSION 1)
 set(CMAKE_SYSTEM_PROCESSOR $ENV{TARGET_ARCH})
@@ -23,7 +34,13 @@ set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 # Specify the python SOABI
 set(PYTHON_SOABI $ENV{PYTHON_SOABI})
 
+if(NOT TARGET Qt5::moc)
+  set(QT_MOC_EXECUTABLE /usr/bin/moc)
+  add_executable(Qt5::moc IMPORTED)
+  set_property(TARGET Qt5::moc PROPERTY IMPORTED_LOCATION ${QT_MOC_EXECUTABLE})
+endif()
+
 # This assumes that pthread will be available on the target system
 # (this emulates that the return of the TRY_RUN is a return code "0")
 set(THREADS_PTHREAD_ARG "0"
-    CACHE STRING "Result from TRY_RUN" FORCE)
+  CACHE STRING "Result from TRY_RUN" FORCE)

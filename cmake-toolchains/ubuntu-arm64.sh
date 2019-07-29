@@ -6,5 +6,5 @@ export CROSS_COMPILER_CXX="aarch64-linux-gnu-g++"
 export SYSROOT="/root/sysroot"
 export PYTHON_SOABI="cpython-36m-aarch64-linux-gnu"
 
-export TARGET_C_FLAGS="-O2"
-export TARGET_CXX_FLAGS="-O2"
+export TARGET_C_FLAGS="-O2 -Wl,-rpath-link=/root/ws/install/lib"
+export TARGET_CXX_FLAGS="-O2 -Wl,-rpath-link=/root/ws/install/lib"

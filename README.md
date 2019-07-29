@@ -176,7 +176,7 @@ For example, if you want to add a target named `my_architecture` you need the fo
     ```
 
     Then it has only to install the compiler for your architecure.
- - A bash script that sets compilation flags for the toolchain named `toolchains/my_architecture.sh`
+ - A bash script that sets compilation flags for the toolchain named `cmake-toolchains/my_architecture.sh`
  - A sysroot named `sysroots/my_architecture` or a script `sysroots/my_architecture_get_sysroot.sh` to generate it.
 
 
