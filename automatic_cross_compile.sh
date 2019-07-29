@@ -7,58 +7,55 @@
 # Check that all variables are defined before start
 if [[ -z "$TARGET" || -z "$ROS2_DISTRO" ]]
 then
-  echo "Error: environmental variables are not defined!"
+  echo "Error: environment variables are not defined!"
   echo "Set values to: TARGET / ROS2_DISTRO"
   exit 1
 fi
 
 THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
-export BASE_DIR="$(dirname "$(pwd)")"
 
-# Prepare cross-compiling environment
-source $THIS_DIR/env.sh $TARGET
+# Ensure that the cross-compilation environment is built and up-to-date
+BUILD_SCRIPT=$THIS_DIR/build.sh
+bash $BUILD_SCRIPT
+
+# Prepare cross-compilation environment
+SOURCE_SCRIPT=$THIS_DIR/env.sh
+source $SOURCE_SCRIPT $TARGET
 
 # Get sysroot
-bash $THIS_DIR/get_sysroot.sh
+SYSROOT_SCRIPT=$THIS_DIR/get_sysroot.sh
+bash $SYSROOT_SCRIPT
 
 # Remove ROS2 old cross-compilation workspace and get a new one
-cd $BASE_DIR
-sudo rm -rf ros2_cc_ws
-mkdir -p ros2_cc_ws/src
-cd ros2_cc_ws
-wget https://raw.githubusercontent.com/ros2/ros2/"$ROS2_DISTRO"/ros2.repos
-vcs import src < ros2.repos
+CC_WS_DIR=~/ros2_cc_ws
+sudo rm -rf $CC_WS_DIR
+mkdir -p $CC_WS_DIR/src
+wget -O $CC_WS_DIR/ros2.repos https://raw.githubusercontent.com/ros2/ros2/"$ROS2_DISTRO"/ros2.repos
+vcs import $CC_WS_DIR/src < $CC_WS_DIR/ros2.repos
+echo "Created CC_WS_DIR=$CC_WS_DIR"
 
 # Get HEAD of branch
 HEAD=$(git ls-remote git://github.com/ros2/ros2 "$ROS2_DISTRO" | cut -c1-7)
 
 # Create install directory for the cross-compilation results
-RESULTS_DIR=$BASE_DIR/install/"$ROS2_DISTRO"_"$HEAD"_"$TARGET"
-echo "Create RESULTS_DIR=$RESULTS_DIR"
+RESULTS_DIR=~/ros2_install/"$ROS2_DISTRO"_"$HEAD"_"$TARGET"
 mkdir -p $RESULTS_DIR
+echo "Created RESULTS_DIR=$RESULTS_DIR"
 
-# Save the current packages versions and check if any changes
-ROS2_SRCS_HEADS=$RESULTS_DIR/ros2.repos.by_commit
-ROS2_SRCS_HEADS_PREV_RUN=$BASE_DIR/ros2_srcs_prev_run_"$TARGET"_"$ROS2_DISTRO".txt
-
-vcs export --exact src > $ROS2_SRCS_HEADS
-
-if [ -f $ROS2_SRCS_HEADS_PREV_RUN ]; then
-  diff -y  $ROS2_SRCS_HEADS $ROS2_SRCS_HEADS_PREV_RUN > $RESULTS_DIR/diff_ros2_versions.txt
-fi
-cp -R $ROS2_SRCS_HEADS $ROS2_SRCS_HEADS_PREV_RUN
-
+# Save the current packages versions
+ROS2_EXACT_REPOS_FILE=$RESULTS_DIR/ros2_exact.repos
+vcs export --exact $CC_WS_DIR/src > $ROS2_EXACT_REPOS_FILE
 
 # Cross-compiling ROS2
-cd $BASE_DIR
-IGNORE_SCRIPT=cross-compiling/ignore_pkgs.sh
-bash $IGNORE_SCRIPT $BASE_DIR/ros2_cc_ws $ROS2_DISTRO
+IGNORE_SCRIPT=$THIS_DIR/ignore_pkgs.sh
+bash $IGNORE_SCRIPT $CC_WS_DIR $ROS2_DISTRO
 
 # Run the cross-compilation and check the return code
-CC_CMD="bash cross-compiling/cc_workspace.sh $BASE_DIR/ros2_cc_ws"
+CC_SCRIPT=$THIS_DIR/cc_workspace.sh
+CC_CMD="bash $CC_SCRIPT $CC_WS_DIR"
 if $CC_CMD; then
-  # If the build was succesful, copy results to store as artifact
-  cp -r $BASE_DIR/ros2_cc_ws/install $RESULTS_DIR
+  # If the build was succesful, copy results to specified directory
+  cp -r $CC_WS_DIR/install $RESULTS_DIR
 else
   exit 1
 fi
