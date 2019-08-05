@@ -12,10 +12,13 @@ The supported ROS2 distributions are:
  - `crystal`
  - `dashing`
 
-The supported architectures are:
+The supported target architectures are:
 
  - `raspbian`
  - `ubuntu-arm64`
+
+
+**NOTE:** Raspbian cross-compilation is supported only for ARMv7 and ARMv8 targets. This means that Raspberry Pi Zero and Raspberry Pi 1 are **not** supported since they have an ARMv6 CPU. In order to add support for these targets it's necessary to use a different toolchain from the one provided.
 
 ## Requirements
 
