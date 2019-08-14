@@ -31,6 +31,13 @@ SYSROOT_PATH="$THIS_DIR/sysroots/$TARGET_ARCHITECTURE"
 TOOLCHAIN_PATH="$THIS_DIR/cmake-toolchains/generic_linux.cmake"
 TOOLCHAIN_VARIABLES_PATH="$THIS_DIR/cmake-toolchains/"$TARGET_ARCHITECTURE".sh"
 
+if [ ! -e "$SYSROOT_PATH" ]; then
+    echo "Target sysroot expected at $SYSROOT_PATH but not found. Please run first"
+    echo "bash get_sysroot.sh"
+    echo "Or manually place a sysroot at $SYSROOT_PATH"
+    exit 1;
+fi
+
 docker run -it \
     --volume $WORKSPACE_PATH:/root/ws \
     --volume $SYSROOT_PATH:/root/sysroot \

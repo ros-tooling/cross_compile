@@ -1,8 +1,13 @@
+#!/bin/bash
+
 # This script is intended to be used by the Jenkins night builds.
 # But it still possible to use manually setting up this variables:
 #
-# TARGET=[raspbian]
-# ROS2_DISTRO=[ardent,bouncy,crystal,master,...]
+# TARGET=[raspbian, ...]
+# ROS2_DISTRO=[ardent,bouncy,crystal,master, ...]
+
+# Any subsequent command which fail will cause the script to exit
+set -e
 
 # Check that all variables are defined before start
 if [[ -z "$TARGET" || -z "$ROS2_DISTRO" ]]
@@ -34,7 +39,7 @@ wget -O $CC_WS_DIR/ros2.repos https://raw.githubusercontent.com/ros2/ros2/"$ROS2
 vcs import $CC_WS_DIR/src < $CC_WS_DIR/ros2.repos
 echo "Created CC_WS_DIR=$CC_WS_DIR"
 
-# Get HEAD of branch
+# Get short SHA of HEAD for the corresponding branch
 HEAD=$(git ls-remote git://github.com/ros2/ros2 "$ROS2_DISTRO" | cut -c1-7)
 
 # Create install directory for the cross-compilation results

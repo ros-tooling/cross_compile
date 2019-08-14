@@ -87,7 +87,7 @@ Create a ROS2 workspace containing the sources you need
     wget https://raw.githubusercontent.com/ros2/ros2/crystal/ros2.repos
     vcs import src < ros2.repos
 
-Ignore some packages and python dependencies (note that there is a different script for each distribution you want to  cross-compile)
+Ignore some packages and python dependencies (note that there is a different script for each distribution you want to cross-compile)
 
     cd -
     bash ignore_pkgs.sh ~/ros2_cc_ws crystal
@@ -101,9 +101,12 @@ The provided workspace will be mounted as a volume and it will be populated with
 #### Install
 
 Copy the `install/lib` directory from the cross-compiled SDK to your target system.
+
+Prefer using `rsync` over `scp` to copy files since the latter may stall when dealing with large amount of files or with slow connections. For example,
+
 ```
 cd ~/ros2_cc_ws
-scp -r install/lib user@address:~/ros2_crystal
+rsync -avz --progress install/lib user@address:~/ros2_crystal
 ```
 
 ## Cross-compile ROS2 workspaces
@@ -148,14 +151,12 @@ The provided workspace will be mounted as a volume and it will be populated with
 
 Copy the `install/lib` directory from the cross-compiled workspace to your target system.
 
-Prefer using `rsync` to copy over files since `scp` fails randomly. For example,
-
 ```
 cd ~/my_ros2_cc_ws
-scp -r install/lib user@address:~/ros2_crystal
+rsync -avz --progress install/lib user@address:~/ros2_crystal
 ```
 
-Note that if you place the libraries in a place different from the `usr/lib` directory, you will have to specify export their path.
+Note that if you place the libraries in a place different from the `/usr/lib` directory, you will have to specify export their path.
 For example:
 
     export LD_LIBRARY_PATH=~/ros2_crystal:$LD_LIBRARY_PATH

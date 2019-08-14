@@ -8,7 +8,20 @@ WORKDIR $HOME
 
 # python3.6 dependencies
 RUN apt-get update && apt-get install -y \
-  build-essential tk-dev libncurses5-dev libncursesw5-dev libreadline6-dev libdb5.3-dev libgdbm-dev libsqlite3-dev libssl-dev libbz2-dev libexpat1-dev liblzma-dev zlib1g-dev
+  build-essential \
+  tk-dev \
+  libncurses5-dev \
+  libncursesw5-dev \
+  libreadline6-dev \
+  libdb5.3-dev \
+  libgdbm-dev \
+  libsqlite3-dev \
+  libssl-dev \
+  libbz2-dev \
+  libexpat1-dev \
+  liblzma-dev \
+  zlib1g-dev
+
 # build python3.6
 RUN wget https://www.python.org/ftp/python/3.6.5/Python-3.6.5.tar.xz
 RUN tar xf Python-3.6.5.tar.xz
@@ -30,5 +43,5 @@ RUN apt-get update && apt-get install -y \
 RUN apt-get update && apt-get install -y python3-numpy
 RUN ln -s /usr/lib/python3/dist-packages/numpy/core/include/numpy /usr/include/numpy
 
-# transform absolute simbolic links into relative ones
+# transform absolute symbolic links into relative ones
 RUN apt-get install -y symlinks && symlinks -cr /lib /etc /opt /usr
