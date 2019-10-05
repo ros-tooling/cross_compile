@@ -22,38 +22,30 @@ There are several solutions to this problem and not all may work depending on yo
 
  - SOLUTION 1
 
-        ```
         sudo apt-get install qemu-user-static
         sudo systemctl restart systemd-binfmt.service
-        ```
+
 
  - SOLUTION 2 
 
-        ```
-	git clone https://github.com/computermouth/qemu-static-conf.git
-	sudo mkdir -p /lib/binfmt.d
-	sudo cp qemu-static-conf/*.conf /lib/binfmt.d/
-	sudo systemctl restart systemd-binfmt.service
-        ```
+		git clone https://github.com/computermouth/qemu-static-conf.git
+		sudo mkdir -p /lib/binfmt.d
+		sudo cp qemu-static-conf/*.conf /lib/binfmt.d/
+		sudo systemctl restart systemd-binfmt.service
+
 
  - SOLUTION 3
   	This solution has to be repeated for each Dockerfile 
 
-	```
-	cd <Dockerfile_directory>
-	sudo apt-get install qemu-user-static
-	mkdir qemu-user-static
-	cp /usr/bin/qemu-*-static qemu-user-static
-	```
+		cd <Dockerfile_directory>
+		sudo apt-get install qemu-user-static
+		mkdir qemu-user-static
+		cp /usr/bin/qemu-*-static qemu-user-static
+
 
 	Then add a line to your Dockerfile, immediately after the `FROM` command and before any other instruction.
 
-	```
-	COPY qemu-arm-static /usr/bin
-	```
-
-
-
+		COPY qemu-arm-static /usr/bin
 
 ## Cross-compilation issues
 
