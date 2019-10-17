@@ -16,6 +16,7 @@
 
 import logging
 import os
+from pathlib import Path
 import re
 import shutil
 from string import Template
@@ -23,7 +24,6 @@ import subprocess
 import tarfile
 import tempfile
 from typing import Dict
-from pathlib import Path
 
 import docker
 
