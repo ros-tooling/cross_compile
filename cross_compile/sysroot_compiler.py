@@ -14,8 +14,8 @@
 
 """Contains all classes used by the sysroot_compiler.py script."""
 
-import logging
 import os
+import logging
 from pathlib import Path
 import re
 import shutil

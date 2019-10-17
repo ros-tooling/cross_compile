@@ -1,0 +1,28 @@
+#!/bin/bash
+
+mkdir -p ~/ros2_latest_cross_compile_ws/src
+cd ~/ros2_latest_cross_compile_ws || exit 1
+curl https://raw.githubusercontent.com/ros2/ros2/master/ros2.repos | vcs import src/
+
+if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+  BRANCH=$TRAVIS_BRANCH
+else
+  BRANCH=$TRAVIS_PULL_REQUEST_BRANCH
+fi
+
+# The repo file for the repository needs to be generated on-the-fly to incorporate the
+# custom repository URL and branch name, when a PR is being built.
+vcs import src/ << EOF
+repositories:
+  cross_compile:
+    type: git
+    url: "https://github.com/${TRAVIS_REPO_SLUG}.git"
+    version: "${BRANCH}"
+EOF
+
+# RTI_NC_LICENSE_ACCEPTED avoids the interactive prompt asking to accept the RTI Connext license.
+# For "latest" builds, rosdep often misses some keys, adding "|| true", to
+# ignore those failures, as it is often non-critical.
+RTI_NC_LICENSE_ACCEPTED=yes rosdep install -r --from-paths src --ignore-src --rosdistro eloquent -y || true
+colcon build --event-handlers console_cohesion+ --packages-up-to cross_compile --symlink-install
+colcon test --event-handlers console_cohesion+ --packages-select cross_compile --return-code-on-test-failure
