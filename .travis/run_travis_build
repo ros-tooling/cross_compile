@@ -1,12 +1,12 @@
 #!/bin/bash
-python3 -m pip install \
-    flake8-blind-except \
-    flake8-builtins \
-    flake8-class-newline \
-    flake8-comprehensions \
-    flake8-deprecated \
-    flake8-import-order \
-    flake8-quotes
+# python3 -m pip install \
+#     flake8-blind-except \
+#     flake8-builtins \
+#     flake8-class-newline \
+#     flake8-comprehensions \
+#     flake8-deprecated \
+#     flake8-import-order \
+#     flake8-quotes
 
 mkdir -p ~/ros2_latest_cross_compile_ws/src
 cd ~/ros2_latest_cross_compile_ws || exit 1
