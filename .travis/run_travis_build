@@ -1,13 +1,4 @@
 #!/bin/bash
-python3 -m pip install \
-    flake8-blind-except \
-    flake8-builtins \
-    flake8-class-newline \
-    flake8-comprehensions \
-    flake8-deprecated \
-    flake8-import-order \
-    flake8-quotes
-
 mkdir -p ~/ros2_latest_cross_compile_ws/src
 cd ~/ros2_latest_cross_compile_ws || exit 1
 curl https://raw.githubusercontent.com/ros2/ros2/master/ros2.repos | vcs import src/
@@ -32,5 +23,15 @@ EOF
 # For "latest" builds, rosdep often misses some keys, adding "|| true", to
 # ignore those failures, as it is often non-critical.
 RTI_NC_LICENSE_ACCEPTED=yes rosdep install -r --from-paths src --ignore-src --rosdistro eloquent -y || true
+python3 -m pip install \
+    wheel \
+    flake8-blind-except \
+    flake8-builtins \
+    flake8-class-newline \
+    flake8-comprehensions \
+    flake8-deprecated \
+    flake8-import-order \
+    flake8-quotes
+
 colcon build --event-handlers console_cohesion+ --packages-up-to cross_compile --symlink-install
 colcon test --event-handlers console_direct+ --packages-select cross_compile --return-code-on-test-failure
