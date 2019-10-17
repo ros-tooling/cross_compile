@@ -29,6 +29,9 @@ script:
 - mkdir -p ~/ros2_latest_cross_compile_ws/src
 - cd ~/ros2_latest_cross_compile_ws
 - curl https://raw.githubusercontent.com/ros2/ros2/master/ros2.repos | vcs import src/
+# Travis doesn't automatically switch between $TRAVIS_BRANCH and $TRAVIS_PULL_REQUEST_BRANCH
+# so we explicitly state which branch to use in the CI run.
+- BRANCH=$(if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then echo $TRAVIS_BRANCH; else echo $TRAVIS_PULL_REQUEST_BRANCH; fi)
 # The repo file for the repository needs to be generated on-the-fly to incorporate the
 # custom repository URL and branch name, when a PR is being built.
 - |
@@ -37,7 +40,7 @@ script:
     cross_compile:
       type: git
       url: "https://github.com/${TRAVIS_REPO_SLUG}.git"
-      version: "${TRAVIS_BRANCH}"
+      version: "${BRANCH}"
   EOF
 # RTI_NC_LICENSE_ACCEPTED avoids the interactive prompt asking to accept the
 # RTI Connext license.
