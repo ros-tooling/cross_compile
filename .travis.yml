@@ -21,10 +21,11 @@ branches:
   only:
   - master
   - dashing-devel
-cache: apt
+cache:
+  apt: true
+  pip: true
 dist: bionic
 language: generic
 script:
-  - ls
   - bash ./.travis/run_travis_build
 sudo: true

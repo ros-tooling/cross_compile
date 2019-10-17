@@ -1,4 +1,12 @@
 #!/bin/bash
+python3 -m pip install \
+    flake8-blind-except \
+    flake8-builtins \
+    flake8-class-newline \
+    flake8-comprehensions \
+    flake8-deprecated \
+    flake8-import-order \
+    flake8-quotes
 
 mkdir -p ~/ros2_latest_cross_compile_ws/src
 cd ~/ros2_latest_cross_compile_ws || exit 1
@@ -10,9 +18,6 @@ else
   BRANCH=$TRAVIS_PULL_REQUEST_BRANCH
 fi
 
-echo "HEllo I am the travis script and I want to build $BRANCH"
-echo "I think that TRAVIS_BRANCH is $TRAVIS_BRANCH and pr branh is $TRAVIS_PULL_REQUEST_BRANCH"
-
 # The repo file for the repository needs to be generated on-the-fly to incorporate the
 # custom repository URL and branch name, when a PR is being built.
 vcs import src/ << EOF
@@ -23,15 +28,9 @@ repositories:
     version: "${BRANCH}"
 EOF
 
-cd src/cross_compile || exit 1
-git branch
-
-echo "And there it is"
-exit 1
-
 # RTI_NC_LICENSE_ACCEPTED avoids the interactive prompt asking to accept the RTI Connext license.
 # For "latest" builds, rosdep often misses some keys, adding "|| true", to
 # ignore those failures, as it is often non-critical.
 RTI_NC_LICENSE_ACCEPTED=yes rosdep install -r --from-paths src --ignore-src --rosdistro eloquent -y || true
 colcon build --event-handlers console_cohesion+ --packages-up-to cross_compile --symlink-install
-colcon test --event-handlers console_cohesion+ --packages-select cross_compile --return-code-on-test-failure
+colcon test --event-handlers console_direct+ --packages-select cross_compile --return-code-on-test-failure
