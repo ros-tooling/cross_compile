@@ -14,14 +14,13 @@
 
 """Contains all classes used by the sysroot_compiler.py script."""
 
+import logging
 import os
-import logging  # out of order - a flake8-import-order violation
 from pathlib import Path
 import re
 import shutil
 from string import Template
 import subprocess
-import sys  # unused - a flake8 core violation
 import tarfile
 import tempfile
 from typing import Dict
