@@ -10,6 +10,9 @@ else
   BRANCH=$TRAVIS_PULL_REQUEST_BRANCH
 fi
 
+echo "HEllo I am the travis script and I want to build $BRANCH"
+echo "I think that TRAVIS_BRANCH is $TRAVIS_BRANCH and pr branh is $TRAVIS_PULL_REQUEST_BRANCH"
+
 # The repo file for the repository needs to be generated on-the-fly to incorporate the
 # custom repository URL and branch name, when a PR is being built.
 vcs import src/ << EOF
@@ -19,6 +22,12 @@ repositories:
     url: "https://github.com/${TRAVIS_REPO_SLUG}.git"
     version: "${BRANCH}"
 EOF
+
+cd src/cross_compile || exit 1
+git branch
+
+echo "And there it is"
+exit 1
 
 # RTI_NC_LICENSE_ACCEPTED avoids the interactive prompt asking to accept the RTI Connext license.
 # For "latest" builds, rosdep often misses some keys, adding "|| true", to
