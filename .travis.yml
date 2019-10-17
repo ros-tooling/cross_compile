@@ -25,5 +25,6 @@ cache: apt
 dist: bionic
 language: generic
 script:
-  - bash ./travis/run_travis_build
+  - ls
+  - bash ./.travis/run_travis_build
 sudo: true
