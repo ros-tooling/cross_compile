@@ -12,51 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
-import sys
-from pathlib import Path
-
-from flake8 import LOG
-from flake8.api.legacy import get_style_guide
+from ament_flake8.main import main
+import pytest
 
 
-# Avoid debug and info messages from flake8 internals
-LOG.setLevel(logging.WARN)
-
-
+@pytest.mark.flake8
+@pytest.mark.linter
 def test_flake8():
-    style_guide = get_style_guide(
-        extend_ignore=['D100', 'D104'],
-        show_source=True,
-    )
-    style_guide_tests = get_style_guide(
-        extend_ignore=['D100', 'D101', 'D102', 'D103', 'D104', 'D105', 'D107'],
-        show_source=True,
-    )
-
-    stdout = sys.stdout
-    sys.stdout = sys.stderr
-
-    report = style_guide.check_files([
-        str(Path(__file__).parents[1] / 'cross_compile'),
-    ])
-    report_tests = style_guide_tests.check_files([
-        str(Path(__file__).parents[1] / 'test'),
-    ])
-    sys.stdout = stdout
-
-    total_errors = report.total_errors + report_tests.total_errors
-    if total_errors:
-        # Output summary with per-category counts
-        print()
-        if report.total_errors:
-            report._application.formatter.show_statistics(report._stats)
-        if report_tests.total_errors:
-            report_tests._application.formatter.show_statistics(
-                report_tests._stats)
-        print(
-            'flake8 reported {total_errors} errors'
-            .format_map(locals()), file=sys.stderr)
-
-    assert not report.total_errors, \
-        'flake8 reported {total_errors} errors'.format_map(locals())
+    rc = main(argv=[])
+    assert rc == 0, 'Found errors'
