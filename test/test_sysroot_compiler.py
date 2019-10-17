@@ -26,7 +26,6 @@ from cross_compile.sysroot_compiler import Platform
 from cross_compile.sysroot_compiler import QEMU_DIR_NAME
 from cross_compile.sysroot_compiler import SYSROOT_DIR_NAME
 from cross_compile.sysroot_compiler import SysrootCompiler
-
 import pytest
 
 
@@ -66,9 +65,9 @@ def setup_mock_sysroot(path: Path) -> Tuple[Path, Path]:
     qemu_dir = sysroot_dir / QEMU_DIR_NAME
     qemu_dir.mkdir()
     qemu_binary_mock = qemu_dir / 'qemu'
-    qemu_binary_mock.touch()
+    qemu_binary_mock.ensure()
     docker_ws_dir = sysroot_dir / DOCKER_WS_NAME
-    docker_ws_dir.touch()
+    docker_ws_dir.ensure()
     return sysroot_dir, ros_workspace_dir
 
 
@@ -95,10 +94,10 @@ def test_docker_config_args(docker_config):
 
 
 def test_sysroot_compiler_constructor(
-        platform_config, docker_config, tmp_path):
+        platform_config, docker_config, tmpdir):
     """Test the SysrootCompiler constructor assuming valid path setup."""
     # Create mock directories and files
-    sysroot_dir, ros_workspace_dir = setup_mock_sysroot(tmp_path)
+    sysroot_dir, ros_workspace_dir = setup_mock_sysroot(tmpdir)
     sysroot_compiler = SysrootCompiler(
         str(sysroot_dir), str(ros_workspace_dir), platform_config,
         docker_config)
@@ -107,22 +106,22 @@ def test_sysroot_compiler_constructor(
     assert isinstance(sysroot_compiler .get_system_setup_script_path(), Path)
 
 
-def test_write_cc_build_setup_file(platform_config, docker_config, tmp_path):
+def test_write_cc_build_setup_file(platform_config, docker_config, tmpdir):
     """Check if the build setup file was written to directory."""
-    sysroot_dir, ros_workspace_dir = setup_mock_sysroot(tmp_path)
+    sysroot_dir, ros_workspace_dir = setup_mock_sysroot(tmpdir)
     sysroot_compiler = SysrootCompiler(
-        str(tmp_path), str(ros_workspace_dir), platform_config, docker_config)
+        str(tmpdir), str(ros_workspace_dir), platform_config, docker_config)
     setup_script_path = sysroot_compiler._write_cc_build_setup_script()
 
     assert isinstance(setup_script_path, Path)
     assert setup_script_path.exists() is True
 
 
-def test_write_cc_system_setup_file(platform_config, docker_config, tmp_path):
+def test_write_cc_system_setup_file(platform_config, docker_config, tmpdir):
     """Check if the system setup file was written to directory."""
-    sysroot_dir, ros_workspace_dir = setup_mock_sysroot(tmp_path)
+    sysroot_dir, ros_workspace_dir = setup_mock_sysroot(tmpdir)
     sysroot_compiler = SysrootCompiler(
-        str(tmp_path), str(ros_workspace_dir), platform_config, docker_config)
+        str(tmpdir), str(ros_workspace_dir), platform_config, docker_config)
     setup_script_path = sysroot_compiler._write_cc_system_setup_script()
 
     assert isinstance(setup_script_path, Path)

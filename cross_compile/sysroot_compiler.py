@@ -16,13 +16,13 @@
 
 import logging
 import os
+from pathlib import Path
 import re
 import shutil
+from string import Template
 import subprocess
 import tarfile
 import tempfile
-from pathlib import Path
-from string import Template
 from typing import Dict
 
 
