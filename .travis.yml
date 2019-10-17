@@ -40,7 +40,7 @@ script:
     cross_compile:
       type: git
       url: "https://github.com/${TRAVIS_REPO_SLUG}.git"
-      version: "${BRANCH}"
+      version: "${TRAVIS_PULL_REQUEST_BRANCH}"
   EOF
 # RTI_NC_LICENSE_ACCEPTED avoids the interactive prompt asking to accept the
 # RTI Connext license.
