@@ -2,8 +2,8 @@
 Changelog for package cross_compile
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.1 (2019-10-18)
+------------------
 * Remove non-portable use of USER environment variable (`#25 <https://github.com/ros-tooling/cross_compile/issues/25>`_)
 * Add travis configuration to build master and PRs (`#23 <https://github.com/ros-tooling/cross_compile/issues/23>`_)
 * Contributors: Emerson Knapp, Prajakta Gokhale
