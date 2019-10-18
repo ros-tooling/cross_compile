@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
+
 from ament_flake8.main import main
 import pytest
 
@@ -19,5 +21,6 @@ import pytest
 @pytest.mark.flake8
 @pytest.mark.linter
 def test_flake8():
+    logging.getLogger('flake8').setLevel(logging.INFO)
     rc = main(argv=[])
     assert rc == 0, 'Found errors'

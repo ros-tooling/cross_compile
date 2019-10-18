@@ -15,7 +15,7 @@
 
 """Unit tests for the `create_cc_sysroot.py` script."""
 
-import os
+import getpass
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Tuple
@@ -74,7 +74,7 @@ def setup_mock_sysroot(path: Path) -> Tuple[Path, Path]:
 def test_get_workspace_image_tag(platform_config):
     """Make sure the image tag is created correctly."""
     image_tag = platform_config.get_workspace_image_tag()
-    test_tag = '{}/{}:latest'.format(os.getenv('USER'), str(platform_config))
+    test_tag = '{}/{}:latest'.format(getpass.getuser(), str(platform_config))
     assert isinstance(image_tag, str)
     assert image_tag == test_tag
 
