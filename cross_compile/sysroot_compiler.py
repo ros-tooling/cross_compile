@@ -14,6 +14,7 @@
 
 """Contains all classes used by the sysroot_compiler.py script."""
 
+import getpass
 import logging
 import os
 from pathlib import Path
@@ -116,7 +117,7 @@ class Platform:
 
     def get_workspace_image_tag(self) -> str:
         """Generate docker image name and tag."""
-        return os.getenv('USER') + '/' + str(self) + ':latest'
+        return getpass.getuser() + '/' + str(self) + ':latest'
 
 
 class DockerConfig:
