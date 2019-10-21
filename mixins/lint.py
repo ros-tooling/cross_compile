@@ -13,7 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Lint the index.yaml file as well as all files ending with .mixin.
+"""
+Lint the index.yaml file as well as all files ending with .mixin.
 
 Taken from https://github.com/colcon/colcon-mixin-repository.
 Modified for the AWS mixins repository.
