@@ -90,7 +90,8 @@ logger = logging.getLogger(__name__)
 
 
 class Platform:
-    """A class that represents platform specification for cross compiling.
+    """
+    A class that represents platform specification for cross compiling.
 
     Includes:
     1. Target architecture
@@ -121,7 +122,8 @@ class Platform:
 
 
 class DockerConfig:
-    """Represents docker build parameters used in creating sysroot.
+    """
+    Represents docker build parameters used in creating sysroot.
 
     Includes:
     1. Base docker image to use for building sysroot
@@ -162,7 +164,8 @@ class SysrootCompiler:
       ros_workspace_dir: str,
       platform: Platform,
       docker_config: DockerConfig) -> None:
-        """Construct a SysrootCompiler object building ROS 2 Docker container.
+        """
+        Construct a SysrootCompiler object building ROS 2 Docker container.
 
         :param cc_root_dir: The directory containing the 'sysroot' directory
                             with the ROS2 workspace and QEMU binaries.
@@ -211,7 +214,8 @@ class SysrootCompiler:
         return self._build_setup_script_path
 
     def _setup_sysroot_dir(self) -> None:
-        """Check to make sure the sysroot directory is setup correctly.
+        """
+        Check to make sure the sysroot directory is setup correctly.
 
         Raises FileNotFoundError's if any of the components necessary for
         cross compilation is missing. Copies the Dockerfile_workspace to the

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-"""Lint the index.yaml file as well as all files ending with .mixin.
+"""
+Lint the index.yaml file as well as all files ending with .mixin.
 
 Taken from https://github.com/colcon/colcon-mixin-repository.
 Modified for the AWS mixins repository.
