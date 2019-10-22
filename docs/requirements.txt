@@ -1,0 +1,6 @@
+# Install ROS 2 dependencies using pip to help sphinx generate documentation API
+# This should *not* be used with the intent of actually running the software, colcon should
+# be used in this case.
+git+https://github.com/ament/ament_index.git#egg=ament_index_python&subdirectory=ament_index_python
+git+https://github.com/ros2/launch.git#egg=launch&subdirectory=launch
+sphinx-markdown-tables
