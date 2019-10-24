@@ -21,3 +21,7 @@ jobs:
     - uses: ros-tooling/action-ros2-ci@0.0.4
       with:
         package-name: cross_compile
+    - uses: actions/upload-artifact@master
+      with:
+        name: colcon-logs
+        path: ros2_ws/log
