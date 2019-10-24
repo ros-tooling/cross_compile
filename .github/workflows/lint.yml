@@ -11,8 +11,8 @@ jobs:
           linter: [copyright, flake8, pep257]
     steps:
     - uses: actions/checkout@v1
-    - uses: ros-tooling/setup-ros2@0.0.4
-    - uses: ros-tooling/action-ros2-lint@0.0.2
+    - uses: ros-tooling/setup-ros2@0.0.5
+    - uses: ros-tooling/action-ros2-lint@0.0.3
       with:
         linter: ${{ matrix.linter }}
         package-name: cross_compile
