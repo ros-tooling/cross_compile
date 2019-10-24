@@ -11,9 +11,13 @@ on:
 
 jobs:
   build_and_test:
-    runs-on: ubuntu-18.04
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+          os: [macOS-10.14, ubuntu-18.04]
     steps:
-    - uses: ros-tooling/setup-ros2@0.0.4
-    - uses: ros-tooling/action-ros2-ci@0.0.3
+    - uses: ros-tooling/setup-ros2@0.0.5
+    - uses: ros-tooling/action-ros2-ci@0.0.4
       with:
         package-name: cross_compile
