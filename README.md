@@ -18,14 +18,16 @@ The following instructions have been tested on Ubuntu Xenial (16.04) and Bionic 
 # Install cross compilation toolchain
 sudo apt-get update
 sudo apt-get install -y build-essential cmake git wget curl lsb-core bash-completion \
-    qemu-user-static g++-aarch64-linux-gnu g++-arm-linux-gnueabihf python3-pip htop
+    qemu-user-static python3-pip htop g++-arm-linux-gnueabihf 
+# If you are on a non-arm system
+sudo apt-get install g++-aarch64-linux-gnu 
 sudo python3 -m pip install -U  colcon-common-extensions rosdep vcstool
 
 # Also install docker and make it available to the current user
 sudo apt-get install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
 sudo apt-key fingerprint 0EBFCD88
-sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+sudo add-apt-repository "deb [arch=amd64,arm64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
 sudo apt-get update
 sudo apt-get install -y docker-ce
 sudo usermod -aG docker $USER
@@ -52,14 +54,17 @@ curl https://raw.githubusercontent.com/ros-tooling/cross_compile/master/cross_co
 # Install all required system dependencies
 # Some packages may fail to install, this is expected on an unstable branch,
 # and is generally OK.
+sudo rosdep init
 rosdep update
-rosdep install -r --rosdistro=eloquent --ignore-packages-from-source --from-paths src/
+rosdep install -r -y --rosdistro=eloquent --ignore-packages-from-source --from-paths src/
 
 # Use colcon to compile cross_compile code and all its dependencies
 colcon build --packages-up-to cross_compile
 
 # If you use bash or zsh, source .bash or .zsh, instead of .sh
 source install/local_setup.sh
+# To run the cross compilation script, you will need the ros2cli tools as well
+source /opt/ros/<ros-distro>/setup.sh
 ```
 
 ## Usage
@@ -112,7 +117,9 @@ sysroot/
 Then run the tool:
 
 ```bash
-ros2 run cross_compile cross_compile --arch aarch64 --os ubuntu --sysroot-path /directory/with/sysroot
+ros2 run cross_compile cross_compile --sysroot-path /absolute/path/to/sysroot \
+                                     --arch aarch64 \
+                                     --os ubuntu 
 ```
 
 #### Sample Docker images
