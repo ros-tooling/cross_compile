@@ -20,7 +20,7 @@ sudo apt-get update
 sudo apt-get install -y build-essential cmake git wget curl lsb-core bash-completion \
     qemu-user-static python3-pip htop g++-arm-linux-gnueabihf 
 # If you are on a non-arm system
-sudo apt-get install g++-aarch64-linux-gnu 
+sudo apt-get install -y g++-aarch64-linux-gnu 
 sudo python3 -m pip install -U  colcon-common-extensions rosdep vcstool
 
 # Also install docker and make it available to the current user
