@@ -95,7 +95,7 @@ RUN rosdep install --from-paths src /opt/ros/${ROS_DISTRO}/share \
         urdfdom_headers"
 
 RUN colcon mixin add cc_mixin \
-    https://raw.githubusercontent.com/ros-tooling/cross_compile/cc-sysroot-creator/mixins/index.yaml && \
+    https://raw.githubusercontent.com/ros-tooling/cross_compile/master/mixins/index.yaml && \
     colcon mixin update cc_mixin
 RUN colcon build --mixin ${TARGET_ARCH}-docker
 
