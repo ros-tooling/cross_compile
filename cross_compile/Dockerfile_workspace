@@ -47,6 +47,8 @@ RUN apt update && apt install -y \
     python-rosdep \
     wget
 
+RUN apt install -y symlinks
+
 # Install some pip packages needed for testing
 RUN python3 -m pip install -U \
     argcomplete \
@@ -107,5 +109,4 @@ RUN mkdir -p /root_path/usr \
  && cp -r /usr/lib/gcc/${TARGET_TRIPLE}/7/* /root_path/usr/lib
 
 WORKDIR /
-RUN apt install -y symlinks
 RUN symlinks -rc .
