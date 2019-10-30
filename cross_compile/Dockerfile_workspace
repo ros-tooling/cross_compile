@@ -30,7 +30,7 @@ ENV LANG en_US.UTF-8
 ENV LC_ALL C.UTF-8
 
 # Add the ros2 apt repo
-RUN apt update && apt install -y \
+RUN apt-get update && apt-get install -y \
     curl \
     gnupg2 \
     lsb-release
@@ -39,7 +39,7 @@ RUN sh -c 'echo "deb [arch=amd64,arm64] http://packages.ros.org/ros2/ubuntu `lsb
     > /etc/apt/sources.list.d/ros2-latest.list'
 
 # ROS2 dependencies
-RUN apt update && apt install -y \
+RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
     git \
@@ -47,7 +47,7 @@ RUN apt update && apt install -y \
     python-rosdep \
     wget
 
-RUN apt install -y symlinks
+RUN apt-get install -y symlinks
 
 # Install some pip packages needed for testing
 RUN python3 -m pip install -U \
@@ -72,7 +72,7 @@ RUN python3 -m pip install -U \
     vcstool
 
 # Install Fast-RTPS dependencies
-RUN apt install --no-install-recommends -y \
+RUN apt-get install --no-install-recommends -y \
     libasio-dev \
     libtinyxml2-dev
 
