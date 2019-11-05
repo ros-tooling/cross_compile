@@ -187,7 +187,7 @@ class SysrootCompiler:
             raise TypeError(
                 'Argument `docker_config` must be of type DockerConfig.')
 
-        self._cc_root_dir = Path(cc_root_dir)
+        self._cc_root_dir = Path(cc_root_dir).resolve()
         self._ros_workspace_dir = Path(ros_workspace_dir)
         self._target_sysroot = self._cc_root_dir / SYSROOT_DIR_NAME
         self._ros_ws_directory = self._target_sysroot / self._ros_workspace_dir
