@@ -18,7 +18,7 @@ jobs:
           os: [macOS-10.14, ubuntu-18.04]
     steps:
     - uses: ros-tooling/setup-ros2@0.0.5
-    - uses: ros-tooling/action-ros2-ci@0.0.4
+    - uses: ros-tooling/action-ros2-ci@0.0.5
       with:
         package-name: cross_compile
     - uses: actions/upload-artifact@master
