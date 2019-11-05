@@ -48,7 +48,7 @@ mkdir -p ~/ros2_cross_compile_ws/src
 cd ros2_cross_compile_ws
 
 # Use vcs to clone all required repositories
-curl https://raw.githubusercontent.com/ros2/ros2/dashing/ros2.repos | vcs import src/
+curl https://raw.githubusercontent.com/ros2/ros2/master/ros2.repos | vcs import src/
 curl https://raw.githubusercontent.com/ros-tooling/cross_compile/master/cross_compile.repos | vcs import src/
 
 # Install all required system dependencies
