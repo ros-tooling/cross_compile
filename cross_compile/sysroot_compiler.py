@@ -81,9 +81,9 @@ SYSROOT_NOT_FOUND_ERROR_STRING = Template(
     """sure you specify the full path to the directory containing "sysroot"."""
 )
 
-SYSROOT_DIR_NAME: str = 'sysroot'
-QEMU_DIR_NAME: str = 'qemu-user-static'
-DOCKER_WS_NAME: str = 'Dockerfile_workspace'
+SYSROOT_DIR_NAME = 'sysroot'  # type: str
+QEMU_DIR_NAME = 'qemu-user-static'  # type: str
+DOCKER_WS_NAME = 'Dockerfile_workspace'  # type: str
 DOCKER_CLIENT = docker.from_env()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -131,12 +131,12 @@ class DockerConfig:
     3. Setting to enable/disable caching during docker build
     """
 
-    _default_docker_base_image: Dict[tuple, str] = {
+    _default_docker_base_image = {
         ('armhf', 'ubuntu'): 'arm32v7/ubuntu:bionic',
         ('armhf', 'debian'): 'arm32v7/debian:latest',
         ('aarch64', 'ubuntu'): 'arm64v8/ubuntu:bionic',
         ('aarch64', 'debian'): 'arm64v8/debian:latest',
-    }
+    }  # type: Dict[tuple, str]
 
     def __init__(self, args):
         """Initialize docker configuration."""
