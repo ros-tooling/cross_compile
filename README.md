@@ -76,7 +76,8 @@ context so all these assets need to be copied relative to the `Dockerfile` path.
 
 #### 1. Create the directory structure
 ```bash
-mkdir -p sysroot/{qemu-user-static,ros2_ws/src}
+mkdir -p sysroot/qemu-user-static
+mkdir -p sysroot/ros2_ws/src
 ```
 
 #### 2. Copy the QEMU Binaries
