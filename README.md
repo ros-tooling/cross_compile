@@ -10,28 +10,26 @@ A tool for cross compiling ROS2 packages.
 ### Prerequisites
 
 #### Ubuntu
-
-The cross compilation toolchain and docker have to be installed.
+Qemu and Docker have to be installed for cross_compile to work.
 The following instructions have been tested on Ubuntu Xenial (16.04) and Bionic (18.04).
 
 ```bash
-# Install cross compilation toolchain
-sudo apt-get update
-sudo apt-get install -y build-essential cmake git wget curl lsb-core bash-completion \
-    qemu-user-static python3-pip htop g++-arm-linux-gnueabihf 
-# If you are on a non-arm system
-sudo apt-get install -y g++-aarch64-linux-gnu 
-sudo python3 -m pip install -U  colcon-common-extensions rosdep vcstool
+# Install requirements for Docker and qemu-user-static
+sudo apt update && sudo apt install -y \
+    curl \
+    qemu-user-static
 
-# Also install docker and make it available to the current user
-sudo apt-get install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-sudo apt-key fingerprint 0EBFCD88
-sudo add-apt-repository "deb [arch=amd64,arm64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-sudo apt-get update
-sudo apt-get install -y docker-ce
+# Full instructions on installing Docker may be found here:
+# https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-engine---community
+curl -fsSL https://get.docker.com | sudo sh -
+
+# Allow the current user to invoke Docker CLI.
 sudo usermod -aG docker $USER
-newgrp docker # this reloads the group permissions in the current shell, unnecessary after relogin
+
+# Reload the group permissions in the current shell. Otherwise logout and login again to apply permissions
+newgrp docker
+
+# Verify current user can run Docker
 docker run hello-world
 ```
 
@@ -48,8 +46,8 @@ mkdir -p ~/ros2_cross_compile_ws/src
 cd ros2_cross_compile_ws
 
 # Use vcs to clone all required repositories
-curl https://raw.githubusercontent.com/ros2/ros2/master/ros2.repos | vcs import src/
-curl https://raw.githubusercontent.com/ros-tooling/cross_compile/master/cross_compile.repos | vcs import src/
+curl -fsSL https://raw.githubusercontent.com/ros2/ros2/master/ros2.repos | vcs import src/
+curl -fsSL https://raw.githubusercontent.com/ros-tooling/cross_compile/master/cross_compile.repos | vcs import src/
 
 # Install all required system dependencies
 # Some packages may fail to install, this is expected on an unstable branch,
@@ -59,12 +57,11 @@ rosdep update
 rosdep install -r -y --rosdistro=eloquent --ignore-packages-from-source --from-paths src/
 
 # Use colcon to compile cross_compile code and all its dependencies
-colcon build --packages-up-to cross_compile
+# ros2run is required to run the cross_compile script, but may be installed elsewhere on the host.
+colcon build --packages-up-to cross_compile ros2run
 
 # If you use bash or zsh, source .bash or .zsh, instead of .sh
 source install/local_setup.sh
-# To run the cross compilation script, you will need the ros2cli tools as well
-source /opt/ros/<ros-distro>/setup.sh
 ```
 
 ## Usage
@@ -72,36 +69,29 @@ source /opt/ros/<ros-distro>/setup.sh
 We need to setup a `sysroot` directory for the docker artifacts. Docker can only copy from a specific
 context so all these assets need to be copied relative to the `Dockerfile` path.
 
-#### 1. Copy the QEMU Binaries
+#### 1. Create the directory structure
+```bash
+mkdir -p sysroot/qemu-user-static
+mkdir -p sysroot/ros2_ws/src
+```
+
+#### 2. Copy the QEMU Binaries
 
 ```bash
-mkdir sysroot
-cd sysroot
-# Create a directory to store qemu assets
-mkdir qemu-user-static
-cp /usr/bin/qemu-* qemu-user-static
+cp /usr/bin/qemu-*-static sysroot/qemu-user-static/
 ```
 
-#### 2. Copy the ROS2 packages
-
-If you want to cross compile specific local packages:
-
-```
-# Create a directory to store source packages
-mkdir -p ros2_ws/src
-cp -r <full_path_to_your_ros_ws>/src ros2_ws/src
-```
-
-If you want to cross compile the latest ROS2 release instead of your workspace:
-
+#### 3. Prepare ros2_ws
 ```bash
-mkdir -p ros2_ws/src
-# Get ROS2 sources
-wget https://raw.githubusercontent.com/ros2/ros2/release-latest/ros2.repos
-vcs import ros2_ws/src < ros2.repos
+# Copy in your ros2_ws
+cp -r <full_path_to_your_ros_ws>/src sysroot/ros2_ws/src
+
+# Use vcs to checkout the required ROS2 version.
+# Substitute `master` for `release-latest` or a specific release like `dashing`.
+curl -fsSL https://raw.githubusercontent.com/ros2/ros2/master/ros2.repos | vcs import src/
 ```
 
-#### 3. Run the cross compilation script
+#### 4. Run the cross compilation script
 
 In the end your `sysroot` directory should look like this:
 ```bash
@@ -149,4 +139,3 @@ From the ROS2 Cross compilation docs:
 | ------------- | --------------- | ----------- | --------------------- | --------------------- | -------------------- | -------------------- |
 | Latest        | `master`        | [![Test Pipeline Status](https://github.com/ros-tooling/cross_compile/workflows/Test%20cross_compile/badge.svg)](https://github.com/ros-tooling/cross_compile/actions) | N/A                   | N/A                   | N/A                  | N/A                  |
 | Dashing       | `dashing-devel` | [![Build Status](http://build.ros2.org/buildStatus/icon?job=Ddev__cross_compile__ubuntu_bionic_amd64)](http://build.ros2.org/job/Ddev__cross_compile__ubuntu_bionic_amd64) | [![Build Status](http://build.ros2.org/buildStatus/icon?job=Dsrc_uB__cross_compile__ubuntu_bionic__source)](http://build.ros2.org/job/Dsrc_uB__cross_compile__ubuntu_bionic__source) | [![Build Status](http://build.ros2.org/buildStatus/icon?job=Dbin_uB64__cross_compile__ubuntu_bionic_amd64__binary)](http://build.ros2.org/job/Dbin_uB64__cross_compile__ubuntu_bionic_amd64__binary) | N/A | N/A |
-
