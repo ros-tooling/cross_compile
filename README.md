@@ -10,25 +10,20 @@ A tool for cross compiling ROS2 packages.
 ### Prerequisites
 
 #### Ubuntu
-
 Qemu and Docker have to be installed for cross_compile to work.
 The following instructions have been tested on Ubuntu Xenial (16.04) and Bionic (18.04).
 
 ```bash
 # Install requirements for Docker and qemu-user-static
 sudo apt update && sudo apt install -y \
-    apt-transport-https \
-    ca-certificates \
     curl \
-    gnupg-agent \
-    lsb-release \
-    software-properties-common \
     qemu-user-static
 
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-sudo apt-key fingerprint 0EBFCD88
-sudo add-apt-repository "deb [arch=amd64,arm64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-sudo apt update && sudo apt install -y docker-ce
+# Full instructions on installing Docker may be found here:
+# https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-engine---community
+curl -fsSL https://get.docker.com | sudo sh -
+
+# Allow the current user to invoke Docker CLI.
 sudo usermod -aG docker $USER
 
 # Reload the group permissions in the current shell. Otherwise logout and login again to apply permissions
@@ -51,8 +46,8 @@ mkdir -p ~/ros2_cross_compile_ws/src
 cd ros2_cross_compile_ws
 
 # Use vcs to clone all required repositories
-curl https://raw.githubusercontent.com/ros2/ros2/master/ros2.repos | vcs import src/
-curl https://raw.githubusercontent.com/ros-tooling/cross_compile/master/cross_compile.repos | vcs import src/
+curl -fsSL https://raw.githubusercontent.com/ros2/ros2/master/ros2.repos | vcs import src/
+curl -fsSL https://raw.githubusercontent.com/ros-tooling/cross_compile/master/cross_compile.repos | vcs import src/
 
 # Install all required system dependencies
 # Some packages may fail to install, this is expected on an unstable branch,
@@ -93,7 +88,7 @@ cp -r <full_path_to_your_ros_ws>/src sysroot/ros2_ws/src
 
 # Use vcs to checkout the required ROS2 version.
 # Substitute `master` for `release-latest` or a specific release like `dashing`.
-curl https://raw.githubusercontent.com/ros2/ros2/master/ros2.repos | vcs import src/
+curl -fsSL https://raw.githubusercontent.com/ros2/ros2/master/ros2.repos | vcs import src/
 ```
 
 #### 4. Run the cross compilation script
@@ -144,4 +139,3 @@ From the ROS2 Cross compilation docs:
 | ------------- | --------------- | ----------- | --------------------- | --------------------- | -------------------- | -------------------- |
 | Latest        | `master`        | [![Test Pipeline Status](https://github.com/ros-tooling/cross_compile/workflows/Test%20cross_compile/badge.svg)](https://github.com/ros-tooling/cross_compile/actions) | N/A                   | N/A                   | N/A                  | N/A                  |
 | Dashing       | `dashing-devel` | [![Build Status](http://build.ros2.org/buildStatus/icon?job=Ddev__cross_compile__ubuntu_bionic_amd64)](http://build.ros2.org/job/Ddev__cross_compile__ubuntu_bionic_amd64) | [![Build Status](http://build.ros2.org/buildStatus/icon?job=Dsrc_uB__cross_compile__ubuntu_bionic__source)](http://build.ros2.org/job/Dsrc_uB__cross_compile__ubuntu_bionic__source) | [![Build Status](http://build.ros2.org/buildStatus/icon?job=Dbin_uB64__cross_compile__ubuntu_bionic_amd64__binary)](http://build.ros2.org/job/Dbin_uB64__cross_compile__ubuntu_bionic_amd64__binary) | N/A | N/A |
-
