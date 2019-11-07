@@ -19,6 +19,7 @@
 import argparse
 import logging
 from string import Template
+import sys
 
 from cross_compile.sysroot_compiler import DockerConfig
 from cross_compile.sysroot_compiler import Platform
@@ -140,6 +141,9 @@ def main():
 
 
 if __name__ == '__main__':
+    if sys.version_info < (3, 5):
+        logger.warning("You are using an unsupported version of Python."
+                       "Cross-compile only supports Python >= 3.5 per the ROS2 REP 2000.")
     try:
         main()
     except Exception as e:
