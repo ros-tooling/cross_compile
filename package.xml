@@ -8,6 +8,7 @@
   <license>Apache 2.0</license>
 
   <depend>python3-docker</depend>
+  <depend>python3-setuptools-scm</depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>

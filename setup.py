@@ -15,6 +15,7 @@
 
 """Package setup for cross_compile."""
 
+import errno
 import os
 
 from setuptools import find_packages
@@ -22,9 +23,37 @@ from setuptools import setup
 
 package_name = 'cross_compile'
 
+
+def compute_get_version_root_dir():
+    """
+    Return the directory containing the .git directory for this package.
+
+    When compiling this package with colcon, users can optionally pass
+    a --symlink-install flag which will create a symlink of setup.py into
+    <prefix>/build/<pkg>. In this case, setuptools-scm will fail to find
+    the .git folder and will abort, unable to determine the package version.
+
+    This code ensures that, if setup.py (__file__), is a symbolic link, we
+    teach setuptools-scm to look for a .git folder into the directory the
+    symbolic link points to.
+
+    This enables setuptools-scm to work whether or not --merge-install is
+    passed by the user.
+    """
+    try:
+        return os.path.dirname(os.readlink(__file__))
+    except OSError as os_error:
+        if os_error.errno == errno.EINVAL:
+            return '.'
+
+
 setup(
     name=package_name,
-    version='0.0.1',
+    use_scm_version={
+        'root': compute_get_version_root_dir(),
+        'relative_to': __file__
+    },
+    setup_requires=['setuptools_scm'],
     packages=find_packages(exclude=['test']),
     maintainer='AWS RoboMaker',
     maintainer_email='ros-contributions@amazon.com',
