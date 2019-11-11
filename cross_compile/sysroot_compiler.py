@@ -293,7 +293,6 @@ class SysrootCompiler:
     def export_workspace_sysroot_image(self) -> None:
         """Export sysroot filesystem into sysroot directory."""
         logger.info('Exporting sysroot to path [%s]', self._target_sysroot)
-        shutil.rmtree(str(self._target_sysroot), ignore_errors=True)
         # TODO: Use context to make sure temp directory doesn't leak
         tmp_sysroot_dir = tempfile.mkdtemp(suffix='-cc_build')
         sysroot_tarball_path = (
@@ -316,6 +315,7 @@ class SysrootCompiler:
                     if re.match('^({}).*'.format(
                         '|'.join(relevant_dirs)), m.name) is not None
                 )
+                shutil.rmtree(str(self._target_sysroot), ignore_errors=True)
                 sysroot_tar.extractall(
                     str(self._target_sysroot), members=relevant_members)
         finally:
