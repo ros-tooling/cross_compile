@@ -17,14 +17,23 @@
 
 import os
 
+from xml.etree import ElementTree
+
 from setuptools import find_packages
 from setuptools import setup
 
 package_name = 'cross_compile'
 
+
+def read_version_from_package_xml():
+    tree = ElementTree.parse('package.xml')
+    version = tree.find('version')
+    return version.text
+
+
 setup(
     name=package_name,
-    version='0.0.1',
+    version=read_version_from_package_xml(),
     packages=find_packages(exclude=['test']),
     maintainer='AWS RoboMaker',
     maintainer_email='ros-contributions@amazon.com',
