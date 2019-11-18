@@ -9,6 +9,9 @@ A tool for cross compiling ROS2 packages.
 
 ### Prerequisites
 
+#### Python
+Following the [REP-2000 Dashing Diademata](https://www.ros.org/reps/rep-2000.html#dashing-diademata-may-2019-may-2021) guideline, Python 3.5 and above are supported.
+
 #### Ubuntu
 Qemu and Docker have to be installed for cross_compile to work.
 The following instructions have been tested on Ubuntu Xenial (16.04) and Bionic (18.04).
@@ -109,7 +112,7 @@ Then run the tool:
 ```bash
 ros2 run cross_compile cross_compile --sysroot-path /absolute/path/to/sysroot \
                                      --arch aarch64 \
-                                     --os ubuntu 
+                                     --os ubuntu
 ```
 
 #### Sample Docker images
