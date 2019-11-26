@@ -3,7 +3,9 @@
 ![License](https://img.shields.io/github/license/ros-tooling/cross_compile)
 [![Documentation Status](https://readthedocs.org/projects/cross_compile/badge/?version=latest)](https://cross_compile.readthedocs.io/en/latest/?badge=latest)
 
-A tool for cross compiling ROS2 packages.
+A tool for easily compiling ROS2 packages to non-native architectures.
+
+:construction: Note: while this tool is named `cross_compile`, it currently relies on running emulated builds using QEmu, [this ticket](https://github.com/ros-tooling/cross_compile/issues/69) tracks our progress toward enabling cross-compilation.
 
 ## Installation
 
