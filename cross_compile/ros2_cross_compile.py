@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 _SYSROOT_PATH = """\
 The absolute path to the directory containing 'sysroot'. The 'ros2_ws/src' and \
-'qemu-user-static' directories, and the 'Dockerfile' used to cross-compile ROS packages \
+'qemu-user-static' directories, and the dockerfile used to cross-compile ROS packages \
 should all be in this directory. \
 Defaults to the current working directory."""
 
