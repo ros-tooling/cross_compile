@@ -18,7 +18,6 @@ import getpass
 import logging
 import os
 from pathlib import Path
-import re
 import shutil
 from string import Template
 import tarfile
@@ -158,9 +157,9 @@ class SysrootCompiler:
             raise TypeError(
                 'Argument `docker_config` must be of type DockerConfig.')
 
-        self._cc_root_dir = Path(cc_root_dir).resolve()
+        workspace_root = Path(cc_root_dir).resolve()
         self._ros_workspace_dir = Path(ros_workspace_dir)
-        self._target_sysroot = self._cc_root_dir / SYSROOT_DIR_NAME
+        self._target_sysroot = workspace_root / SYSROOT_DIR_NAME
         self._ros_ws_directory = self._target_sysroot / self._ros_workspace_dir
         self._qemu_directory = self._target_sysroot / QEMU_DIR_NAME
         self._dockerfile_directory = Path(__file__).parent / DOCKER_WS_NAME
@@ -214,7 +213,7 @@ class SysrootCompiler:
                     dockerfile=DOCKER_WS_NAME))
         else:
             raise FileNotFoundError(SYSROOT_NOT_FOUND_ERROR_STRING.substitute(
-                sysroot_dir=self._cc_root_dir))
+                sysroot_dir=self._target_sysroot))
 
     def build_workspace_sysroot_image(self) -> None:
         """Build the target sysroot docker image."""
@@ -264,36 +263,27 @@ class SysrootCompiler:
     def export_workspace_sysroot_image(self) -> None:
         """Export sysroot filesystem into sysroot directory."""
         logger.info('Exporting sysroot to path [%s]', self._target_sysroot)
-        # TODO: Use context to make sure temp directory doesn't leak
-        tmp_sysroot_dir = tempfile.mkdtemp(suffix='-cc_build')
-        sysroot_tarball_path = (
-            Path(tmp_sysroot_dir) / (SYSROOT_DIR_NAME + '.tar'))
-        image_tag = self._platform.get_workspace_image_tag()
-        logger.info('Exporting filesystem of image {} into tarball {}'.format(
-            image_tag, sysroot_tarball_path))
+        with tempfile.TemporaryFile() as install_tar_file:
+            image_tag = self._platform.get_workspace_image_tag()
+            logger.info(
+                'Fetching cross-compiled install directory of image {} into tempfile'.format(
+                    image_tag))
 
-        try:
             sysroot_container = DOCKER_CLIENT.containers.run(
                 image=image_tag, detach=True)
-            with open(str(sysroot_tarball_path), 'wb') as out_f:
-                out_f.writelines(sysroot_container.export())
+            install_stream, install_stat = sysroot_container.get_archive('/ros2_ws/install')
+            install_tar_file.writelines(install_stream)
             sysroot_container.stop()
-            with tarfile.open(str(sysroot_tarball_path)) as sysroot_tar:
-                relevant_dirs = [
-                    'lib', 'usr', 'etc', 'opt', 'root_path', 'ros2_ws/install']
-                relevant_members = (
-                    m for m in sysroot_tar.getmembers()
-                    if re.match('^({}).*'.format(
-                        '|'.join(relevant_dirs)), m.name) is not None
-                )
-                shutil.rmtree(str(self._target_sysroot), ignore_errors=True)
-                sysroot_tar.extractall(
-                    str(self._target_sysroot), members=relevant_members)
-        finally:
-            shutil.rmtree(tmp_sysroot_dir, ignore_errors=True)
+
+            logger.info('Extracting install tarball to {}'.format(self._ros_workspace_dir))
+            # rewind so tarfile can read from the beginning
+            install_tar_file.seek(0)
+            with tarfile.open(fileobj=install_tar_file) as install_tar:
+                install_tar.extractall(str(self._ros_workspace_dir))
 
         logger.info(
-            'Success exporting sysroot to path [%s]', self._target_sysroot)
+            'Successfully exported cross-compiled workspace install to path {}'.format(
+                self._ros_workspace_dir / 'install'))
 
     def execute_cc_pipeline(self) -> bool:
         """Execute the entire cross compilation workflow."""
