@@ -20,10 +20,10 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Tuple
 
-from cross_compile.sysroot_compiler import DOCKER_WS_NAME
 from cross_compile.sysroot_compiler import DockerConfig
 from cross_compile.sysroot_compiler import Platform
 from cross_compile.sysroot_compiler import QEMU_DIR_NAME
+from cross_compile.sysroot_compiler import ROS2_DOCKERFILE_NAME
 from cross_compile.sysroot_compiler import SYSROOT_DIR_NAME
 from cross_compile.sysroot_compiler import SysrootCompiler
 import pytest
@@ -66,7 +66,7 @@ def setup_mock_sysroot(path: Path) -> Tuple[Path, Path]:
     qemu_dir.mkdir()
     qemu_binary_mock = qemu_dir / 'qemu'
     qemu_binary_mock.ensure()
-    docker_ws_dir = sysroot_dir / DOCKER_WS_NAME
+    docker_ws_dir = sysroot_dir / ROS2_DOCKERFILE_NAME
     docker_ws_dir.ensure()
     return sysroot_dir, ros_workspace_dir
 
@@ -99,8 +99,51 @@ def test_sysroot_compiler_constructor(
     # Create mock directories and files
     sysroot_dir, ros_workspace_dir = setup_mock_sysroot(tmpdir)
     sysroot_compiler = SysrootCompiler(
-        str(sysroot_dir), str(ros_workspace_dir), platform_config,
+        str(tmpdir), 'ros2_ws', platform_config,
         docker_config)
 
     assert isinstance(sysroot_compiler.get_build_setup_script_path(), Path)
-    assert isinstance(sysroot_compiler .get_system_setup_script_path(), Path)
+    assert isinstance(sysroot_compiler.get_system_setup_script_path(), Path)
+
+
+def test_sysroot_compiler_tree_validation(platform_config, docker_config, tmpdir):
+    """
+    Ensure that the SysrootCompiler constructor validates the workspace.
+
+    Start with empty directory and add one piece at a time, expecting failures until
+    all parts are present.
+    """
+    kwargs = {
+        'cc_root_dir': str(tmpdir),
+        'ros_workspace_dir': 'ros2_ws',
+        'platform': platform_config,
+        'docker_config': docker_config
+    }
+
+    # There's no 'sysroot' at all yet
+    with pytest.raises(FileNotFoundError):
+        compiler = SysrootCompiler(**kwargs)
+
+    sysroot_dir = tmpdir / SYSROOT_DIR_NAME
+    sysroot_dir.mkdir()
+    # ROS2 ws and qemu dirs are missing
+    with pytest.raises(FileNotFoundError):
+        compiler = SysrootCompiler(**kwargs)
+
+    ros_workspace_dir = sysroot_dir / 'ros2_ws'
+    ros_workspace_dir.mkdir()
+    # qemu dirs are missing
+    with pytest.raises(FileNotFoundError):
+        compiler = SysrootCompiler(**kwargs)
+
+    qemu_dir = sysroot_dir / QEMU_DIR_NAME
+    qemu_dir.mkdir()
+    # the qemu binary is still missing
+    with pytest.raises(FileNotFoundError):
+        compiler = SysrootCompiler(**kwargs)
+
+    qemu_binary_mock = qemu_dir / 'qemu'
+    qemu_binary_mock.ensure()
+    # everything is present now
+    compiler = SysrootCompiler(**kwargs)
+    assert compiler

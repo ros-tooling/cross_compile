@@ -53,7 +53,7 @@ SYSROOT_NOT_FOUND_ERROR_STRING = Template(
 
 SYSROOT_DIR_NAME = 'sysroot'  # type: str
 QEMU_DIR_NAME = 'qemu-user-static'  # type: str
-DOCKER_WS_NAME = 'Dockerfile_workspace'  # type: str
+ROS2_DOCKERFILE_NAME = 'Dockerfile_ros2'  # type: str
 DOCKER_CLIENT = docker.from_env()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -162,18 +162,14 @@ class SysrootCompiler:
         self._target_sysroot = workspace_root / SYSROOT_DIR_NAME
         self._ros_ws_directory = self._target_sysroot / self._ros_workspace_dir
         self._qemu_directory = self._target_sysroot / QEMU_DIR_NAME
-        self._dockerfile_directory = Path(__file__).parent / DOCKER_WS_NAME
+        self._dockerfile_directory = Path(__file__).parent / ROS2_DOCKERFILE_NAME
         self._expected_dockerfile_directory = (
-            self._target_sysroot / DOCKER_WS_NAME)
+            self._target_sysroot / ROS2_DOCKERFILE_NAME)
         self._system_setup_script_path = Path()
         self._build_setup_script_path = Path()
         self._platform = platform
         self._docker_config = docker_config
-
-        try:
-            self._setup_sysroot_dir()
-        except FileNotFoundError as e:
-            logger.exception(e)
+        self._setup_sysroot_dir()
 
     def get_system_setup_script_path(self) -> Path:
         """Return the path to the system setup script."""
@@ -187,8 +183,8 @@ class SysrootCompiler:
         """
         Check to make sure the sysroot directory is setup correctly.
 
-        Raises FileNotFoundError's if any of the components necessary for
-        cross compilation is missing. Copies the Dockerfile_workspace to the
+        Raises FileNotFoundError if any of the components necessary for
+        cross compilation are missing. Copies the Dockerfile to the
         'sysroot' directory in order to copy the assets to it.
         See https://docs.docker.com/engine/reference/builder/#copy
         """
@@ -210,7 +206,7 @@ class SysrootCompiler:
                 str(self._dockerfile_directory), str(self._target_sysroot))
             if not self._expected_dockerfile_directory.exists():
                 raise FileNotFoundError(COPY_DOCKER_WS_ERROR_STRING.substitute(
-                    dockerfile=DOCKER_WS_NAME))
+                    dockerfile=ROS2_DOCKERFILE_NAME))
         else:
             raise FileNotFoundError(SYSROOT_NOT_FOUND_ERROR_STRING.substitute(
                 sysroot_dir=self._target_sysroot))
