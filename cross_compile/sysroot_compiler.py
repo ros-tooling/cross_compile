@@ -170,11 +170,7 @@ class SysrootCompiler:
         self._build_setup_script_path = Path()
         self._platform = platform
         self._docker_config = docker_config
-
-        try:
-            self._setup_sysroot_dir()
-        except FileNotFoundError as e:
-            logger.exception(e)
+        self._setup_sysroot_dir()
 
     def get_system_setup_script_path(self) -> Path:
         """Return the path to the system setup script."""
