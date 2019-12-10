@@ -16,3 +16,20 @@ jobs:
       with:
         linter: ${{ matrix.linter }}
         package-name: cross_compile
+
+  prose:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@master
+
+    - name: Vale
+      uses: errata-ai/vale-action@v1.0.3
+      with:
+        styles: |
+          https://github.com/errata-ai/write-good/releases/latest/download/write-good.zip
+          https://github.com/errata-ai/Google/releases/latest/download/Google.zip
+        config:
+          https://gist.githubusercontent.com/thomas-moulard/81e4fc260bddeb4149838b884ba86701/raw/cf331fe24d43fc2f02be4b40c5e83051a9e62130/vale.ini
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
