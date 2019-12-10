@@ -14,16 +14,17 @@ ARG TARGET_TRIPLE
 ARG TARGET_ARCH
 
 COPY qemu-user-static/ /usr/bin/
-COPY ${ROS2_WORKSPACE}/src /ros2_ws/src
 
 # Set timezone
 RUN echo 'Etc/UTC' > /etc/timezone && \
-    ln -sf /usr/share/zoneinfo/Etc/UTC /etc/localtime && \
-    apt-get update && apt-get install -q -y tzdata && \
-    rm -rf /var/lib/apt/lists/*
+    ln -sf /usr/share/zoneinfo/Etc/UTC /etc/localtime
+
+RUN apt-get update && apt-get install -y \
+        tzdata \
+        locales \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set locale
-RUN apt-get update && apt-get install -y locales
 RUN locale-gen en_US en_US.UTF-8 && \
     update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
 ENV LANG en_US.UTF-8
@@ -31,23 +32,24 @@ ENV LC_ALL C.UTF-8
 
 # Add the ros2 apt repo
 RUN apt-get update && apt-get install -y \
-    curl \
-    gnupg2 \
-    lsb-release
+        curl \
+        gnupg2 \
+        lsb-release \
+    && rm -rf /var/lib/apt/lists/*
 RUN curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add -
 RUN sh -c 'echo "deb [arch=amd64,arm64] http://packages.ros.org/ros2/ubuntu `lsb_release -cs` main" \
     > /etc/apt/sources.list.d/ros2-latest.list'
 
 # ROS2 dependencies
 RUN apt-get update && apt-get install -y \
-    build-essential \
-    cmake \
-    git \
-    python3-pip \
-    python-rosdep \
-    wget
-
-RUN apt-get install -y symlinks
+      build-essential \
+      cmake \
+      git \
+      python3-pip \
+      python-rosdep \
+      wget \
+      symlinks \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install some pip packages needed for testing
 RUN python3 -m pip install -U \
@@ -72,34 +74,32 @@ RUN python3 -m pip install -U \
     vcstool
 
 # Install Fast-RTPS dependencies
-RUN apt-get install --no-install-recommends -y \
-    libasio-dev \
-    libtinyxml2-dev
+RUN apt-get update && apt-get install --no-install-recommends -y \
+        libasio-dev \
+        libtinyxml2-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Setup ROS2 workspace
+COPY ${ROS2_WORKSPACE}/src /ros2_ws/src
 WORKDIR /ros2_ws
-RUN mkdir -p /opt/ros/${ROS_DISTRO}/
-RUN mkdir -p /opt/ros/${ROS_DISTRO}/share && touch /opt/ros/${ROS_DISTRO}/setup.bash
 
-# Install rosdep dependencies
+# Run rosdep to get dependencies for the copied-in ROS2 workspace
+ENV ROSDEP_SKIP_KEYS="console_bridge fastcdr fastrtps libopensplice67 libopensplice69 rti-connext-dds-5.3.1 urdfdom_headers"
 RUN rm -f /etc/ros/rosdep/sources.list.d/20-default.list    # In case of cached image.
 RUN rosdep init
-RUN rosdep update
-RUN rosdep install --from-paths src /opt/ros/${ROS_DISTRO}/share \
-    --ignore-src \
-    --rosdistro ${ROS_DISTRO} -y \
-    --skip-keys "console_bridge \
-        fastcdr \
-        fastrtps \
-        libopensplice67 \
-        libopensplice69 \
-        rti-connext-dds-5.3.1 \
-        urdfdom_headers"
+RUN rosdep update && \
+    apt-get update && \
+    rosdep install --from-paths src \
+        --ignore-src \
+        --rosdistro ${ROS_DISTRO} -y \
+        --skip-keys "${ROSDEP_SKIP_KEYS}" \
+    && rm -rf /var/lib/apt/lists/*
 
+# Set up and run the build for the workspace (this will be removed from here when we get to host-native cross-compiling)
 RUN colcon mixin add cc_mixin \
     https://raw.githubusercontent.com/ros-tooling/cross_compile/master/mixins/index.yaml && \
     colcon mixin update cc_mixin
-RUN colcon build --mixin ${TARGET_ARCH}-docker
+RUN . /opt/ros/${ROS_DISTRO}/setup.sh && colcon build --mixin ${TARGET_ARCH}-docker
 
 # To avoid linker issues when using a compiler with different GLIBC and GLIBCXX
 # root_path/usr should be used as CMAKE_FIND_ROOT_PATH in the toolchain file
