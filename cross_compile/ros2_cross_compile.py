@@ -18,6 +18,7 @@
 
 import argparse
 import logging
+import os
 from string import Template
 import sys
 
@@ -113,9 +114,8 @@ def create_arg_parser():
     parser.add_argument(
         '--sysroot-path',
         required=False,
-        default=None,
+        default=os.getcwd(),
         type=str,
-        nargs='?',
         help=_SYSROOT_PATH)
     return parser
 
