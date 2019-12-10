@@ -21,40 +21,11 @@ from pathlib import Path
 import re
 import shutil
 from string import Template
-import subprocess
 import tarfile
 import tempfile
 from typing import Dict
 
 import docker
-
-
-CC_BUILD_SETUP_FILE_TEMPLATE = Template("""
-shell=`echo $$SHELL | awk -F/ "{print $$NF}"`
-if [ -d $ros_root ]
-then
-    source $ros_root/setup.$$shell
-else
-    echo "WARNING: no ROS distro found on the sysroot"
-fi
-
-export TARGET_ARCH=$target_arch
-export TARGET_TRIPLE=$target_triple
-export CC_ROOT=$cc_root
-""")
-
-CC_BUILD_SYSTEM_SETUP_SCRIPT_TEMPLATE = Template("""
-sudo rm -rf /lib/$target_triple
-sudo ln -s $cc_root/sysroot/lib/$target_triple /lib/$target_triple
-sudo rm -rf /usr/lib/$target_triple
-sudo ln -s $cc_root/sysroot/usr/lib/$target_triple /usr/lib/$target_triple
-
-CROSS_COMPILER_LIB=/usr/$target_triple/lib
-CROSS_COMPILER_LIB_BAK=/usr/$target_triple/lib_$$(date +%s).bak
-echo "Backing up $$CROSS_COMPILER_LIB to $$CROSS_COMPILER_LIB_BAK"
-sudo mv $$CROSS_COMPILER_LIB $$CROSS_COMPILER_LIB_BAK
-sudo ln -s $cc_root/sysroot/lib/$target_triple $$CROSS_COMPILER_LIB
-""")
 
 ROS_WS_DIR_ERROR_STRING = Template(
     """"$ros_ws" does not exist in the sysroot directory. Make """
@@ -324,53 +295,11 @@ class SysrootCompiler:
         logger.info(
             'Success exporting sysroot to path [%s]', self._target_sysroot)
 
-    def _write_cc_build_setup_script(self) -> Path:
-        """Create setup file for cross-compile build."""
-        cc_build_setup_file_path = self._target_sysroot / 'cc_build_setup.bash'
-        cc_build_setup_file_contents = CC_BUILD_SETUP_FILE_TEMPLATE.substitute(
-            target_arch=self._platform.arch,
-            target_triple=self._platform.cc_toolchain,
-            cc_root=self._target_sysroot,
-            ros_root='{cc_root_dir}/sysroot/opt/ros/{distro}'.format(
-                cc_root_dir=self._target_sysroot,
-                distro=self._platform.distro))
-        with open(str(cc_build_setup_file_path), 'w') as out_f:
-            out_f.write(cc_build_setup_file_contents)
-        return cc_build_setup_file_path
-
-    def _write_cc_system_setup_script(self) -> Path:
-        """Create setup file for sysroot setup."""
-        cc_system_setup_script_path = (
-            self._target_sysroot / 'cc_system_setup.bash')
-        cc_system_setup_script_contents = (
-            CC_BUILD_SYSTEM_SETUP_SCRIPT_TEMPLATE.substitute(
-                cc_root=self._target_sysroot,
-                target_triple=self._platform.cc_toolchain))
-        with open(str(cc_system_setup_script_path), 'w') as out_f:
-            out_f.write(cc_system_setup_script_contents)
-        return cc_system_setup_script_path
-
-    def write_setup_scripts(self) -> None:
-        """Write both the build and system setup scripts."""
-        self._system_setup_script_path = self._write_cc_build_setup_script()
-        self._build_setup_script_path = self._write_cc_system_setup_script()
-
-    def setup_sysroot_environment(self) -> None:
-        """Set up the environment with variables and symbolic links."""
-        logger.info('Sourcing sysroot environment...')
-        logger.info("Executing 'bash %s'", self._system_setup_script_path)
-        subprocess.run(['bash', str(self._system_setup_script_path)])
-        logger.info("Executing 'source %s'", self._build_setup_script_path)
-        subprocess.run(
-            ['source', str(self._build_setup_script_path)], shell=True)
-
     def execute_cc_pipeline(self) -> bool:
         """Execute the entire cross compilation workflow."""
         try:
             self.build_workspace_sysroot_image()
             self.export_workspace_sysroot_image()
-            self.write_setup_scripts()
-            self.setup_sysroot_environment()
         except Exception as e:
             logger.exception(e)
             return False
