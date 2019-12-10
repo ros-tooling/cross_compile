@@ -30,10 +30,10 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 _SYSROOT_PATH = """\
-The absolute path to the directory containing 'sysroot'. The 'ros2_ws/src' \
-and 'qemu-user-static' directories and the 'Dockerfile_workspace' \
-file used to cross-compile the ROS packages should all be in this \
-directory. Defaults to the current working directory."""
+The absolute path to the directory containing 'sysroot'. The 'ros2_ws/src' and \
+'qemu-user-static' directories, and the 'Dockerfile' used to cross-compile ROS packages \
+should all be in this directory. \
+Defaults to the current working directory."""
 
 _USAGE = """
 Example usage:

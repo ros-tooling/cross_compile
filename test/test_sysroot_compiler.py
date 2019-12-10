@@ -20,10 +20,10 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Tuple
 
-from cross_compile.sysroot_compiler import DOCKER_WS_NAME
 from cross_compile.sysroot_compiler import DockerConfig
 from cross_compile.sysroot_compiler import Platform
 from cross_compile.sysroot_compiler import QEMU_DIR_NAME
+from cross_compile.sysroot_compiler import ROS2_DOCKERFILE_NAME
 from cross_compile.sysroot_compiler import SYSROOT_DIR_NAME
 from cross_compile.sysroot_compiler import SysrootCompiler
 import pytest
@@ -66,7 +66,7 @@ def setup_mock_sysroot(path: Path) -> Tuple[Path, Path]:
     qemu_dir.mkdir()
     qemu_binary_mock = qemu_dir / 'qemu'
     qemu_binary_mock.ensure()
-    docker_ws_dir = sysroot_dir / DOCKER_WS_NAME
+    docker_ws_dir = sysroot_dir / ROS2_DOCKERFILE_NAME
     docker_ws_dir.ensure()
     return sysroot_dir, ros_workspace_dir
 
