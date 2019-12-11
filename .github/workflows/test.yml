@@ -21,14 +21,17 @@ jobs:
     - uses: ros-tooling/action-ros2-ci@0.0.5
       with:
         package-name: cross_compile
-    # GitHub action support is currently broken on the original upstream
-    # repository. This fork fixes support until the problem is fixed upstream.
-    - uses: ros-tooling/codecov-action@master
+    - uses: codecov/codecov-action@v1
+      # Prevent being rate limited by only reporting coverage from the Ubuntu
+      # build.
       if: matrix.os == 'ubuntu-18.04'
       with:
-        token: ${{secrets.CODECOV_TOKEN}}
+        token: ${{ secrets.CODECOV_TOKEN }}
         file: ros2_ws/src/cross_compile/coverage.xml
-        # codecov-action is a Docker action, and as such can only run on Linux.
+        flags: unittests
+        name: codecov-umbrella
+        yml: ./codecov.yml
+        fail_ci_if_error: true
     - uses: actions/upload-artifact@master
       with:
         name: colcon-logs-${{ matrix.os }}
