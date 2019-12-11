@@ -126,30 +126,33 @@ ros2 run cross_compile cross_compile --sysroot-path /absolute/path/to/sysroot \
                                      --os ubuntu
 ```
 
-#### Sample Docker images
+### Custom Setup Script
 
-Dockerhub hosts ROS images compatible with `cross_compile`:
+Your ROS application may have build needs that aren't covered by `rosdep install`.
+If this is the case (for example you need to add extra apt repos), we provide the option `--custom-setup-script` to execute arbitrary code in the sysroot container.
 
--  [Official Dockerhub ROS Repo](https://hub.docker.com/_/ros)
--  [OSRF's Dockerhub Repo](https://hub.docker.com/r/osrf/ros2)
+The path provided may be absolute, or relative to the current directory.
+
+Keep in mind
+* It is up to the user to determine whether the script is compatible with chosen base platform
+* Make sure to specify non-interactive versions of commands, e.g. `apt-get install -y`, or the script may hang waiting for input
+* You cannot make any assumptions about the state of the apt cache, so run `apt-get update` before installing packages
+* You will be running as root user in the container, so you don't need `sudo`
+
+Below is an example script for an application that installs some custom Raspberry Pi libraries.
+
+```
+apt-get update
+apt-get install -y software-properties-common
+
+# Install Raspberry Pi library that we have not provided a rosdep rule for
+add-apt-repository ppa:rpi-distro/ppa
+apt-get install -y pigpio
+```
 
 ## License
 
 This library is licensed under the Apache 2.0 License.
-
-## Troubleshooting
-
-#### Libpoco issue
-
-From the ROS2 Cross compilation docs:
-
-> The Poco pre-built has a known issue where it's searching for libz and libpcre on the host system instead of SYSROOT.
-> As a workaround for the moment, please link both libraries into the host’s file-system.
-> ```bash
-> mkdir -p /usr/lib/$TARGET_TRIPLE
-> ln -s `pwd`/sysroot_docker/lib/$TARGET_TRIPLE/libz.so.1 /usr/lib/$TARGET_TRIPLE/libz.so
-> ln -s `pwd`/sysroot_docker/lib/$TARGET_TRIPLE/libpcre.so.3 /usr/lib/$TARGET_TRIPLE/libpcre.so
-> ```
 
 ## Build status
 

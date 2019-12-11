@@ -80,6 +80,12 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         libtinyxml2-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# Run arbitrary user setup
+COPY user-custom-setup .
+RUN chmod +x ./user-custom-setup && \
+    ./user-custom-setup && \
+    rm -rf /var/lib/apt/lists/*
+
 # Setup ROS2 workspace
 COPY ${ROS2_WORKSPACE}/src /ros2_ws/src
 WORKDIR /ros2_ws
