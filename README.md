@@ -117,26 +117,55 @@ ros2 run cross_compile cross_compile --sysroot-path /absolute/path/to/sysroot \
                                      --os ubuntu
 ```
 
-#### Sample Docker images
+### Including Non-rosdep Dependencies
 
-You can use the [Official Dockerhub ROS Repo](https://hub.docker.com/_/ros) to find base images.
+Your ROS application may have dependencies that cannot be resolved by `rosdep` because they only exist in nonstandard APT repositories.
+To add additional sources and install arbitrary packages from them, you may use the `--extra-dependencies` commandline option.
+This option takes in a relative or absolute path to a YAML specification file.
+The format of that file is as follows.
 
-You can also use [OSRF's Dockerhub Repo](https://hub.docker.com/r/osrf/ros2) to obtain images as well.
+```
+# 'apt_sources' [optional] specifies nonstandard apt sources
+apt_sources:
+    # 'manual_repos' [optional] is a list of non-PPA apt repositories to add to a custom sources.list, and fetch a key for it
+    manual_repos:
+        # all keys 'url', 'keyserver', and 'recv_key' are required
+        - url: <Repository URL, e.g. https://packages.customproject.com/ubuntu/something>
+          keyserver: <Keyserver URL e.g. hkp://ha.pool.sks-keyservers.net:80>
+          recv_key: <Key ID, hex string>
+    # 'ppas' is a list of PPAs to add via `add-apt-repository`
+    ppas:
+        - <PPA, e.g. ppa:ubuntu-pi-flavour-makers/ppa>
+# 'apt_packages' [optional] is a list of packages to install via apt after the above sources have been added
+apt_packages:
+    - <apt package name, e.g. libraspberrypi0>
+```
 
-## License
-This library is licensed under the Apache 2.0 License.
+Here is an example input file
 
-## Troubleshooting
 
-#### Lib Poco Issue
-From the ROS2 Cross compilation docs:
-> The Poco pre-built has a known issue where it is searching for libz and libpcre on the host system instead of SYSROOT.
-> As a workaround for the moment, please link both libraries into the the host’s file-system.
-> ```bash
-> mkdir -p /usr/lib/$TARGET_TRIPLE
-> ln -s `pwd`/sysroot_docker/lib/$TARGET_TRIPLE/libz.so.1 /usr/lib/$TARGET_TRIPLE/libz.so
-> ln -s `pwd`/sysroot_docker/lib/$TARGET_TRIPLE/libpcre.so.3 /usr/lib/$TARGET_TRIPLE/libpcre.so
-> ```
+```
+# my-extra-deps.yaml
+apt_sources:
+  manual_repos:
+    - url: https://packages.ubiquityrobotics.com/ubuntu/ubiquity
+      keyserver: hkp://ha.pool.sks-keyservers.net:80
+      recv_key: C3032ED8
+  ppas:
+    - ppa:ubuntu-pi-flavour-makers/ppa
+apt_packages:
+  - libraspberrypi0
+```
+
+And the corresponding invocation
+
+```
+ros2 run cross_compile cross_compile \
+    --sysroot-path /path/to/my/workspace \
+    --arch aarch64 \
+    --os ubuntu \
+    --extra-dependencies my-extra-deps.yaml
+```
 
 ## Build Status
 

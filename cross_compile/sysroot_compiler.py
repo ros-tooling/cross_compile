@@ -19,12 +19,15 @@ import logging
 import os
 from pathlib import Path
 import shutil
+import stat
 from string import Template
 import tarfile
 import tempfile
 from typing import Dict
+from typing import Optional
 
 import docker
+import yaml
 
 ROS_WS_DIR_ERROR_STRING = Template(
     """"$ros_ws" does not exist in the sysroot directory. Make """
@@ -133,7 +136,9 @@ class SysrootCompiler:
       cc_root_dir: str,
       ros_workspace_dir: str,
       platform: Platform,
-      docker_config: DockerConfig) -> None:
+      docker_config: DockerConfig,
+      extra_dependencies_path: Optional[str],
+    ) -> None:
         """
         Construct a SysrootCompiler object building ROS 2 Docker container.
 
@@ -145,6 +150,7 @@ class SysrootCompiler:
                          cross-compilation.
         :param docker_config: A custom object used to specify the configuration
                               of the Docker image to build.
+        :param extra_dependencies_path: Path to a YAML configuration for extra apt sources.
         """
         if not isinstance(cc_root_dir, str):
             raise TypeError('Argument `cc_root_dir` must be of type string.')
@@ -170,6 +176,7 @@ class SysrootCompiler:
         self._platform = platform
         self._docker_config = docker_config
         self._setup_sysroot_dir()
+        self._create_extra_dependencies_script(extra_dependencies_path)
 
     def get_system_setup_script_path(self) -> Path:
         """Return the path to the system setup script."""
@@ -210,6 +217,53 @@ class SysrootCompiler:
         else:
             raise FileNotFoundError(SYSROOT_NOT_FOUND_ERROR_STRING.substitute(
                 sysroot_dir=self._target_sysroot))
+
+    def _create_extra_dependencies_script(self, config_path: Optional[str]) -> None:
+        """Create a script to install extra APT sources, given an optional configuration."""
+        source_list_line = (
+            'echo "deb {} `lsb_release -cs` main" >> /etc/apt/sources.list.d/extra-deps.list')
+        apt_key_line = 'apt-key adv --keyserver {} --recv-key {}'
+        add_apt_repo_line = 'add-apt-repository -y {}'
+
+        if config_path:
+            with open(config_path, 'r') as config_file:
+                config_doc = yaml.load(config_file)
+        else:
+            config_doc = {}
+
+        script_lines = []
+
+        for k in config_doc.keys():
+            assert k in ('apt_sources', 'apt_packages'), 'Unrecognized extra-deps key {}'.format(k)
+
+        apt_sources = config_doc.get('apt_sources', {})
+        manual_repos = apt_sources.get('manual_repos', [])
+        for manual_repo in manual_repos:
+            for k in manual_repo.keys():
+                assert k in ('url', 'keyserver', 'recv_key'), \
+                    'Unrecognized manual_repo key {}'.format(k)
+
+            script_lines.append(
+                source_list_line.format(manual_repo['url']))
+            script_lines.append(
+                apt_key_line.format(manual_repo['keyserver'], manual_repo['recv_key']))
+
+        ppas = apt_sources.get('ppas', [])
+        for ppa in ppas:
+            script_lines.append(
+                add_apt_repo_line.format(ppa))
+
+        apt_packages = config_doc.get('apt_packages', [])
+        assert isinstance(apt_packages, list), 'apt_packages must be a list!'
+        script_lines.append('apt-get install -y {}'.format(' '.join(apt_packages)))
+
+        # Write out the generated script into the sysroot
+        target_script_path = self._target_sysroot / 'install-extra-dependencies.sh'
+        script_lines.append('')  # newline at end of file
+        with target_script_path.open('w') as target_script_file:
+            target_script_file.write('\n'.join(script_lines))
+        # make it executable
+        target_script_path.chmod(target_script_path.stat().st_mode | stat.S_IEXEC)
 
     def build_workspace_sysroot_image(self) -> None:
         """Build the target sysroot docker image."""
