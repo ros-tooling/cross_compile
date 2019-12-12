@@ -19,7 +19,6 @@
 import argparse
 import logging
 import os
-from string import Template
 import sys
 
 from cross_compile.sysroot_compiler import DockerConfig
@@ -29,38 +28,11 @@ from cross_compile.sysroot_compiler import SysrootCompiler
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-_SYSROOT_PATH = """\
-The absolute path to the directory containing 'sysroot'. The 'ros2_ws/src' and \
-'qemu-user-static' directories, and the dockerfile used to cross-compile ROS packages \
-should all be in this directory. \
-Defaults to the current working directory."""
-
-_USAGE = """
-Example usage:
-
-python3 ros2_cross_compile.py /tmp --arch armhf --os debian
-python3 ros2_cross_compile.py --sysroot-path /home/user/ \
---arch aarch64 --os ubuntu
-python3 ros2_cross_compile.py --sysroot-path /home/user/ \
---sysroot-base-image arm64v8/ubuntu:bionic
-"""
-
-CC_COMPLETE_STRING = Template(
-    """To setup the cross compilation build environment:
-1. Run the command below to setup using sysroot's GLIBC for cross-compilation.
-`bash $system_setup_script_path`
-2. Run the command below to export the environment variables used by the \
-cross-compiled ROS packages.
-`source $build_setup_file_path`'
-""")
-
 
 def create_arg_parser():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
-        description='Sysroot creator for cross compilation workflows.',
-        epilog=_USAGE,
-        formatter_class=argparse.RawDescriptionHelpFormatter)
+        description='Sysroot creator for cross compilation workflows.')
     parser.add_argument(
         '-a', '--arch',
         required=True,
@@ -103,20 +75,33 @@ def create_arg_parser():
         action='store_true',
         required=False,
         help="When set to true, this disables Docker's cache when building "
-             'the image for the workspace sysroot')
+             'the Docker image for the workspace')
     parser.add_argument(
         '--ros2-workspace',
         required=False,
         type=str,
         default='ros2_ws',
-        help="The location of the ROS2 workspace you'll be cross compiling "
-             'against. Usually ros2_ws if you moved it correctly.')
+        help="The subdirectory of 'sysroot' that contains your 'src' to be built."
+             'The output of the cross compilation will be placed in this directory. '
+             "Defaults to 'ros2_ws'.")
     parser.add_argument(
         '--sysroot-path',
         required=False,
         default=os.getcwd(),
         type=str,
-        help=_SYSROOT_PATH)
+        help="The absolute path to the directory containing 'sysroot' where the "
+             "'ros2_ws/src' and 'qemu-user-static' directories you created can be found. "
+             'Defaults to the current working directory.')
+    parser.add_argument(
+        '--custom-setup-script',
+        required=False,
+        default=None,
+        type=str,
+        help='Provide a path to a shell script that will be executed in the sysroot container '
+             'right before running "rosdep install" for your ROS workspace. This allows for '
+             'adding extra apt sources that rosdep may not handle, or other arbitrary setup that '
+             'is specific to your application build. See the section on "Custom Setup Script" '
+             'in the README.md for more details.')
     return parser
 
 
@@ -132,12 +117,9 @@ def main():
     sysroot_create = SysrootCompiler(cc_root_dir=args.sysroot_path,
                                      ros_workspace_dir=args.ros2_workspace,
                                      platform=platform,
-                                     docker_config=docker_args)
+                                     docker_config=docker_args,
+                                     custom_setup_script_path=args.custom_setup_script)
     sysroot_create.execute_cc_pipeline()
-
-    logger.info(CC_COMPLETE_STRING.substitute(
-        system_setup_script_path=sysroot_create.get_system_setup_script_path(),
-        build_setup_file_path=sysroot_create.get_build_setup_script_path()))
 
 
 if __name__ == '__main__':

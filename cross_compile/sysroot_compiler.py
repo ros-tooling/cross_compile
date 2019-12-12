@@ -23,6 +23,7 @@ from string import Template
 import tarfile
 import tempfile
 from typing import Dict
+from typing import Optional
 
 import docker
 
@@ -133,7 +134,9 @@ class SysrootCompiler:
       cc_root_dir: str,
       ros_workspace_dir: str,
       platform: Platform,
-      docker_config: DockerConfig) -> None:
+      docker_config: DockerConfig,
+      custom_setup_script_path: Optional[str],
+    ) -> None:
         """
         Construct a SysrootCompiler object building ROS 2 Docker container.
 
@@ -145,6 +148,8 @@ class SysrootCompiler:
                          cross-compilation.
         :param docker_config: A custom object used to specify the configuration
                               of the Docker image to build.
+        :param custom_setup_script_path: Optional path to a custom setup script
+                                         to run arbitrary commands
         """
         if not isinstance(cc_root_dir, str):
             raise TypeError('Argument `cc_root_dir` must be of type string.')
@@ -169,7 +174,7 @@ class SysrootCompiler:
         self._build_setup_script_path = Path()
         self._platform = platform
         self._docker_config = docker_config
-        self._setup_sysroot_dir()
+        self._setup_sysroot_dir(custom_setup_script_path)
 
     def get_system_setup_script_path(self) -> Path:
         """Return the path to the system setup script."""
@@ -179,7 +184,7 @@ class SysrootCompiler:
         """Return the path to the build setup script."""
         return self._build_setup_script_path
 
-    def _setup_sysroot_dir(self) -> None:
+    def _setup_sysroot_dir(self, custom_script: Optional[str]) -> None:
         """
         Check to make sure the sysroot directory is setup correctly.
 
@@ -189,27 +194,33 @@ class SysrootCompiler:
         See https://docs.docker.com/engine/reference/builder/#copy
         """
         logger.info('Checking sysroot directory...')
-        if self._target_sysroot.exists():
-            logger.debug('Sysroot directory exists.')
-            if not self._ros_ws_directory.exists():
-                raise FileNotFoundError(ROS_WS_DIR_ERROR_STRING.substitute(
-                    ros_ws=self._ros_workspace_dir))
-            logger.debug('ROS workspace exists.')
-            if not self._qemu_directory.exists():
-                raise FileNotFoundError(
-                    QEMU_DIR_ERROR_STRING.substitute(qemu_dir=QEMU_DIR_NAME))
-            if not os.listdir(str(self._qemu_directory.absolute())):
-                raise FileNotFoundError(
-                    QEMU_EMPTY_ERROR_STRING.substitute(qemu_dir=QEMU_DIR_NAME))
-            logger.debug('QEMU binaries exist')
-            shutil.copy(
-                str(self._dockerfile_directory), str(self._target_sysroot))
-            if not self._expected_dockerfile_directory.exists():
-                raise FileNotFoundError(COPY_DOCKER_WS_ERROR_STRING.substitute(
-                    dockerfile=ROS2_DOCKERFILE_NAME))
-        else:
+        if not self._target_sysroot.exists():
             raise FileNotFoundError(SYSROOT_NOT_FOUND_ERROR_STRING.substitute(
                 sysroot_dir=self._target_sysroot))
+
+        logger.debug('Sysroot directory exists.')
+        if not self._ros_ws_directory.exists():
+            raise FileNotFoundError(ROS_WS_DIR_ERROR_STRING.substitute(
+                ros_ws=self._ros_workspace_dir))
+        logger.debug('ROS workspace exists.')
+        if not self._qemu_directory.exists():
+            raise FileNotFoundError(
+                QEMU_DIR_ERROR_STRING.substitute(qemu_dir=QEMU_DIR_NAME))
+        if not os.listdir(str(self._qemu_directory.absolute())):
+            raise FileNotFoundError(
+                QEMU_EMPTY_ERROR_STRING.substitute(qemu_dir=QEMU_DIR_NAME))
+        logger.debug('QEMU binaries exist')
+        shutil.copy(
+            str(self._dockerfile_directory), str(self._target_sysroot))
+        if not self._expected_dockerfile_directory.exists():
+            raise FileNotFoundError(COPY_DOCKER_WS_ERROR_STRING.substitute(
+                dockerfile=ROS2_DOCKERFILE_NAME))
+        custom_script_dest = str(self._target_sysroot / 'user-custom-setup')
+        if custom_script:
+            shutil.copy(custom_script, custom_script_dest)
+        else:
+            with open(custom_script_dest, 'w') as custom_script_file:
+                custom_script_file.write('#!/bin/sh\necho "No custom setup"\n')
 
     def build_workspace_sysroot_image(self) -> None:
         """Build the target sysroot docker image."""
