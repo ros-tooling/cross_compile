@@ -17,7 +17,6 @@
 
 import getpass
 from pathlib import Path
-from types import SimpleNamespace
 from typing import Tuple
 
 from cross_compile.sysroot_compiler import DockerConfig
@@ -29,31 +28,29 @@ from cross_compile.sysroot_compiler import SysrootCompiler
 import pytest
 
 
-def _default_args() -> SimpleNamespace:
-    # TODO: Change base image to dockerhub repo image once we have access.
-
-    args: SimpleNamespace = SimpleNamespace()
-    args.arch = 'aarch64'
-    args.os = 'ubuntu'
-    args.distro = 'dashing'
-    args.rmw = 'fastrtps'
-    args.sysroot_base_image = (
-        '035662560449.dkr.ecr.us-east-2.amazonaws.com/cc-tool:'
-        'aarch64-bionic-dashing-fastrtps-prebuilt')
-    args.docker_network_mode = 'host'
-    args.sysroot_nocache = 'False'
-
-    return args
+def _default_docker_kwargs() -> dict:
+    return {
+        'arch': 'aarch64',
+        'os': 'ubuntu',
+        'sysroot_base_image': '035662560449.dkr.ecr.us-east-2.amazonaws.com/cc-tool:'
+                              'aarch64-bionic-dashing-fastrtps-prebuilt',
+        'docker_network_mode': 'host',
+        'sysroot_nocache': False,
+    }
 
 
 @pytest.fixture
 def platform_config() -> Platform:
-    return Platform(_default_args())
+    return Platform(
+        arch='aarch64',
+        os='ubuntu',
+        distro='dashing',
+        rmw='fastrtps')
 
 
 @pytest.fixture
 def docker_config() -> DockerConfig:
-    return DockerConfig(_default_args())
+    return DockerConfig(**_default_docker_kwargs())
 
 
 def setup_mock_sysroot(path: Path) -> Tuple[Path, Path]:
@@ -81,13 +78,14 @@ def test_get_workspace_image_tag(platform_config):
 
 def test_docker_config_args(docker_config):
     """Make sure the Docker configuration is setup correctly."""
-    args = _default_args()
+    args = _default_docker_kwargs()
     test_config_string = (
         'Base Image: {}\n'
         'Network Mode: {}\n'
-        'Caching: {}').format(
-        args.sysroot_base_image, args.docker_network_mode,
-        args.sysroot_nocache)
+        'Caching: {}'
+    ).format(
+        args['sysroot_base_image'], args['docker_network_mode'], args['sysroot_nocache']
+    )
     config_string = str(docker_config)
     assert isinstance(config_string, str)
     assert config_string == test_config_string

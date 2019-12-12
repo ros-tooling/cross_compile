@@ -110,8 +110,11 @@ def main():
     # Configuration
     parser = create_arg_parser()
     args = parser.parse_args()
-    platform = Platform(args)
-    docker_args = DockerConfig(args)
+    platform = Platform(
+        args.arch, args.os, args.distro, args.rmw)
+    docker_args = DockerConfig(
+        args.arch, args.os, args.sysroot_base_image,
+        args.docker_network_mode, args.sysroot_nocache)
 
     # Main pipeline
     sysroot_create = SysrootCompiler(cc_root_dir=args.sysroot_path,
