@@ -71,12 +71,12 @@ class Platform:
     4. RMW implementation used
     """
 
-    def __init__(self, args):
+    def __init__(self, arch: str, os: str, distro: str, rmw: str):
         """Initialize platform parameters."""
-        self.arch = args.arch
-        self.os = args.os
-        self.distro = args.distro
-        self.rmw = args.rmw
+        self.arch = arch
+        self.os = os
+        self.distro = distro
+        self.rmw = rmw
 
         if self.arch == 'armhf':
             self.cc_toolchain = 'arm-linux-gnueabihf'
@@ -109,16 +109,19 @@ class DockerConfig:
         ('aarch64', 'debian'): 'arm64v8/debian:latest',
     }  # type: Dict[tuple, str]
 
-    def __init__(self, args):
+    def __init__(
+        self, arch: str, os: str, sysroot_base_image: str,
+        docker_network_mode: str, sysroot_nocache: bool
+    ):
         """Initialize docker configuration."""
-        if args.sysroot_base_image is None:
+        if sysroot_base_image is None:
             self.base_image = \
-                self._default_docker_base_image[args.arch, args.os]
+                self._default_docker_base_image[arch, os]
         else:
-            self.base_image = args.sysroot_base_image
+            self.base_image = sysroot_base_image
 
-        self.network_mode = args.docker_network_mode
-        self.nocache = args.sysroot_nocache
+        self.network_mode = docker_network_mode
+        self.nocache = sysroot_nocache
 
     def __str__(self):
         """Return string representation of docker build parameters."""
