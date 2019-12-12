@@ -3,26 +3,29 @@
 ![License](https://img.shields.io/github/license/ros-tooling/cross_compile)
 [![Documentation Status](https://readthedocs.org/projects/cross_compile/badge/?version=latest)](https://cross_compile.readthedocs.io/en/latest/?badge=latest)
 
-A tool for easily compiling ROS2 packages to non-native architectures.
+A tool to automate ROS2 packages compilation to non-native architectures.
 
-:construction: Note: while this tool is named `cross_compile`, it currently relies on running emulated builds using QEmu, [this ticket](https://github.com/ros-tooling/cross_compile/issues/69) tracks our progress toward enabling cross-compilation.
+:construction: `cross_compile` relies on running emulated builds
+using QEmu, #69 tracks progress toward enabling cross-compilation.
 
 ## Installation
 
 ### Prerequisites
 
-#### Python
-Following the [REP-2000 Dashing Diademata](https://www.ros.org/reps/rep-2000.html#dashing-diademata-may-2019-may-2021) guideline, Python 3.5 and above are supported.
+This tool requires:
 
-#### Ubuntu
-Qemu and Docker have to be installed for cross_compile to work.
-The following instructions have been tested on Ubuntu Xenial (16.04) and Bionic (18.04).
+- Docker
+- Python 3.5, or newer.
+- QEmu
+
+#### Installing system dependencies on Ubuntu
+
+On Ubuntu Bionic (18.04), run the following commands to install system
+dependencies:
 
 ```bash
 # Install requirements for Docker and qemu-user-static
-sudo apt update && sudo apt install -y \
-    curl \
-    qemu-user-static
+sudo apt update && sudo apt install -y curl qemu-user-static
 
 # Full instructions on installing Docker may be found here:
 # https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-engine---community
@@ -41,9 +44,11 @@ docker run hello-world
 ### Installing from source
 
 #### Latest (unstable development - `master` branch)
+
 Please follow those instructions if you plan to contribute to this repository.
 
-* Install all software dependencies required for ROS 2 development by following the [ROS 2 documentation](https://index.ros.org/doc/ros2/Installation/Latest-Development-Setup/)
+* Install all software dependencies required for ROS 2 development by following
+  the [ROS 2 documentation][ros2_dev_setup]
 * Checkout the source code and compile it as follows
 
 ```bash
@@ -71,22 +76,25 @@ source install/local_setup.sh
 
 ## Usage
 
-We need to setup a `sysroot` directory for the docker artifacts. Docker can only copy from a specific
-context so all these assets need to be copied relative to the `Dockerfile` path.
+This script requires a `sysroot` directory containing the ROS 2 workspace, and
+the toolchain.
 
-#### 1. Create the directory structure
+The following instructions explain how to create a `sysroot` directory.
+
+#### Create the directory structure
 ```bash
 mkdir -p sysroot/qemu-user-static
 mkdir -p sysroot/ros2_ws/src
 ```
 
-#### 2. Copy the QEMU Binaries
+#### Copy the QEMU Binaries
 
 ```bash
 cp /usr/bin/qemu-*-static sysroot/qemu-user-static/
 ```
 
-#### 3. Prepare ros2_ws
+#### Prepare ros2_ws
+
 ```bash
 # Copy in your ros2_ws
 cp -r <full_path_to_your_ros_ws>/src sysroot/ros2_ws/src
@@ -96,9 +104,10 @@ cp -r <full_path_to_your_ros_ws>/src sysroot/ros2_ws/src
 curl -fsSL https://raw.githubusercontent.com/ros2/ros2/master/ros2.repos | vcs import src/
 ```
 
-#### 4. Run the cross compilation script
+#### Run the cross compilation script
 
 In the end your `sysroot` directory should look like this:
+
 ```bash
 sysroot/
  +-- qemu-user-static/
@@ -119,28 +128,35 @@ ros2 run cross_compile cross_compile --sysroot-path /absolute/path/to/sysroot \
 
 #### Sample Docker images
 
-You can use the [Official Dockerhub ROS Repo](https://hub.docker.com/_/ros) to find base images.
+Dockerhub hosts ROS images compatible with `cross_compile`:
 
-You can also use [OSRF's Dockerhub Repo](https://hub.docker.com/r/osrf/ros2) to obtain images as well.
+-  [Official Dockerhub ROS Repo](https://hub.docker.com/_/ros)
+-  [OSRF's Dockerhub Repo](https://hub.docker.com/r/osrf/ros2)
 
 ## License
+
 This library is licensed under the Apache 2.0 License.
 
 ## Troubleshooting
 
-#### Lib Poco Issue
+#### Libpoco issue
+
 From the ROS2 Cross compilation docs:
-> The Poco pre-built has a known issue where it is searching for libz and libpcre on the host system instead of SYSROOT.
-> As a workaround for the moment, please link both libraries into the the host’s file-system.
+
+> The Poco pre-built has a known issue where it's searching for libz and libpcre on the host system instead of SYSROOT.
+> As a workaround for the moment, please link both libraries into the host’s file-system.
 > ```bash
 > mkdir -p /usr/lib/$TARGET_TRIPLE
 > ln -s `pwd`/sysroot_docker/lib/$TARGET_TRIPLE/libz.so.1 /usr/lib/$TARGET_TRIPLE/libz.so
 > ln -s `pwd`/sysroot_docker/lib/$TARGET_TRIPLE/libpcre.so.3 /usr/lib/$TARGET_TRIPLE/libpcre.so
 > ```
 
-## Build Status
+## Build status
 
 | ROS 2 Release | Branch Name     | Development | Source Debian Package | X86-64 Debian Package | ARM64 Debian Package | ARMHF Debian package |
 | ------------- | --------------- | ----------- | --------------------- | --------------------- | -------------------- | -------------------- |
 | Latest        | `master`        | [![Test Pipeline Status](https://github.com/ros-tooling/cross_compile/workflows/Test%20cross_compile/badge.svg)](https://github.com/ros-tooling/cross_compile/actions) | N/A                   | N/A                   | N/A                  | N/A                  |
 | Dashing       | `dashing-devel` | [![Build Status](http://build.ros2.org/buildStatus/icon?job=Ddev__cross_compile__ubuntu_bionic_amd64)](http://build.ros2.org/job/Ddev__cross_compile__ubuntu_bionic_amd64) | [![Build Status](http://build.ros2.org/buildStatus/icon?job=Dsrc_uB__cross_compile__ubuntu_bionic__source)](http://build.ros2.org/job/Dsrc_uB__cross_compile__ubuntu_bionic__source) | [![Build Status](http://build.ros2.org/buildStatus/icon?job=Dbin_uB64__cross_compile__ubuntu_bionic_amd64__binary)](http://build.ros2.org/job/Dbin_uB64__cross_compile__ubuntu_bionic_amd64__binary) | N/A | N/A |
+
+
+[ros2_dev_setup]: https://index.ros.org/doc/ros2/Installation/Latest-Development-Setup/
