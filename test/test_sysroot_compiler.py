@@ -100,7 +100,7 @@ def test_sysroot_compiler_constructor(
     sysroot_dir, ros_workspace_dir = setup_mock_sysroot(tmpdir)
     sysroot_compiler = SysrootCompiler(
         str(tmpdir), 'ros2_ws', platform_config,
-        docker_config)
+        docker_config, None)
 
     assert isinstance(sysroot_compiler.get_build_setup_script_path(), Path)
     assert isinstance(sysroot_compiler.get_system_setup_script_path(), Path)
@@ -117,7 +117,8 @@ def test_sysroot_compiler_tree_validation(platform_config, docker_config, tmpdir
         'cc_root_dir': str(tmpdir),
         'ros_workspace_dir': 'ros2_ws',
         'platform': platform_config,
-        'docker_config': docker_config
+        'docker_config': docker_config,
+        'custom_setup_script_path': None,
     }
 
     # There's no 'sysroot' at all yet
