@@ -22,7 +22,6 @@ import shutil
 from string import Template
 import tarfile
 import tempfile
-from typing import Dict
 from typing import Optional
 
 import docker
@@ -54,7 +53,7 @@ SYSROOT_NOT_FOUND_ERROR_STRING = Template(
 
 SYSROOT_DIR_NAME = 'sysroot'  # type: str
 QEMU_DIR_NAME = 'qemu-user-static'  # type: str
-ROS2_DOCKERFILE_NAME = 'Dockerfile_ros2'  # type: str
+ROS_DOCKERFILE_NAME = 'Dockerfile_ros'  # type: str
 DOCKER_CLIENT = docker.from_env()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -71,11 +70,14 @@ class Platform:
     4. RMW implementation used
     """
 
-    def __init__(self, arch: str, os: str, distro: str, rmw: str):
+    _SUPPORTED_ROS2_DISTROS = ['dashing', 'eloquent']
+    _SUPPORTED_ROS_DISTROS = ['kinetic', 'melodic']
+
+    def __init__(self, arch: str, os: str, rosdistro: str, rmw: str):
         """Initialize platform parameters."""
         self.arch = arch
         self.os = os
-        self.distro = distro
+        self.rosdistro = rosdistro
         self.rmw = rmw
 
         if self.arch == 'armhf':
@@ -83,9 +85,14 @@ class Platform:
         elif self.arch == 'aarch64':
             self.cc_toolchain = 'aarch64-linux-gnu'
 
+        if self.rosdistro in self._SUPPORTED_ROS2_DISTROS:
+            self.ros_version = 'ROS2'
+        elif self.rosdistro in self._SUPPORTED_ROS_DISTROS:
+            self.ros_version = 'ROS'
+
     def __str__(self):
         """Return string representation of platform parameters."""
-        return '-'.join((self.arch, self.os, self.rmw, self.distro))
+        return '-'.join((self.arch, self.os, self.rmw, self.rosdistro))
 
     def get_workspace_image_tag(self) -> str:
         """Generate docker image name and tag."""
@@ -102,21 +109,51 @@ class DockerConfig:
     3. Setting to enable/disable caching during docker build
     """
 
-    _default_docker_base_image = {
-        ('armhf', 'ubuntu'): 'arm32v7/ubuntu:bionic',
-        ('armhf', 'debian'): 'arm32v7/debian:latest',
-        ('aarch64', 'ubuntu'): 'arm64v8/ubuntu:bionic',
-        ('aarch64', 'debian'): 'arm64v8/debian:latest',
-    }  # type: Dict[tuple, str]
+    @staticmethod
+    def _get_docker_base_image(arch, os, rosdistro) -> str:
+        """
+        Return docker image to use in dockerfile used to cross compile.
+
+        Args:
+            arch: Target architecture of cross compiling
+            os: Target OS of cross compiling
+            rosdistro: ROS distribution that is being cross compiled
+
+        Returns:
+            image_name: Docker image name to use in the dockerfile
+        """
+        base_image = ''
+        tag = ''
+
+        if str(arch) == 'armhf':
+            base_image = 'arm32v7'
+        elif str(arch) == 'aarch64':
+            base_image = 'arm64v8'
+
+        if str(os) == 'ubuntu':
+            if str(rosdistro) == 'kinetic' or str(rosdistro) == 'ardent':
+                tag = 'xenial'
+            else:
+                tag = 'bionic'
+        else:
+            if str(rosdistro) == 'kinetic':
+                tag = 'jessie'
+            elif str(rosdistro) == 'eloquent':
+                tag = 'buster'
+            else:
+                tag = 'stretch'
+
+        image_name = base_image + '/' + str(os) + ':' + tag
+        return image_name
 
     def __init__(
-        self, arch: str, os: str, sysroot_base_image: str,
+        self, arch: str, os: str, rosdistro: str, sysroot_base_image: str,
         docker_network_mode: str, sysroot_nocache: bool
     ):
         """Initialize docker configuration."""
         if sysroot_base_image is None:
             self.base_image = \
-                self._default_docker_base_image[arch, os]
+                self._get_docker_base_image(arch, os, rosdistro)
         else:
             self.base_image = sysroot_base_image
 
@@ -170,9 +207,9 @@ class SysrootCompiler:
         self._ros_workspace_relative_to_sysroot = ros_workspace_dir
         self._ros_workspace_dir = self._target_sysroot / self._ros_workspace_relative_to_sysroot
         self._qemu_directory = self._target_sysroot / QEMU_DIR_NAME
-        self._dockerfile_directory = Path(__file__).parent / ROS2_DOCKERFILE_NAME
+        self._dockerfile_directory = Path(__file__).parent / ROS_DOCKERFILE_NAME
         self._expected_dockerfile_directory = (
-            self._target_sysroot / ROS2_DOCKERFILE_NAME)
+            self._target_sysroot / ROS_DOCKERFILE_NAME)
         self._system_setup_script_path = Path()
         self._build_setup_script_path = Path()
         self._platform = platform
@@ -217,7 +254,7 @@ class SysrootCompiler:
             str(self._dockerfile_directory), str(self._target_sysroot))
         if not self._expected_dockerfile_directory.exists():
             raise FileNotFoundError(COPY_DOCKER_WS_ERROR_STRING.substitute(
-                dockerfile=ROS2_DOCKERFILE_NAME))
+                dockerfile=ROS_DOCKERFILE_NAME))
         custom_script_dest = str(self._target_sysroot / 'user-custom-setup')
         if custom_script:
             shutil.copy(custom_script, custom_script_dest)
@@ -231,9 +268,11 @@ class SysrootCompiler:
         DOCKER_CLIENT.images.pull(self._docker_config.base_image)
         image_tag = self._platform.get_workspace_image_tag()
         buildargs = {
-            'ROS2_BASE_IMG': self._docker_config.base_image,
+
+            'BASE_IMAGE': self._docker_config.base_image,
             'ROS2_WORKSPACE': self._ros_workspace_relative_to_sysroot,
-            'ROS_DISTRO': self._platform.distro,
+            'ROS_VERSION': self._platform.ros_version,
+            'ROS_DISTRO': self._platform.rosdistro,
             'TARGET_TRIPLE': self._platform.cc_toolchain,
             'TARGET_ARCH': self._platform.arch,
         }
@@ -282,7 +321,7 @@ class SysrootCompiler:
             sysroot_container = DOCKER_CLIENT.containers.run(
                 image=image_tag, detach=True)
             install_stream, install_stat = sysroot_container.get_archive(
-                '/ros2_ws/install_{}'.format(self._platform.arch))
+                '/ros_ws/install_{}'.format(self._platform.arch))
             install_tar_file.writelines(install_stream)
             sysroot_container.stop()
 

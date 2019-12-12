@@ -52,8 +52,8 @@ Please follow those instructions if you plan to contribute to this repository.
 * Checkout the source code and compile it as follows
 
 ```bash
-mkdir -p ~/ros2_cross_compile_ws/src
-cd ros2_cross_compile_ws
+mkdir -p ~/ros_cross_compile_ws/src
+cd ros_cross_compile_ws
 
 # Use vcs to clone all required repositories
 curl -fsSL https://raw.githubusercontent.com/ros2/ros2/master/ros2.repos | vcs import src/
@@ -84,7 +84,7 @@ The following instructions explain how to create a `sysroot` directory.
 #### Create the directory structure
 ```bash
 mkdir -p sysroot/qemu-user-static
-mkdir -p sysroot/ros2_ws/src
+mkdir -p sysroot/ros_ws/src
 ```
 
 #### Copy the QEMU Binaries
@@ -93,15 +93,14 @@ mkdir -p sysroot/ros2_ws/src
 cp /usr/bin/qemu-*-static sysroot/qemu-user-static/
 ```
 
-#### Prepare ros2_ws
 
+#### 3. Prepare ros_ws
+Use [ROS](http://wiki.ros.org/ROS/Installation) or [ROS 2](https://index.ros.org/doc/ros2/Installation/) source installation guide to get the ROS repositories needed to cross compile.
+
+Once you have the desired sources, copy them in the `sysroot` to use with the tool. 
 ```bash
-# Copy in your ros2_ws
-cp -r <full_path_to_your_ros_ws>/src sysroot/ros2_ws/src
-
-# Use vcs to checkout the required ROS2 version.
-# Substitute `master` for `release-latest` or a specific release like `dashing`.
-curl -fsSL https://raw.githubusercontent.com/ros2/ros2/master/ros2.repos | vcs import src/
+# Copy ros sources into the sysroot directory
+cp -r <full_path_to_your_ros_ws>/src sysroot/ros_ws/src
 ```
 
 #### Run the cross compilation script
@@ -112,9 +111,9 @@ In the end your `sysroot` directory should look like this:
 sysroot/
  +-- qemu-user-static/
  |   +-- qemu-*-static
- +-- ros2_ws/
+ +-- ros_ws/
      +-- src/
-          |-- (ros2 packages)
+          |-- (ros packages)
           +-- ...
 ```
 

@@ -63,11 +63,11 @@ setup(){
   # Usage: setup CONTAINER_NAME
   test_sysroot_dir=$(mktemp -d)
   mkdir "$test_sysroot_dir/sysroot"
-  mkdir -p "$test_sysroot_dir/sysroot/ros2_ws/src/"
+  mkdir -p "$test_sysroot_dir/sysroot/ros_ws/src/"
   # Get full directory name of the script no matter where it is being called from
   dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
   # Copy dummy pkg
-  cp -r "$dir/dummy_pkg" "$test_sysroot_dir/sysroot/ros2_ws/src"
+  cp -r "$dir/dummy_pkg" "$test_sysroot_dir/sysroot/ros_ws/src"
   # Copy QEMU binaries
   mkdir -p "$test_sysroot_dir/sysroot/qemu-user-static"
   cp /usr/bin/qemu-* "$test_sysroot_dir/sysroot/qemu-user-static"
@@ -123,7 +123,7 @@ fi
 
 # Run the cross compilation script
 log "Executing cross compilation script..."
-ros2 run cross_compile cross_compile --arch "$arch" --os "$os" --distro "$distro" --rmw "$rmw" \
+ros2 run cross_compile cross_compile --arch "$arch" --os "$os" --rosdistro "$distro" --rmw "$rmw" \
                                         --sysroot-path "$test_sysroot_dir"
 CC_SCRIPT_STATUS=$?
 if [[ "$CC_SCRIPT_STATUS" -ne 0 ]]; then

@@ -86,7 +86,7 @@ setup(
          [os.path.join('resource', package_name)]),
     ],
     package_data={
-        package_name: ['Dockerfile_ros2']
+        package_name: ['Dockerfile_ros']
     },
     install_requires=[
         'setuptools',
