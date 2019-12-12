@@ -36,6 +36,12 @@ error(){
   printf "%b%s%b\n" "$RED" "$1" "$NORM"
 }
 
+panic() {
+  error $1
+  result=1
+  exit 1
+}
+
 success(){
   printf "%b%s%b\n" "$GREEN" "$1" "$NORM"
 }
@@ -48,23 +54,23 @@ cleanup(){
   else
     error FAIL
   fi
-  rm -rf "$temp_path/sysroot";
+  rm -rf "$test_sysroot_dir/sysroot";
   docker stop -t 2 "$1"
   docker rm "$1" >/dev/null 2>/dev/null;
 }
 
 setup(){
   # Usage: setup CONTAINER_NAME
-  temp_path=$(mktemp -d)
-  mkdir "$temp_path/sysroot"
-  mkdir -p "$temp_path/sysroot/ros2_ws/src/"
+  test_sysroot_dir=$(mktemp -d)
+  mkdir "$test_sysroot_dir/sysroot"
+  mkdir -p "$test_sysroot_dir/sysroot/ros2_ws/src/"
   # Get full directory name of the script no matter where it is being called from
   dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
   # Copy dummy pkg
-  cp -r "$dir/dummy_pkg" "$temp_path/sysroot/ros2_ws/src"
+  cp -r "$dir/dummy_pkg" "$test_sysroot_dir/sysroot/ros2_ws/src"
   # Copy QEMU binaries
-  mkdir -p "$temp_path/sysroot/qemu-user-static"
-  cp /usr/bin/qemu-* "$temp_path/sysroot/qemu-user-static"
+  mkdir -p "$test_sysroot_dir/sysroot/qemu-user-static"
+  cp /usr/bin/qemu-* "$test_sysroot_dir/sysroot/qemu-user-static"
 
   if [[ $(docker inspect -f "{{.State.Running}}" "$CONTAINER_NAME") == "true" ]]; then
     warning "Container named $CONTAINER_NAME already running. Stopping it before proceeding."
@@ -95,9 +101,7 @@ do
       shift 2
       ;;
       *)
-      error "Unrecognized option $1"
-      exit 2
-      shift
+      panic "Unrecognized option $1"
       ;;
   esac
 done
@@ -114,20 +118,16 @@ setup "$CONTAINER_NAME"
 # Check if the ros2 command exists
 log "Checking for ros2 command in PATH..."
 if ! type ros2 > /dev/null; then
-  error "Unable to find ros2 in PATH. Make sure you have sourced your environment/workspace properly."
-  result=1
-  exit 1
+  panic "Unable to find ros2 in PATH. Make sure you have sourced your environment/workspace properly."
 fi
 
 # Run the cross compilation script
 log "Executing cross compilation script..."
 ros2 run cross_compile cross_compile --arch "$arch" --os "$os" --distro "$distro" --rmw "$rmw" \
-                                        --sysroot-path "$temp_path"
+                                        --sysroot-path "$test_sysroot_dir"
 CC_SCRIPT_STATUS=$?
 if [[ "$CC_SCRIPT_STATUS" -ne 0 ]]; then
-  error "Failed to run cross compile script."
-  result=1
-  exit 1
+  panic "Failed to run cross compile script."
 fi
 
 # Check the container was created
@@ -135,21 +135,41 @@ log "Running Docker container..."
 docker run --name "$CONTAINER_NAME" -td "$CONTAINER_TAG" /bin/bash
 IS_CONTAINER_RUNNING=$(docker inspect -f "{{.State.Running}}" "$CONTAINER_NAME")
 if [[ "$IS_CONTAINER_RUNNING" != "true" ]]; then
-  error "Container was not created."
-  result=1
-  exit 1
+  panic "Container was not created."
 fi
 
 log "Executing node in Docker container..."
-docker exec -t "$CONTAINER_NAME" bash -c 'source /ros2_ws/install/local_setup.bash && dummy_binary'
+docker exec -t "$CONTAINER_NAME" bash -c "source /ros2_ws/install_${arch}/local_setup.bash && dummy_binary"
 IS_PUBLISHER_RUNNING=$?
 if [[ "IS_PUBLISHER_RUNNING" -ne 0 ]]; then
-  error "Failed to run the dummy binary in the Docker container."
-  result=1
-  exit 1
+  panic "Failed to run the dummy binary in the Docker container."
 fi
 log "Stopping Docker container..."
 docker stop -t 2 "$CONTAINER_NAME"
+
+install_dir=$test_sysroot_dir/sysroot/ros2_ws/install_$arch
+
+log "Checking that install directory was output to the correct place..."
+if [ ! -d "$install_dir" ]; then
+  panic "The install directory was not where it should have been output"
+fi
+
+log "Checking that extraction didn't overwrite our workspace"
+if [ ! -d "$test_sysroot_dir/sysroot/ros2_ws/src" ]; then
+  panic "The user's source tree got deleted by the build"
+fi
+
+log "Checking that the binary output is in the correct architecture..."
+binary_file_info=$(file $install_dir/bin/dummy_binary)
+if [ $arch = 'armhf' ]; then
+  expected_binary='ELF 32-bit LSB shared object, ARM'
+elif [ $arch = 'aarch64' ]; then
+  expected_binary='ELF 64-bit LSB shared object, ARM aarch64'
+fi
+
+if [[ "$binary_file_info" != *"$expected_binary"* ]]; then
+  panic "The binary output was not of the expected architecture"
+fi
 
 result=0
 exit 0

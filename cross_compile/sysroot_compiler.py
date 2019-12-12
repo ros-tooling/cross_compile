@@ -166,9 +166,9 @@ class SysrootCompiler:
                 'Argument `docker_config` must be of type DockerConfig.')
 
         workspace_root = Path(cc_root_dir).resolve()
-        self._ros_workspace_dir = Path(ros_workspace_dir)
         self._target_sysroot = workspace_root / SYSROOT_DIR_NAME
-        self._ros_ws_directory = self._target_sysroot / self._ros_workspace_dir
+        self._ros_workspace_relative_to_sysroot = ros_workspace_dir
+        self._ros_workspace_dir = self._target_sysroot / self._ros_workspace_relative_to_sysroot
         self._qemu_directory = self._target_sysroot / QEMU_DIR_NAME
         self._dockerfile_directory = Path(__file__).parent / ROS2_DOCKERFILE_NAME
         self._expected_dockerfile_directory = (
@@ -202,7 +202,7 @@ class SysrootCompiler:
                 sysroot_dir=self._target_sysroot))
 
         logger.debug('Sysroot directory exists.')
-        if not self._ros_ws_directory.exists():
+        if not self._ros_workspace_dir.exists():
             raise FileNotFoundError(ROS_WS_DIR_ERROR_STRING.substitute(
                 ros_ws=self._ros_workspace_dir))
         logger.debug('ROS workspace exists.')
@@ -232,7 +232,7 @@ class SysrootCompiler:
         image_tag = self._platform.get_workspace_image_tag()
         buildargs = {
             'ROS2_BASE_IMG': self._docker_config.base_image,
-            'ROS2_WORKSPACE': str(self._ros_workspace_dir),
+            'ROS2_WORKSPACE': self._ros_workspace_relative_to_sysroot,
             'ROS_DISTRO': self._platform.distro,
             'TARGET_TRIPLE': self._platform.cc_toolchain,
             'TARGET_ARCH': self._platform.arch,
@@ -270,8 +270,8 @@ class SysrootCompiler:
 
         logger.info('Successfully created sysroot docker image: %s', image_tag)
 
-    def export_workspace_sysroot_image(self) -> None:
-        """Export sysroot filesystem into sysroot directory."""
+    def export_cross_compiled_build(self) -> None:
+        """Done cross compiling, export the build into the ROS workspace."""
         logger.info('Exporting sysroot to path [%s]', self._target_sysroot)
         with tempfile.TemporaryFile() as install_tar_file:
             image_tag = self._platform.get_workspace_image_tag()
@@ -281,7 +281,8 @@ class SysrootCompiler:
 
             sysroot_container = DOCKER_CLIENT.containers.run(
                 image=image_tag, detach=True)
-            install_stream, install_stat = sysroot_container.get_archive('/ros2_ws/install')
+            install_stream, install_stat = sysroot_container.get_archive(
+                '/ros2_ws/install_{}'.format(self._platform.arch))
             install_tar_file.writelines(install_stream)
             sysroot_container.stop()
 
@@ -297,10 +298,6 @@ class SysrootCompiler:
 
     def execute_cc_pipeline(self) -> bool:
         """Execute the entire cross compilation workflow."""
-        try:
-            self.build_workspace_sysroot_image()
-            self.export_workspace_sysroot_image()
-        except Exception as e:
-            logger.exception(e)
-            return False
+        self.build_workspace_sysroot_image()
+        self.export_cross_compiled_build()
         return True
