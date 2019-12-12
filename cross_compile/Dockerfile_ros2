@@ -100,14 +100,14 @@ RUN rosdep update && \
 RUN colcon mixin add cc_mixin \
     https://raw.githubusercontent.com/ros-tooling/cross_compile/master/mixins/index.yaml && \
     colcon mixin update cc_mixin
-RUN . /opt/ros/${ROS_DISTRO}/setup.sh && colcon build --mixin ${TARGET_ARCH}-docker
+RUN colcon build --mixin ${TARGET_ARCH}-docker
 
 # To avoid linker issues when using a compiler with different GLIBC and GLIBCXX
 # root_path/usr should be used as CMAKE_FIND_ROOT_PATH in the toolchain file
 RUN mkdir -p /root_path/usr \
  && ln -s ../lib/${TARGET_TRIPLE} /root_path/lib \
  && ln -s ../../usr/lib/${TARGET_TRIPLE} /root_path/usr/lib \
- && cp -r /usr/lib/gcc/${TARGET_TRIPLE}/7/* /root_path/usr/lib
+ && cp -r /usr/lib/gcc/${TARGET_TRIPLE}/*/* /root_path/usr/lib
 
 WORKDIR /
 RUN symlinks -rc .
