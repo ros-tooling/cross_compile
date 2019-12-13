@@ -17,38 +17,42 @@ jobs:
       matrix:
           os: [macOS-latest, ubuntu-18.04]
     steps:
-    - uses: ros-tooling/setup-ros2@0.0.5
-    - uses: ros-tooling/action-ros2-ci@0.0.5
-      with:
-        package-name: cross_compile
-    - uses: codecov/codecov-action@v1
-      # Prevent being rate limited by only reporting coverage from the Ubuntu
-      # build.
-      if: matrix.os == 'ubuntu-18.04'
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        file: ros2_ws/src/cross_compile/coverage.xml
-        flags: unittests
-        name: codecov-umbrella
-        yml: ./codecov.yml
-        fail_ci_if_error: true
-    - uses: actions/upload-artifact@master
-      with:
-        name: colcon-logs-${{ matrix.os }}
-        path: ros2_ws/log
-    # Upload the package to the PyPI test repository.
-    # This will silently fail if a package with this version number already
-    # exists.
-    - uses: ros-tooling/action-pypi@0.0.1
-      # As the package is platform-independent, only trigger this step on Linux
-      # and only on push.
-      # This action should never happen on pull-request, as it would lead us
-      # to upload the package in its initial state, before review.
-      # The final state of the pull request would then never be uploaded, as
-      # we cannot overwrite packages.
-      if: matrix.os == 'ubuntu-18.04' && github.event_name == 'push'
-      with:
-        package-directory: ros2_ws/src/cross_compile
-        username: ${{ secrets.PYPI_USERNAME }}
-        password: ${{ secrets.PYPI_PASSWORD }}
-        repository-url: https://test.pypi.org/legacy/
+      - name: "Temporarily remove MS apt sources. https://github.com/ros-security/aws-oncall/issues/31"
+        if: matrix.os == 'ubuntu-18.04'
+        run: |
+          sudo rm -f /etc/apt/sources.list.d/dotnetdev.list /etc/apt/sources.list.d/microsoft-prod.list
+      - uses: ros-tooling/setup-ros2@0.0.5
+      - uses: ros-tooling/action-ros2-ci@0.0.5
+        with:
+          package-name: cross_compile
+      - uses: codecov/codecov-action@v1
+        # Prevent being rate limited by only reporting coverage from the Ubuntu
+        # build.
+        if: matrix.os == 'ubuntu-18.04'
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ros2_ws/src/cross_compile/coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          yml: ./codecov.yml
+          fail_ci_if_error: true
+      - uses: actions/upload-artifact@master
+        with:
+          name: colcon-logs-${{ matrix.os }}
+          path: ros2_ws/log
+      # Upload the package to the PyPI test repository.
+      # This will silently fail if a package with this version number already
+      # exists.
+      - uses: ros-tooling/action-pypi@0.0.1
+        # As the package is platform-independent, only trigger this step on Linux
+        # and only on push.
+        # This action should never happen on pull-request, as it would lead us
+        # to upload the package in its initial state, before review.
+        # The final state of the pull request would then never be uploaded, as
+        # we cannot overwrite packages.
+        if: matrix.os == 'ubuntu-18.04' && github.event_name == 'push'
+        with:
+          package-directory: ros2_ws/src/cross_compile
+          username: ${{ secrets.PYPI_USERNAME }}
+          password: ${{ secrets.PYPI_PASSWORD }}
+          repository-url: https://test.pypi.org/legacy/

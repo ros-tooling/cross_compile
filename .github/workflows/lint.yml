@@ -10,9 +10,12 @@ jobs:
       matrix:
           linter: [copyright, flake8, pep257]
     steps:
-    - uses: actions/checkout@v1
-    - uses: ros-tooling/setup-ros2@0.0.5
-    - uses: ros-tooling/action-ros2-lint@0.0.3
-      with:
-        linter: ${{ matrix.linter }}
-        package-name: cross_compile
+      - name: "Temporarily remove MS apt sources. https://github.com/ros-security/aws-oncall/issues/31"
+        run: |
+          sudo rm -f /etc/apt/sources.list.d/dotnetdev.list /etc/apt/sources.list.d/microsoft-prod.list
+      - uses: actions/checkout@v1
+      - uses: ros-tooling/setup-ros2@0.0.5
+      - uses: ros-tooling/action-ros2-lint@0.0.3
+        with:
+          linter: ${{ matrix.linter }}
+          package-name: cross_compile
