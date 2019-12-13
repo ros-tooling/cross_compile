@@ -57,6 +57,9 @@ RUN apt-get update && apt-get install -y \
       wget \
     && rm -rf /var/lib/apt/lists/*
 
+RUN python3 -m pip install -U \
+    setuptools
+
 # Install some pip packages needed for testing ROS 2
 RUN if [[ "${ROS_VERSION}" == "ros2" ]]; then \
     python3 -m pip install -U \
@@ -75,7 +78,6 @@ RUN if [[ "${ROS_VERSION}" == "ros2" ]]; then \
     pytest \
     pytest-cov \
     pytest-runner \
-    setuptools \
     vcstool; \
   fi
 
@@ -102,14 +104,13 @@ ENV ROSDEP_SKIP_KEYS="console_bridge fastcdr fastrtps libopensplice67 libopenspl
 
 RUN rm -f /etc/ros/rosdep/sources.list.d/20-default.list
 RUN rosdep init
-RUN rosdep update
-
-RUN apt-get update && \
-        rosdep install --from-paths src \
-            --ignore-src \
-            --rosdistro ${ROS_DISTRO} -y \
-            --skip-keys "${ROSDEP_SKIP_KEYS}" \
-        && rm -rf /var/lib/apt/lists/*
+RUN rosdep update && \
+    apt-get update && \
+    rosdep install --from-paths src \
+        --ignore-src \
+        --rosdistro ${ROS_DISTRO} -y \
+        --skip-keys "${ROSDEP_SKIP_KEYS}" \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set up and run the build for the workspace (this will be removed from here when we get to host-native cross-compiling)
 RUN colcon mixin add cc_mixin \
