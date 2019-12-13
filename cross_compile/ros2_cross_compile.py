@@ -50,7 +50,7 @@ def create_arg_parser():
         required=False,
         type=str,
         default='dashing',
-        choices=['dashing', 'eloquent', 'kinetic', 'melodic'],
+        choices=Platform.SUPPORTED_ROS_DISTROS + Platform.SUPPORTED_ROS2_DISTROS,
         help='Target ROS distribution')
     parser.add_argument(
         '-r', '--rmw',

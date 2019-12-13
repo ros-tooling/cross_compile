@@ -70,8 +70,8 @@ class Platform:
     4. RMW implementation used
     """
 
-    _SUPPORTED_ROS2_DISTROS = ['dashing', 'eloquent']
-    _SUPPORTED_ROS_DISTROS = ['kinetic', 'melodic']
+    SUPPORTED_ROS2_DISTROS = ['dashing', 'eloquent']
+    SUPPORTED_ROS_DISTROS = ['kinetic', 'melodic']
 
     def __init__(self, arch: str, os: str, rosdistro: str, rmw: str):
         """Initialize platform parameters."""
@@ -85,10 +85,10 @@ class Platform:
         elif self.arch == 'aarch64':
             self.cc_toolchain = 'aarch64-linux-gnu'
 
-        if self.rosdistro in self._SUPPORTED_ROS2_DISTROS:
-            self.ros_version = 'ROS2'
-        elif self.rosdistro in self._SUPPORTED_ROS_DISTROS:
-            self.ros_version = 'ROS'
+        if self.rosdistro in self.SUPPORTED_ROS2_DISTROS:
+            self.ros_version = 'ros2'
+        elif self.rosdistro in self.SUPPORTED_ROS_DISTROS:
+            self.ros_version = 'ros'
 
     def __str__(self):
         """Return string representation of platform parameters."""
@@ -109,51 +109,37 @@ class DockerConfig:
     3. Setting to enable/disable caching during docker build
     """
 
-    @staticmethod
-    def _get_docker_base_image(arch, os, rosdistro) -> str:
-        """
-        Return docker image to use in dockerfile used to cross compile.
-
-        Args:
-            arch: Target architecture of cross compiling
-            os: Target OS of cross compiling
-            rosdistro: ROS distribution that is being cross compiled
-
-        Returns:
-            image_name: Docker image name to use in the dockerfile
-        """
-        base_image = ''
-        tag = ''
-
-        if str(arch) == 'armhf':
-            base_image = 'arm32v7'
-        elif str(arch) == 'aarch64':
-            base_image = 'arm64v8'
-
-        if str(os) == 'ubuntu':
-            if str(rosdistro) == 'kinetic' or str(rosdistro) == 'ardent':
-                tag = 'xenial'
-            else:
-                tag = 'bionic'
-        else:
-            if str(rosdistro) == 'kinetic':
-                tag = 'jessie'
-            elif str(rosdistro) == 'eloquent':
-                tag = 'buster'
-            else:
-                tag = 'stretch'
-
-        image_name = base_image + '/' + str(os) + ':' + tag
-        return image_name
-
     def __init__(
         self, arch: str, os: str, rosdistro: str, sysroot_base_image: str,
         docker_network_mode: str, sysroot_nocache: bool
     ):
+        base_image = {
+            'armhf': 'arm32v7',
+            'aarch64': 'arm64v8',
+        }
+        image_tag = {
+            'kinetic': {
+                'ubuntu': 'xenial',
+                'debian': 'jessie',
+            },
+            'melodic': {
+                'ubuntu': 'bionic',
+                'debian': 'stretch',
+            },
+            'dashing': {
+                'ubuntu': 'bionic',
+                'debian': 'stretch',
+            },
+            'eloquent': {
+                'ubuntu': 'bionic',
+                'debian': 'buster',
+            }
+        }
+
         """Initialize docker configuration."""
         if sysroot_base_image is None:
             self.base_image = \
-                self._get_docker_base_image(arch, os, rosdistro)
+                self.base_image = '{}/{}:{}'.format(base_image[arch], os, image_tag[rosdistro][os])
         else:
             self.base_image = sysroot_base_image
 
@@ -270,7 +256,7 @@ class SysrootCompiler:
         buildargs = {
 
             'BASE_IMAGE': self._docker_config.base_image,
-            'ROS2_WORKSPACE': self._ros_workspace_relative_to_sysroot,
+            'ROS_WORKSPACE': self._ros_workspace_relative_to_sysroot,
             'ROS_VERSION': self._platform.ros_version,
             'ROS_DISTRO': self._platform.rosdistro,
             'TARGET_TRIPLE': self._platform.cc_toolchain,

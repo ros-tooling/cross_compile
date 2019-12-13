@@ -139,7 +139,7 @@ if [[ "$IS_CONTAINER_RUNNING" != "true" ]]; then
 fi
 
 log "Executing node in Docker container..."
-docker exec -t "$CONTAINER_NAME" bash -c "source /ros2_ws/install_${arch}/local_setup.bash && dummy_binary"
+docker exec -t "$CONTAINER_NAME" bash -c "source /ros_ws/install_${arch}/local_setup.bash && dummy_binary"
 IS_PUBLISHER_RUNNING=$?
 if [[ "IS_PUBLISHER_RUNNING" -ne 0 ]]; then
   panic "Failed to run the dummy binary in the Docker container."
@@ -147,7 +147,7 @@ fi
 log "Stopping Docker container..."
 docker stop -t 2 "$CONTAINER_NAME"
 
-install_dir=$test_sysroot_dir/sysroot/ros2_ws/install_$arch
+install_dir=$test_sysroot_dir/sysroot/ros_ws/install_$arch
 
 log "Checking that install directory was output to the correct place..."
 if [ ! -d "$install_dir" ]; then
@@ -155,7 +155,7 @@ if [ ! -d "$install_dir" ]; then
 fi
 
 log "Checking that extraction didn't overwrite our workspace"
-if [ ! -d "$test_sysroot_dir/sysroot/ros2_ws/src" ]; then
+if [ ! -d "$test_sysroot_dir/sysroot/ros_ws/src" ]; then
   panic "The user's source tree got deleted by the build"
 fi
 
