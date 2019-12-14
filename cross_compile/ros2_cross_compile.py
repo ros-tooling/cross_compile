@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Executable for cross-compiling ROS2 packages."""
+"""Executable for cross-compiling ROS and ROS 2 packages."""
 
 import argparse
 import logging
@@ -46,18 +46,18 @@ def create_arg_parser():
         choices=['ubuntu', 'debian'],
         help='Target OS')
     parser.add_argument(
-        '-d', '--distro',
+        '-d', '--rosdistro',
         required=False,
         type=str,
         default='dashing',
-        choices=['ardent', 'bouncy', 'crystal', 'dashing'],
+        choices=Platform.SUPPORTED_ROS_DISTROS + Platform.SUPPORTED_ROS2_DISTROS,
         help='Target ROS distribution')
     parser.add_argument(
         '-r', '--rmw',
         required=False,
         type=str,
         default='fastrtps',
-        choices=['fastrtps', 'opensplice', 'connext'],
+        choices=['fastrtps', 'cyclonedds'],
         help='Target RMW implementation')
     parser.add_argument(
         '--sysroot-base-image',
@@ -77,13 +77,14 @@ def create_arg_parser():
         help="When set to true, this disables Docker's cache when building "
              'the Docker image for the workspace')
     parser.add_argument(
-        '--ros2-workspace',
+        '--ros-workspace',
         required=False,
         type=str,
-        default='ros2_ws',
+        default='ros_ws',
         help="The subdirectory of 'sysroot' that contains your 'src' to be built."
              'The output of the cross compilation will be placed in this directory. '
-             "Defaults to 'ros2_ws'.")
+             "Defaults to 'ros_ws'.")
+
     parser.add_argument(
         '--sysroot-path',
         required=False,
@@ -111,14 +112,14 @@ def main():
     parser = create_arg_parser()
     args = parser.parse_args()
     platform = Platform(
-        args.arch, args.os, args.distro, args.rmw)
+        args.arch, args.os, args.rosdistro, args.rmw)
     docker_args = DockerConfig(
-        args.arch, args.os, args.sysroot_base_image,
+        args.arch, args.os, args.rosdistro, args.sysroot_base_image,
         args.docker_network_mode, args.sysroot_nocache)
 
     # Main pipeline
     sysroot_create = SysrootCompiler(cc_root_dir=args.sysroot_path,
-                                     ros_workspace_dir=args.ros2_workspace,
+                                     ros_workspace_dir=args.ros_workspace,
                                      platform=platform,
                                      docker_config=docker_args,
                                      custom_setup_script_path=args.custom_setup_script)

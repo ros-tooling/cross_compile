@@ -22,7 +22,7 @@ from typing import Tuple
 from cross_compile.sysroot_compiler import DockerConfig
 from cross_compile.sysroot_compiler import Platform
 from cross_compile.sysroot_compiler import QEMU_DIR_NAME
-from cross_compile.sysroot_compiler import ROS2_DOCKERFILE_NAME
+from cross_compile.sysroot_compiler import ROS_DOCKERFILE_NAME
 from cross_compile.sysroot_compiler import SYSROOT_DIR_NAME
 from cross_compile.sysroot_compiler import SysrootCompiler
 import pytest
@@ -32,6 +32,7 @@ def _default_docker_kwargs() -> dict:
     return {
         'arch': 'aarch64',
         'os': 'ubuntu',
+        'rosdistro': 'dashing',
         'sysroot_base_image': '035662560449.dkr.ecr.us-east-2.amazonaws.com/cc-tool:'
                               'aarch64-bionic-dashing-fastrtps-prebuilt',
         'docker_network_mode': 'host',
@@ -44,7 +45,7 @@ def platform_config() -> Platform:
     return Platform(
         arch='aarch64',
         os='ubuntu',
-        distro='dashing',
+        rosdistro='dashing',
         rmw='fastrtps')
 
 
@@ -57,13 +58,13 @@ def setup_mock_sysroot(path: Path) -> Tuple[Path, Path]:
     """Create mock directories to correctly construct the SysrootCreator."""
     sysroot_dir = path / SYSROOT_DIR_NAME
     sysroot_dir.mkdir()
-    ros_workspace_dir = sysroot_dir / 'ros2_ws'
+    ros_workspace_dir = sysroot_dir / 'ros_ws'
     ros_workspace_dir.mkdir()
     qemu_dir = sysroot_dir / QEMU_DIR_NAME
     qemu_dir.mkdir()
     qemu_binary_mock = qemu_dir / 'qemu'
     qemu_binary_mock.ensure()
-    docker_ws_dir = sysroot_dir / ROS2_DOCKERFILE_NAME
+    docker_ws_dir = sysroot_dir / ROS_DOCKERFILE_NAME
     docker_ws_dir.ensure()
     return sysroot_dir, ros_workspace_dir
 
@@ -97,7 +98,7 @@ def test_sysroot_compiler_constructor(
     # Create mock directories and files
     sysroot_dir, ros_workspace_dir = setup_mock_sysroot(tmpdir)
     sysroot_compiler = SysrootCompiler(
-        str(tmpdir), 'ros2_ws', platform_config,
+        str(tmpdir), 'ros_ws', platform_config,
         docker_config, None)
 
     assert isinstance(sysroot_compiler.get_build_setup_script_path(), Path)
@@ -113,7 +114,7 @@ def test_sysroot_compiler_tree_validation(platform_config, docker_config, tmpdir
     """
     kwargs = {
         'cc_root_dir': str(tmpdir),
-        'ros_workspace_dir': 'ros2_ws',
+        'ros_workspace_dir': 'ros_ws',
         'platform': platform_config,
         'docker_config': docker_config,
         'custom_setup_script_path': None,
@@ -129,7 +130,7 @@ def test_sysroot_compiler_tree_validation(platform_config, docker_config, tmpdir
     with pytest.raises(FileNotFoundError):
         compiler = SysrootCompiler(**kwargs)
 
-    ros_workspace_dir = sysroot_dir / 'ros2_ws'
+    ros_workspace_dir = sysroot_dir / 'ros_ws'
     ros_workspace_dir.mkdir()
     # qemu dirs are missing
     with pytest.raises(FileNotFoundError):
@@ -146,3 +147,36 @@ def test_sysroot_compiler_tree_validation(platform_config, docker_config, tmpdir
     # everything is present now
     compiler = SysrootCompiler(**kwargs)
     assert compiler
+
+
+def verify_base_docker_images(arch, os, rosdistro, image_name):
+    """Assert correct base image is generated."""
+    sysroot_base_image = None
+    docker_network_mode = 'host'
+    sysroot_nocache = 'False'
+    assert DockerConfig(
+        arch, os, rosdistro, sysroot_base_image,
+        docker_network_mode, sysroot_nocache).base_image == image_name
+
+
+def test_get_docker_base_image():
+    """Test that the correct base docker image is used for all arguments."""
+    verify_base_docker_images('aarch64', 'ubuntu', 'dashing', 'arm64v8/ubuntu:bionic')
+    verify_base_docker_images('aarch64', 'ubuntu', 'eloquent', 'arm64v8/ubuntu:bionic')
+    verify_base_docker_images('aarch64', 'ubuntu', 'kinetic', 'arm64v8/ubuntu:xenial')
+    verify_base_docker_images('aarch64', 'ubuntu', 'melodic', 'arm64v8/ubuntu:bionic')
+
+    verify_base_docker_images('aarch64', 'debian', 'dashing', 'arm64v8/debian:stretch')
+    verify_base_docker_images('aarch64', 'debian', 'eloquent', 'arm64v8/debian:buster')
+    verify_base_docker_images('aarch64', 'debian', 'kinetic', 'arm64v8/debian:jessie')
+    verify_base_docker_images('aarch64', 'debian', 'melodic', 'arm64v8/debian:stretch')
+
+    verify_base_docker_images('armhf', 'ubuntu', 'dashing', 'arm32v7/ubuntu:bionic')
+    verify_base_docker_images('armhf', 'ubuntu', 'eloquent', 'arm32v7/ubuntu:bionic')
+    verify_base_docker_images('armhf', 'ubuntu', 'kinetic', 'arm32v7/ubuntu:xenial')
+    verify_base_docker_images('armhf', 'ubuntu', 'melodic', 'arm32v7/ubuntu:bionic')
+
+    verify_base_docker_images('armhf', 'debian', 'dashing', 'arm32v7/debian:stretch')
+    verify_base_docker_images('armhf', 'debian', 'eloquent', 'arm32v7/debian:buster')
+    verify_base_docker_images('armhf', 'debian', 'kinetic', 'arm32v7/debian:jessie')
+    verify_base_docker_images('armhf', 'debian', 'melodic', 'arm32v7/debian:stretch')
