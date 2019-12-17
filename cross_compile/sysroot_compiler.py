@@ -254,7 +254,6 @@ class SysrootCompiler:
         DOCKER_CLIENT.images.pull(self._docker_config.base_image)
         image_tag = self._platform.get_workspace_image_tag()
         buildargs = {
-
             'BASE_IMAGE': self._docker_config.base_image,
             'ROS_WORKSPACE': self._ros_workspace_relative_to_sysroot,
             'ROS_VERSION': self._platform.ros_version,
