@@ -37,7 +37,7 @@ error(){
 }
 
 panic() {
-  error $1
+  error "$1"
   result=1
   exit 1
 }
@@ -92,7 +92,7 @@ do
       os="$2"
       shift 2
       ;;
-      -d|--distro)
+      -d|--rosdistro)
       distro="$2"
       shift 2
       ;;
@@ -160,10 +160,10 @@ if [ ! -d "$test_sysroot_dir/sysroot/ros_ws/src" ]; then
 fi
 
 log "Checking that the binary output is in the correct architecture..."
-binary_file_info=$(file $install_dir/bin/dummy_binary)
-if [ $arch = 'armhf' ]; then
+binary_file_info=$(file "$install_dir"/bin/dummy_binary)
+if [ "$arch" = 'armhf' ]; then
   expected_binary='ELF 32-bit LSB shared object, ARM'
-elif [ $arch = 'aarch64' ]; then
+elif [ "$arch" = 'aarch64' ]; then
   expected_binary='ELF 64-bit LSB shared object, ARM aarch64'
 fi
 
