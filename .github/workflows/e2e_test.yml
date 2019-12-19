@@ -1,0 +1,34 @@
+name: End-to-end Testing (Nightly)
+on:
+  pull_request:
+    # Running on pull requests to catch breaking changes as early as possible. 
+    # Waiting for this test to pass is recommended, but contributors can use their discretion whether they want to or not.
+  schedule:
+    # Run every morning Pacific Time. Random hour and minute to avoid creating excess traffic during popular times. 
+    # Because the test takes a long time (> 30 min) to run, it is configured to run only once a day. 
+    - cron:  '17 17 * * *'
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-18.04
+    strategy:
+      fail-fast: false
+      matrix:
+        supported_platforms: [aarch64]
+        supported_os: [ubuntu, debian]
+        rosdistro: [dashing, eloquent, melodic]
+    steps:
+    - name: Setup ROS2
+      uses: ros-tooling/setup-ros2@0.0.11
+      with:
+        required-ros-distributions: ${{ matrix.rosdistro }}
+    - name: Install dependencies
+      run: |
+        sudo apt update && sudo apt install -y qemu-user-static
+    - name: Build and test cross_compile
+      uses: ros-tooling/action-ros2-ci@0.0.11
+      with:
+        package-name: cross_compile ros2run
+    - name: Run end-to-end test
+      run: |
+        source ros2_ws/install/local_setup.bash && ros2_ws/src/cross_compile/test/run_e2e_test.sh -a "${{ matrix.supported_platforms }}" -o "${{ matrix.supported_os }}" -d "${{ matrix.rosdistro }}"
