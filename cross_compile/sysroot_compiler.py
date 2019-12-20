@@ -92,7 +92,7 @@ class Platform:
 
     def __str__(self):
         """Return string representation of platform parameters."""
-        return '-'.join((self.arch, self.os, self.rmw, self.rosdistro))
+        return '-'.join((self.arch, self.os, self.rosdistro))
 
     def get_workspace_image_tag(self) -> str:
         """Generate docker image name and tag."""
