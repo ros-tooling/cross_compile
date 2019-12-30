@@ -105,7 +105,7 @@ WORKDIR /ros_ws
 ENV ROSDEP_SKIP_KEYS="console_bridge fastcdr fastrtps libopensplice67 libopensplice69 rti-connext-dds-5.3.1 urdfdom_headers"
 
 RUN rm -f /etc/ros/rosdep/sources.list.d/20-default.list
-RUN rosdep init
+RUN c_rehash /etc/ssl/certs && rosdep init
 RUN rosdep update && \
     apt-get update && \
     rosdep install --from-paths src \
