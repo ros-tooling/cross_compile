@@ -36,11 +36,12 @@ ENV LC_ALL C.UTF-8
 
 # Add the ros apt repo
 RUN apt-get update && apt-get install -y \
-        curl \
         gnupg2 \
         lsb-release \
     && rm -rf /var/lib/apt/lists/*
-RUN curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add -
+RUN apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' \
+    --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654 \
+    && apt-get clean && apt-get update
 
 RUN echo "deb http://packages.ros.org/${ROS_VERSION}/ubuntu `lsb_release -cs` main" \
     > /etc/apt/sources.list.d/${ROS_VERSION}-latest.list
@@ -103,7 +104,7 @@ WORKDIR /ros_ws
 ENV ROSDEP_SKIP_KEYS="console_bridge fastcdr fastrtps libopensplice67 libopensplice69 rti-connext-dds-5.3.1 urdfdom_headers"
 
 RUN rm -f /etc/ros/rosdep/sources.list.d/20-default.list
-RUN rosdep init
+RUN c_rehash /etc/ssl/certs && rosdep init
 RUN rosdep update && \
     apt-get update && \
     rosdep install --from-paths src \
