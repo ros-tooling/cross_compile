@@ -162,6 +162,7 @@ class SysrootCompiler:
       platform: Platform,
       docker_config: DockerConfig,
       custom_setup_script_path: Optional[str],
+      custom_data_dir_path: Optional[str],
     ) -> None:
         """
         Construct a SysrootCompiler object building ROS 2 Docker container.
@@ -176,6 +177,8 @@ class SysrootCompiler:
                               of the Docker image to build.
         :param custom_setup_script_path: Optional path to a custom setup script
                                          to run arbitrary commands
+        :param custom_data_dir_path: Optional path to a custom directory of data that
+                                     custom_setup_script can utilize
         """
         if not isinstance(cc_root_dir, str):
             raise TypeError('Argument `cc_root_dir` must be of type string.')
@@ -200,7 +203,7 @@ class SysrootCompiler:
         self._build_setup_script_path = Path()
         self._platform = platform
         self._docker_config = docker_config
-        self._setup_sysroot_dir(custom_setup_script_path)
+        self._setup_sysroot_dir(custom_setup_script_path, custom_data_dir_path)
 
     def get_system_setup_script_path(self) -> Path:
         """Return the path to the system setup script."""
@@ -210,7 +213,7 @@ class SysrootCompiler:
         """Return the path to the build setup script."""
         return self._build_setup_script_path
 
-    def _setup_sysroot_dir(self, custom_script: Optional[str]) -> None:
+    def _setup_sysroot_dir(self, custom_script: Optional[str], custom_data: Optional[str]) -> None:
         """
         Check to make sure the sysroot directory is setup correctly.
 
@@ -219,16 +222,16 @@ class SysrootCompiler:
         'sysroot' directory in order to copy the assets to it.
         See https://docs.docker.com/engine/reference/builder/#copy
         """
-        logger.info('Checking sysroot directory...')
         if not self._target_sysroot.exists():
             raise FileNotFoundError(SYSROOT_NOT_FOUND_ERROR_STRING.substitute(
                 sysroot_dir=self._target_sysroot))
-
         logger.debug('Sysroot directory exists.')
+
         if not self._ros_workspace_dir.exists():
             raise FileNotFoundError(ROS_WS_DIR_ERROR_STRING.substitute(
                 ros_ws=self._ros_workspace_dir))
         logger.debug('ROS workspace exists.')
+
         if not self._qemu_directory.exists():
             raise FileNotFoundError(
                 QEMU_DIR_ERROR_STRING.substitute(qemu_dir=QEMU_DIR_NAME))
@@ -236,17 +239,31 @@ class SysrootCompiler:
             raise FileNotFoundError(
                 QEMU_EMPTY_ERROR_STRING.substitute(qemu_dir=QEMU_DIR_NAME))
         logger.debug('QEMU binaries exist')
+
         shutil.copy(
             str(self._dockerfile_directory), str(self._target_sysroot))
         if not self._expected_dockerfile_directory.exists():
             raise FileNotFoundError(COPY_DOCKER_WS_ERROR_STRING.substitute(
                 dockerfile=ROS_DOCKERFILE_NAME))
+        logger.debug('Copied Dockerfile')
+
+        custom_data_dest = str(self._target_sysroot / 'custom-data')
+        shutil.rmtree(custom_data_dest)  # should not be there unless explicitly specified
+        if custom_data:
+            shutil.copytree(custom_data, custom_data_dest)
+            logger.debug('Custom data dir provided - copied')
+        else:
+            os.mkdirs(custom_data_dest)
+            logger.debug('No custom data dir provided - touched empty dir')
+
         custom_script_dest = str(self._target_sysroot / 'user-custom-setup')
         if custom_script:
             shutil.copy(custom_script, custom_script_dest)
+            logger.debug('Custom script provided - copied')
         else:
             with open(custom_script_dest, 'w') as custom_script_file:
                 custom_script_file.write('#!/bin/sh\necho "No custom setup"\n')
+            logger.debug('No custom script provided - created empty script')
 
     def build_workspace_sysroot_image(self) -> None:
         """Build the target sysroot docker image."""

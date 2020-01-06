@@ -90,7 +90,8 @@ RUN if [[ "${ROS_VERSION}" == "ros2" ]]; then \
     && rm -rf /var/lib/apt/lists/*; \
   fi
 
-# Run arbitrary user setup
+# Run arbitrary user setup (copy data and run script)
+COPY custom-data/ custom-data/
 COPY user-custom-setup .
 RUN chmod +x ./user-custom-setup && \
     ./user-custom-setup && \
