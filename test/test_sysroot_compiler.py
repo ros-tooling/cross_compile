@@ -68,8 +68,6 @@ def setup_mock_sysroot(path: Path) -> Tuple[Path, Path]:
     qemu_dir.mkdir()
     qemu_binary_mock = qemu_dir / 'qemu'
     qemu_binary_mock.ensure()
-    docker_ws_dir = sysroot_dir / ROS_DOCKERFILE_NAME
-    docker_ws_dir.ensure()
     return sysroot_dir, ros_workspace_dir
 
 
@@ -168,6 +166,15 @@ def test_sysroot_compiler_tree_validation(platform_config, docker_config, tmpdir
     # everything is present now
     compiler = SysrootCompiler(**kwargs)
     assert compiler
+
+
+def test_sysroot_compiler_tree_additions(platform_config, docker_config, tmpdir):
+    sysroot_dir, ros_workspace_dir = setup_mock_sysroot(tmpdir)
+    compiler = SysrootCompiler(str(tmpdir), 'ros_ws', platform_config, docker_config)
+    assert compiler
+    assert (sysroot_dir / ROS_DOCKERFILE_NAME).exists()
+    assert (sysroot_dir / 'mixins' / 'cross-compile.mixin').exists()
+    assert (sysroot_dir / 'mixins' / 'index.yaml').exists()
 
 
 def verify_base_docker_images(arch, os, rosdistro, image_name):

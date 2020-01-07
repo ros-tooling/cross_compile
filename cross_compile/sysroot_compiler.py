@@ -59,6 +59,12 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+def replace_tree(src: Path, dest: Path) -> None:
+    """Delete dest and copy the directory src to that location."""
+    shutil.rmtree(str(dest), ignore_errors=True)  # it may or may not exist already
+    shutil.copytree(str(src), str(dest))
+
+
 class Platform:
     """
     A class that represents platform specification for cross compiling.
@@ -196,8 +202,7 @@ class SysrootCompiler:
         self._ros_workspace_relative_to_sysroot = ros_workspace_dir
         self._ros_workspace_dir = self._target_sysroot / self._ros_workspace_relative_to_sysroot
         self._qemu_directory = self._target_sysroot / QEMU_DIR_NAME
-        self._dockerfile_directory = Path(__file__).parent / ROS_DOCKERFILE_NAME
-        self._expected_dockerfile_directory = (
+        self._final_dockerfile_path = (
             self._target_sysroot / ROS_DOCKERFILE_NAME)
         self._system_setup_script_path = Path()
         self._build_setup_script_path = Path()
@@ -240,9 +245,10 @@ class SysrootCompiler:
                 QEMU_EMPTY_ERROR_STRING.substitute(qemu_dir=QEMU_DIR_NAME))
         logger.debug('QEMU binaries exist')
 
-        shutil.copy(
-            str(self._dockerfile_directory), str(self._target_sysroot))
-        if not self._expected_dockerfile_directory.exists():
+        package_path = Path(__file__).parent
+        dockerfile_src = str(package_path / ROS_DOCKERFILE_NAME)
+        shutil.copy(dockerfile_src, str(self._target_sysroot))
+        if not self._final_dockerfile_path.exists():
             raise FileNotFoundError(COPY_DOCKER_WS_ERROR_STRING.substitute(
                 dockerfile=ROS_DOCKERFILE_NAME))
         logger.debug('Copied Dockerfile')
@@ -257,6 +263,13 @@ class SysrootCompiler:
         else:
             os.makedirs(custom_data_dest)
             logger.debug('No custom data dir provided - touched empty dir')
+
+        mixins_src = package_path / 'mixins'
+        mixins_dest = self._target_sysroot / 'mixins'
+        replace_tree(mixins_src, mixins_dest)
+        if not mixins_dest.exists():
+            raise FileNotFoundError('Mixins not properly copied to build context')
+        logger.debug('Copied mixins')
 
         custom_script_dest = str(self._target_sysroot / 'user-custom-setup')
         if custom_script:
@@ -289,7 +302,7 @@ class SysrootCompiler:
         # dockerfile – Path within the build context to the Dockerfile
         log_generator = docker_client.build(
             path=str(self._target_sysroot),
-            dockerfile=str(self._expected_dockerfile_directory),
+            dockerfile=str(self._final_dockerfile_path),
             tag=image_tag,
             buildargs=buildargs,
             quiet=False,

@@ -86,7 +86,7 @@ setup(
          [os.path.join('resource', package_name)]),
     ],
     package_data={
-        package_name: ['Dockerfile_ros']
+        package_name: ['Dockerfile_ros', 'mixins/*.*'],
     },
     install_requires=[
         'setuptools',

@@ -108,7 +108,7 @@ done
 
 # Expected name of the container
 readonly CONTAINER_NAME="cc-$arch-$os-$distro"
-readonly CONTAINER_TAG="$USER/$arch-$os-$distro:latest"
+readonly CONTAINER_TAG="$(whoami)/$arch-$os-$distro:latest"
 # Create trap to make sure all artifacts are removed on exit
 trap 'cleanup $CONTAINER_NAME $result' EXIT
 
