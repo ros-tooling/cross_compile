@@ -178,7 +178,7 @@ class SysrootCompiler:
         :param custom_setup_script_path: Optional path to a custom setup script
                                          to run arbitrary commands
         :param custom_data_dir: Optional path to a custom directory of data that
-                                     custom_setup_script can utilize
+                                `custom_setup_script` can utilize
         """
         if not isinstance(cc_root_dir, str):
             raise TypeError('Argument `cc_root_dir` must be of type string.')
