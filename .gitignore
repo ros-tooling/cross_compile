@@ -4,17 +4,7 @@ __pycache__/
 .eggs/
 
 .idea/
-.gitignore
 
-build/
-install/
-log/
-qemu-user-static/
-src/
-*armhf-*/
-*_armhf-*/
-*aarch64-*/
-*_aarch64-*/
-*_x86-*/
+sysroot/
 
 .DS_Store

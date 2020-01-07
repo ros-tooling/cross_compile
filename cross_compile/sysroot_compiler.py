@@ -161,8 +161,8 @@ class SysrootCompiler:
       ros_workspace_dir: str,
       platform: Platform,
       docker_config: DockerConfig,
-      custom_setup_script_path: Optional[str],
-      custom_data_dir_path: Optional[str],
+      custom_setup_script_path: Optional[str] = None,
+      custom_data_dir: Optional[str] = None,
     ) -> None:
         """
         Construct a SysrootCompiler object building ROS 2 Docker container.
@@ -177,7 +177,7 @@ class SysrootCompiler:
                               of the Docker image to build.
         :param custom_setup_script_path: Optional path to a custom setup script
                                          to run arbitrary commands
-        :param custom_data_dir_path: Optional path to a custom directory of data that
+        :param custom_data_dir: Optional path to a custom directory of data that
                                      custom_setup_script can utilize
         """
         if not isinstance(cc_root_dir, str):
@@ -203,7 +203,7 @@ class SysrootCompiler:
         self._build_setup_script_path = Path()
         self._platform = platform
         self._docker_config = docker_config
-        self._setup_sysroot_dir(custom_setup_script_path, custom_data_dir_path)
+        self._setup_sysroot_dir(custom_setup_script_path, custom_data_dir)
 
     def get_system_setup_script_path(self) -> Path:
         """Return the path to the system setup script."""
@@ -247,13 +247,15 @@ class SysrootCompiler:
                 dockerfile=ROS_DOCKERFILE_NAME))
         logger.debug('Copied Dockerfile')
 
-        custom_data_dest = str(self._target_sysroot / 'custom-data')
-        shutil.rmtree(custom_data_dest)  # should not be there unless explicitly specified
+        custom_data_dest = str(self._target_sysroot / 'user-custom-data')
+        shutil.rmtree(
+            custom_data_dest, ignore_errors=True
+        )  # should not be there unless explicitly specified
         if custom_data:
             shutil.copytree(custom_data, custom_data_dest)
             logger.debug('Custom data dir provided - copied')
         else:
-            os.mkdirs(custom_data_dest)
+            os.makedirs(custom_data_dest)
             logger.debug('No custom data dir provided - touched empty dir')
 
         custom_script_dest = str(self._target_sysroot / 'user-custom-setup')
