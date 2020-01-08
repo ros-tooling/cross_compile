@@ -90,7 +90,7 @@ setup(
     },
     install_requires=[
         'setuptools',
-        'docker',
+        'docker>=2,<3',
     ],
     zip_safe=True,
     tests_require=[

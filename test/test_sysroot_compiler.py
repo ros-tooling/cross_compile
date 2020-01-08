@@ -25,6 +25,7 @@ from cross_compile.sysroot_compiler import QEMU_DIR_NAME
 from cross_compile.sysroot_compiler import ROS_DOCKERFILE_NAME
 from cross_compile.sysroot_compiler import SYSROOT_DIR_NAME
 from cross_compile.sysroot_compiler import SysrootCompiler
+import docker
 import pytest
 
 
@@ -180,3 +181,50 @@ def test_get_docker_base_image():
     verify_base_docker_images('armhf', 'debian', 'eloquent', 'arm32v7/debian:buster')
     verify_base_docker_images('armhf', 'debian', 'kinetic', 'arm32v7/debian:jessie')
     verify_base_docker_images('armhf', 'debian', 'melodic', 'arm32v7/debian:stretch')
+
+
+def test_parse_docker_build_output(
+        platform_config, docker_config, tmpdir):
+    """Test the SysrootCompiler constructor assuming valid path setup."""
+    # Create mock directories and files
+    sysroot_dir, ros_workspace_dir = setup_mock_sysroot(tmpdir)
+    sysroot_compiler = SysrootCompiler(
+        str(tmpdir), 'ros_ws', platform_config, docker_config, None)
+
+    log_generator_without_errors = [
+        {'stream': ' ---\\u003e a9eb17255234\\n'},
+        {'stream': 'Step 1 : VOLUME /data\\n'},
+        {'stream': ' ---\\u003e Running in abdc1e6896c6\\n'},
+        {'stream': ' ---\\u003e 713bca62012e\\n'},
+        {'stream': 'Removing intermediate container abdc1e6896c6\\n'},
+        {'stream': 'Step 2 : CMD [\\"/bin/sh\\"]\\n'},
+        {'stream': ' ---\\u003e Running in dba30f2a1a7e\\n'},
+        {'stream': ' ---\\u003e 032b8b2855fc\\n'},
+        {'stream': 'Removing intermediate container dba30f2a1a7e\\n'},
+        {'stream': 'Successfully built 032b8b2855fc\\n'},
+    ]
+    # Just expect it not to raise
+    sysroot_compiler._parse_build_output(log_generator_without_errors)
+
+    log_generator_with_errors = [
+        {'stream': ' ---\\u003e a9eb17255234\\n'},
+        {'stream': 'Step 1 : VOLUME /data\\n'},
+        {'stream': ' ---\\u003e Running in abdc1e6896c6\\n'},
+        {'stream': ' ---\\u003e 713bca62012e\\n'},
+        {'stream': 'Removing intermediate container abdc1e6896c6\\n'},
+        {'stream': 'Step 2 : CMD [\\"/bin/sh\\"]\\n'},
+        {'error': ' ---\\COMMAND NOT FOUND\\n'},
+    ]
+    with pytest.raises(docker.errors.BuildError):
+        sysroot_compiler._parse_build_output(log_generator_with_errors)
+
+
+def test_docker_py_version():
+    # Explicitly check a known difference between apt and pip versions
+    with pytest.raises(TypeError):
+        # 1.20 (from pip, which we are not using) API has named arguments
+        err = docker.errors.BuildError(reason='problem', build_log='stuff that happened')
+
+    # 1.10 API (from apt which we are using) does not
+    err = docker.errors.BuildError('problem')
+    assert err

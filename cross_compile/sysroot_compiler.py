@@ -277,6 +277,11 @@ class SysrootCompiler:
             nocache=self._docker_config.nocache,
             network_mode=self._docker_config.network_mode,
             decode=True)
+        self._parse_build_output(log_generator)
+
+        logger.info('Successfully created sysroot docker image: %s', image_tag)
+
+    def _parse_build_output(self, log_generator) -> None:
         for chunk in log_generator:
             # There are two outputs we want to capture, stream and error.
             # We also want to remove newline (\n) and carriage returns (\r) to
@@ -286,13 +291,11 @@ class SysrootCompiler:
                 logger.exception(
                     'Error building sysroot image. The following error was caught:\n%s',
                     error_line)
-                raise docker.errors.BuildError(reason=error_line, build_log=error_line)
+                raise docker.errors.BuildError(error_line)
             line = chunk.get('stream', '')
             line = line.rstrip().lstrip()
             if line:
                 logger.info(line)
-
-        logger.info('Successfully created sysroot docker image: %s', image_tag)
 
     def export_cross_compiled_build(self) -> None:
         """Done cross compiling, export the build into the ROS workspace."""
