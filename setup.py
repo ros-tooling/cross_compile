@@ -95,7 +95,8 @@ setup(
     zip_safe=True,
     tests_require=[
         'pytest',
-        'flake8'
+        'flake8',
+        'yamllint',
     ],
     entry_points={
         'console_scripts': [
