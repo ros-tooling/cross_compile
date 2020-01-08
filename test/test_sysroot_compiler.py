@@ -224,7 +224,6 @@ def test_docker_py_version():
     with pytest.raises(TypeError):
         # 1.20 (from pip, which we are not using) API has named arguments
         err = docker.errors.BuildError(reason='problem', build_log='stuff that happened')
-        assert err
 
     # 1.10 API (from apt which we are using) does not
     err = docker.errors.BuildError('problem')
