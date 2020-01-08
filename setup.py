@@ -86,7 +86,7 @@ setup(
          [os.path.join('resource', package_name)]),
     ],
     package_data={
-        package_name: ['Dockerfile_ros']
+        package_name: ['Dockerfile_ros', 'mixins/*.*'],
     },
     install_requires=[
         'setuptools',
@@ -95,7 +95,8 @@ setup(
     zip_safe=True,
     tests_require=[
         'pytest',
-        'flake8'
+        'flake8',
+        'yamllint',
     ],
     entry_points={
         'console_scripts': [
