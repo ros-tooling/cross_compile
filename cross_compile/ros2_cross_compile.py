@@ -103,6 +103,14 @@ def create_arg_parser():
              'adding extra apt sources that rosdep may not handle, or other arbitrary setup that '
              'is specific to your application build. See the section on "Custom Setup Script" '
              'in the README.md for more details.')
+    parser.add_argument(
+        '--custom-data-dir',
+        required=False,
+        default=None,
+        type=str,
+        help='Provide a path to a custom arbitrary directory to copy into the sysroot container. '
+             'You may use this data in your --custom-setup-script, it will be available as '
+             '"./custom_data/" in the current working directory when the script is run.')
     return parser
 
 
@@ -122,7 +130,8 @@ def main():
                                      ros_workspace_dir=args.ros_workspace,
                                      platform=platform,
                                      docker_config=docker_args,
-                                     custom_setup_script_path=args.custom_setup_script)
+                                     custom_setup_script_path=args.custom_setup_script,
+                                     custom_data_dir=args.custom_data_dir)
     sysroot_create.execute_cc_pipeline()
 
 

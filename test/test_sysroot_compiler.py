@@ -16,6 +16,7 @@
 """Unit tests for the `create_cc_sysroot.py` script."""
 
 import getpass
+import os
 from pathlib import Path
 from typing import Tuple
 
@@ -27,6 +28,8 @@ from cross_compile.sysroot_compiler import SYSROOT_DIR_NAME
 from cross_compile.sysroot_compiler import SysrootCompiler
 import docker
 import pytest
+
+THIS_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def _default_docker_kwargs() -> dict:
@@ -99,11 +102,28 @@ def test_sysroot_compiler_constructor(
     # Create mock directories and files
     sysroot_dir, ros_workspace_dir = setup_mock_sysroot(tmpdir)
     sysroot_compiler = SysrootCompiler(
-        str(tmpdir), 'ros_ws', platform_config,
-        docker_config, None)
+        str(tmpdir), 'ros_ws', platform_config, docker_config)
 
     assert isinstance(sysroot_compiler.get_build_setup_script_path(), Path)
     assert isinstance(sysroot_compiler.get_system_setup_script_path(), Path)
+
+
+def test_custom_setup_script(platform_config, docker_config, tmpdir):
+    sysroot_dir, ros_workspace_dir = setup_mock_sysroot(tmpdir)
+    compiler = SysrootCompiler(
+        str(tmpdir), 'ros_ws', platform_config, docker_config,
+        custom_setup_script_path=os.path.join(THIS_SCRIPT_DIR, 'custom-setup.sh'))
+    assert compiler
+    assert (sysroot_dir / 'user-custom-setup').exists()
+
+
+def test_custom_data_dir(platform_config, docker_config, tmpdir):
+    sysroot_dir, ros_workspace_dir = setup_mock_sysroot(tmpdir)
+    compiler = SysrootCompiler(
+        str(tmpdir), 'ros_ws', platform_config, docker_config,
+        custom_data_dir=os.path.join(THIS_SCRIPT_DIR, 'data'))
+    assert compiler
+    assert (sysroot_dir / 'user-custom-data' / 'arbitrary.txt').exists()
 
 
 def test_sysroot_compiler_tree_validation(platform_config, docker_config, tmpdir):

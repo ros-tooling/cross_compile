@@ -97,7 +97,7 @@ cp /usr/bin/qemu-*-static sysroot/qemu-user-static/
 #### 3. Prepare ros_ws
 Use [ROS](http://wiki.ros.org/ROS/Installation) or [ROS 2](https://index.ros.org/doc/ros2/Installation/) source installation guide to get the ROS repositories needed to cross compile.
 
-Once you have the desired sources, copy them in the `sysroot` to use with the tool. 
+Once you have the desired sources, copy them in the `sysroot` to use with the tool.
 ```bash
 # Copy ros sources into the sysroot directory
 cp -r <full_path_to_your_ros_ws>/src sysroot/ros_ws/src
@@ -148,6 +148,43 @@ apt-get install -y software-properties-common
 add-apt-repository ppa:rpi-distro/ppa
 apt-get install -y pigpio
 ```
+
+### Custom Data Directory
+
+Your Custom Setup Script (see above) may need some data that is not accessible within the sysroot creation environment.
+For example, you have custom rosdep rules files that need to be installed to find your dependencies.
+For this use case, you can use the option `--custom-data-dir` to point to an arbitrary path, which will be copied into the environment, and available for use by your custom setup script.
+Within the custom setup script, the data is available at `./custom-data/`
+
+**Example:**
+
+Custom data directory (`/arbitrary/local/directory`)
+```
+/arbitrary/local/directory/
++-- my-data/
+|   +-- something.txt
+```
+
+Setup Script (`/path/to/custom-setup.sh`)
+
+```
+#!/bin/bash
+cat custom-data/something.txt
+```
+
+Tool invocation:
+
+```
+ros2 run cross_compile cross_compile --sysroot-path /absolute/path/to/sysroot \
+                                     --arch aarch64 --os ubuntu \
+                                     --custom-setup-script /path/to/custom-setup.sh \
+                                     --custom-data-dir /arbitrary/local/directory
+```
+
+Now, during the sysroot creation process, you should see the contents of `something.txt` printed during the execution of the custom script.
+
+NOTE: For trivial text files, as in the example above, you could just as easily create those files fully within the `--custom-setup-script`. However, for binary data such as precompiled libraries, this feature comes to the rescue.
+
 
 ## License
 
