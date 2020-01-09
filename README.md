@@ -186,6 +186,113 @@ Now, during the sysroot creation process, you should see the contents of `someth
 NOTE: For trivial text files, as in the example above, you could just as easily create those files fully within the `--custom-setup-script`. However, for binary data such as precompiled libraries, this feature comes to the rescue.
 
 
+## Tutorial
+
+For a new user, this section walks you through a representative use case, step by step.
+
+In this tutorial, we will cross-compile the File Talker tool https://github.com/ros-tooling/file_talker against ROS2 Dashing, to run on an ARM64 Ubuntu system.
+This workflow can be generalized to any `.repos` file for your project.
+
+NOTE: This tutorial currently assumes a Debian-based (including Ubuntu) Linux distribution as the host platform.
+
+### Creating a cross-compilation workspace
+
+1. Create a directory for your workspace
+    * `mkdir cross_compile_ws`
+    * `cd cross_compile_ws`
+1. Create a `.repos` file for `vcs`
+    * `file_talker.repos`
+    ```
+    repositories:
+      file_talker:
+        type: git
+        url: https://github.com/ros-tooling/file_talker.git
+        version: master
+    ```
+1. Set up the sysroot environment for the cross-compiler to use
+    * `mkdir -p sysroot/qemu-user-static/`
+    * `mkdir -p sysroot/ros_ws/src/`
+    * `cp /usr/bin/qemu-*-static sysroot/qemu-user-static`
+    * `vcs import ros_ws/src < file_talker.repos`
+
+### Running the Cross-Compilation
+
+```
+ros2 run cross_compile cross_compile \  # Invoke the cross-compilation tool
+  --sysroot-path $(pwd) \
+  --rosdistro dashing \
+  --arch aarch64 \
+  --os ubuntu
+```
+
+Let's run through the arguments we passed to the script:
+
+* `--sysroot-path $(pwd)`
+
+We are pointing the `cross_compile` tool to the absolute path of the directory containing the `sysroot` directory we created.
+You could run the tool from any directory, but in this case we were already in the directory that contained sysroot, hence `$(pwd)`
+
+* `--rosdistro dashing`
+
+Both ROS and ROS2 distros can be specified by name (e.g. kinetic).
+`cross_compile -h` will print the supported distros for this option
+
+* `--arch aarch64`
+
+We are targeting the ARMv8 / ARM64 / aarch64 architecture (which are different names for the same thing).
+`cross_compile -h` will print the supported architectures for this option.
+
+* `--os ubuntu`
+
+The target OS is Ubuntu - the version of the OS will be chosen automatically based on the ROS Distro's target OS.
+In our case for ROS2 Dashing, it is 18.04 Bionic Beaver.
+
+### Outputs of the build
+
+Run the following command
+
+```
+ls sysroot/ros_ws/
+```
+
+If the build succeeded, the directory will look like this:
+
+```
+ros_ws/
++-- src/
+    |-- file_talker
++-- install_aarch64/
+    |-- ...
+```
+
+The created directory `install_aarch64` is the installation of your ROS workspace for your target architecture.
+You can double check this for yourself:
+
+```
+$ file ros_ws/install_aarch64/lib/file_talker/file_talker                                                               0s
+ros_ws/install_aarch64/lib/file_talker/file_talker: ELF 64-bit LSB shared object, ARM aarch64, version 1 (GNU/Linux), dynamically linked, interpreter /lib/ld-, for GNU/Linux 3.7.0, BuildID[sha1]=02ede8a648dfa6b5b30c03d54c6d87fd9151389e, not stripped
+```
+
+### Using the build on a target platform
+
+Copy `install_aarch64` onto the target system into a location of your choosing. It contains all of the binaries for _your_ workspace.
+
+If your workspace has any dependencies that are outside the source tree - that is, if `rosdep` had anything to install during the build - then you will still need to install these dependencies on the target system.
+
+```
+# Run this on the target system, which must have rosdep already installed
+# remember `rosdep init`, `rosdep update`, `apt-get update` if you need them
+rosdep install --from-paths install_aarch64/share --ignore-src --rosdistro dashing -y
+```
+
+Now you may use the ROS installation as you normally would
+
+```
+source install_aarch64/setup.bash
+ros2 run file_talker file_talker my_text_file.txt
+```
+
+
 ## License
 
 This library is licensed under the Apache 2.0 License.
