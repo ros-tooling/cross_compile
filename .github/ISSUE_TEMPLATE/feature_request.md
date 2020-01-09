@@ -13,11 +13,11 @@ assignees: ''
 
 ## Related Issues
 
-** Is this feature dependent on any other features? Is it part of a larger project? Note all here **
+** Is this feature dependent on any other features? Is it part of a larger project? Note here. **
 
 ## Completion Criteria
 
-** What needs to be true before we can call this "Done"? Bullet lists are appropriate **
+** What needs to be true before we can call this "Done"? Bullet lists are appropriate. **
 
 ## Implementation Notes / Suggestions
 
