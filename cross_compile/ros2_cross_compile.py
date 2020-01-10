@@ -20,6 +20,7 @@ import argparse
 import logging
 import os
 import sys
+from typing import List
 
 from cross_compile.sysroot_compiler import DockerConfig
 from cross_compile.sysroot_compiler import Platform
@@ -29,7 +30,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def create_arg_parser():
+def parse_args(args: List[str]) -> argparse.Namespace:
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
         description='Sysroot creator for cross compilation workflows.')
@@ -111,14 +112,14 @@ def create_arg_parser():
         help='Provide a path to a custom arbitrary directory to copy into the sysroot container. '
              'You may use this data in your --custom-setup-script, it will be available as '
              '"./custom_data/" in the current working directory when the script is run.')
-    return parser
+
+    return parser.parse_args(args)
 
 
 def main():
     """Start the cross-compilation workflow."""
     # Configuration
-    parser = create_arg_parser()
-    args = parser.parse_args()
+    args = parse_args(sys.argv[1:])
     platform = Platform(
         args.arch, args.os, args.rosdistro, args.rmw)
     docker_args = DockerConfig(
