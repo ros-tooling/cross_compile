@@ -32,25 +32,23 @@ import pytest
 THIS_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-def _default_docker_kwargs() -> dict:
-    return {
-        'arch': 'aarch64',
-        'os': 'ubuntu',
-        'rosdistro': 'dashing',
-        'sysroot_base_image': '035662560449.dkr.ecr.us-east-2.amazonaws.com/cc-tool:'
-                              'aarch64-bionic-dashing-fastrtps-prebuilt',
-        'docker_network_mode': 'host',
-        'sysroot_nocache': False,
-    }
-
-
 @pytest.fixture
 def platform_config() -> Platform:
     return Platform(
         arch='aarch64',
-        os='ubuntu',
+        os_name='ubuntu',
         rosdistro='dashing',
         rmw='fastrtps')
+
+
+def _default_docker_kwargs() -> dict:
+    return {
+        'platform': Platform('aarch64', 'ubuntu', 'dashing', 'fastrtps'),
+        'override_base_image': '035662560449.dkr.ecr.us-east-2.amazonaws.com/cc-tool:'
+                               'aarch64-bionic-dashing-fastrtps-prebuilt',
+        'docker_network_mode': 'host',
+        'sysroot_nocache': False,
+    }
 
 
 @pytest.fixture
@@ -87,7 +85,7 @@ def test_docker_config_args(docker_config):
         'Network Mode: {}\n'
         'Caching: {}'
     ).format(
-        args['sysroot_base_image'], args['docker_network_mode'], args['sysroot_nocache']
+        args['override_base_image'], args['docker_network_mode'], args['sysroot_nocache']
     )
     config_string = str(docker_config)
     assert isinstance(config_string, str)
@@ -179,11 +177,12 @@ def test_sysroot_compiler_tree_additions(platform_config, docker_config, tmpdir)
 
 def verify_base_docker_images(arch, os, rosdistro, image_name):
     """Assert correct base image is generated."""
-    sysroot_base_image = None
+    override_base_image = None
     docker_network_mode = 'host'
     sysroot_nocache = 'False'
+    platform = Platform(arch, os, rosdistro, 'fastrtps')
     assert DockerConfig(
-        arch, os, rosdistro, sysroot_base_image,
+        platform, override_base_image,
         docker_network_mode, sysroot_nocache).base_image == image_name
 
 

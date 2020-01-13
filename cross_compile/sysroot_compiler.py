@@ -22,6 +22,7 @@ import shutil
 from string import Template
 import tarfile
 import tempfile
+from typing import NamedTuple
 from typing import Optional
 
 import docker
@@ -59,7 +60,12 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def replace_tree(src: Path, dest: Path) -> None:
+class ArchMapping(NamedTuple):
+    toolchain: str
+    docker_base: str
+
+
+def _replace_tree(src: Path, dest: Path) -> None:
     """Delete dest and copy the directory src to that location."""
     shutil.rmtree(str(dest), ignore_errors=True)  # it may or may not exist already
     shutil.copytree(str(src), str(dest))
@@ -76,29 +82,65 @@ class Platform:
     4. RMW implementation used
     """
 
+    # NOTE: when changing any following values, update README.md Supported Targets section
+    SUPPORTED_ARCHITECTURES = {
+        'armhf': ArchMapping(
+            toolchain='arm-linux-gnueabihf',
+            docker_base='arm32v7',
+        ),
+        'aarch64': ArchMapping(
+            toolchain='aarch64-linux-gnu',
+            docker_base='arm64v8',
+        )
+    }
+
     SUPPORTED_ROS2_DISTROS = ['dashing', 'eloquent']
     SUPPORTED_ROS_DISTROS = ['kinetic', 'melodic']
 
-    def __init__(self, arch: str, os: str, rosdistro: str, rmw: str):
+    ROSDISTRO_OS_MAPPING = {
+        'kinetic': {
+            'ubuntu': 'xenial',
+            'debian': 'jessie',
+        },
+        'melodic': {
+            'ubuntu': 'bionic',
+            'debian': 'stretch',
+        },
+        'dashing': {
+            'ubuntu': 'bionic',
+            'debian': 'stretch',
+        },
+        'eloquent': {
+            'ubuntu': 'bionic',
+            'debian': 'buster',
+        },
+    }
+    # NOTE: when changing any preceding values, update README.md Supported Targets section
+
+    def __init__(self, arch: str, os_name: str, rosdistro: str, rmw: str):
         """Initialize platform parameters."""
         self.arch = arch
-        self.os = os
         self.rosdistro = rosdistro
+        assert os_name in self.ROSDISTRO_OS_MAPPING[rosdistro], \
+            'OS "{}" not supported for ROS distro "{}"'.format(os_name, rosdistro)
+        self.os_name = os_name
         self.rmw = rmw
 
-        if self.arch == 'armhf':
-            self.cc_toolchain = 'arm-linux-gnueabihf'
-        elif self.arch == 'aarch64':
-            self.cc_toolchain = 'aarch64-linux-gnu'
+        try:
+            self.cc_toolchain = self.SUPPORTED_ARCHITECTURES[arch].toolchain
+        except KeyError:
+            raise ValueError('Unknown target architecture "{}" specified'.format(arch))
 
         if self.rosdistro in self.SUPPORTED_ROS2_DISTROS:
             self.ros_version = 'ros2'
         elif self.rosdistro in self.SUPPORTED_ROS_DISTROS:
             self.ros_version = 'ros'
+        else:
+            raise ValueError('Unknown ROS distribution "{}" specified'.format(rosdistro))
 
     def __str__(self):
         """Return string representation of platform parameters."""
-        return '-'.join((self.arch, self.os, self.rosdistro))
+        return '-'.join((self.arch, self.os_name, self.rosdistro))
 
     def get_workspace_image_tag(self) -> str:
         """Generate docker image name and tag."""
@@ -116,41 +158,36 @@ class DockerConfig:
     """
 
     def __init__(
-        self, arch: str, os: str, rosdistro: str, sysroot_base_image: str,
+        self, platform: Platform, override_base_image: Optional[str],
         docker_network_mode: str, sysroot_nocache: bool
     ):
-        base_image = {
-            'armhf': 'arm32v7',
-            'aarch64': 'arm64v8',
-        }
-        image_tag = {
-            'kinetic': {
-                'ubuntu': 'xenial',
-                'debian': 'jessie',
-            },
-            'melodic': {
-                'ubuntu': 'bionic',
-                'debian': 'stretch',
-            },
-            'dashing': {
-                'ubuntu': 'bionic',
-                'debian': 'stretch',
-            },
-            'eloquent': {
-                'ubuntu': 'bionic',
-                'debian': 'buster',
-            }
-        }
-
         """Initialize docker configuration."""
-        if sysroot_base_image is None:
-            self.base_image = \
-                self.base_image = '{}/{}:{}'.format(base_image[arch], os, image_tag[rosdistro][os])
+        if override_base_image:
+            self.base_image = override_base_image
         else:
-            self.base_image = sysroot_base_image
+            self.base_image = self._base_image_for(platform)
 
         self.network_mode = docker_network_mode
         self.nocache = sysroot_nocache
+
+    def _base_image_for(self, platform: Platform):
+        try:
+            docker_base = Platform.SUPPORTED_ARCHITECTURES[platform.arch].docker_base
+        except KeyError:
+            raise ValueError('Unkown target architecture "{}" specified'.format(platform.arch))
+
+        try:
+            distro_os = Platform.ROSDISTRO_OS_MAPPING[platform.rosdistro]
+        except KeyError:
+            raise ValueError('ROS distro "{}" is not supported'.format(platform.rosdistro))
+
+        try:
+            image_tag = distro_os[platform.os_name]
+        except KeyError:
+            raise ValueError('OS "{}" is not supported for ROS distro "{}"'.format(
+                platform.os_name, platform.rosdistro))
+
+        return '{}/{}:{}'.format(docker_base, platform.os_name, image_tag)
 
     def __str__(self):
         """Return string representation of docker build parameters."""
@@ -266,7 +303,7 @@ class SysrootCompiler:
 
         mixins_src = package_path / 'mixins'
         mixins_dest = self._target_sysroot / 'mixins'
-        replace_tree(mixins_src, mixins_dest)
+        _replace_tree(mixins_src, mixins_dest)
         if not mixins_dest.exists():
             raise FileNotFoundError('Mixins not properly copied to build context')
         logger.debug('Copied mixins')
