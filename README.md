@@ -94,7 +94,7 @@ cp /usr/bin/qemu-*-static sysroot/qemu-user-static/
 ```
 
 
-#### 3. Prepare ros_ws
+#### Prepare `ros_ws`
 Use [ROS](http://wiki.ros.org/ROS/Installation) or [ROS 2](https://index.ros.org/doc/ros2/Installation/) source installation guide to get the ROS repositories needed to cross compile.
 
 Once you have the desired sources, copy them in the `sysroot` to use with the tool.
@@ -125,18 +125,18 @@ ros2 run cross_compile cross_compile --sysroot-path /absolute/path/to/sysroot \
                                      --os ubuntu
 ```
 
-### Custom Setup Script
+### Custom setup script
 
 Your ROS application may have build needs that aren't covered by `rosdep install`.
-If this is the case (for example you need to add extra apt repos), we provide the option `--custom-setup-script` to execute arbitrary code in the sysroot container.
+If this is the case (for example you need to add extra apt repos), use the option `--custom-setup-script` to execute arbitrary code in the sysroot container.
 
 The path provided may be absolute, or relative to the current directory.
 
 Keep in mind
-* It is up to the user to determine whether the script is compatible with chosen base platform
-* Make sure to specify non-interactive versions of commands, e.g. `apt-get install -y`, or the script may hang waiting for input
+* It's up to the user to determine whether the script is compatible with chosen base platform
+* Make sure to specify non-interactive versions of commands, for example `apt-get install -y`, or the script may hang waiting for input
 * You cannot make any assumptions about the state of the apt cache, so run `apt-get update` before installing packages
-* You will be running as root user in the container, so you don't need `sudo`
+* The script runs as root user in the container, so you don't need `sudo`
 
 Below is an example script for an application that installs some custom Raspberry Pi libraries.
 
@@ -149,12 +149,12 @@ add-apt-repository ppa:rpi-distro/ppa
 apt-get install -y pigpio
 ```
 
-### Custom Data Directory
+### Custom data directory
 
-Your Custom Setup Script (see above) may need some data that is not accessible within the sysroot creation environment.
-For example, you have custom rosdep rules files that need to be installed to find your dependencies.
-For this use case, you can use the option `--custom-data-dir` to point to an arbitrary path, which will be copied into the environment, and available for use by your custom setup script.
-Within the custom setup script, the data is available at `./custom-data/`
+Your custom setup script (see preceding) may need some data that is not accessible within the sysroot creation environment.
+For example, you need custom rosdep rules files to find and install your dependencies.
+For this use case, you can use the option `--custom-data-dir` to point to an arbitrary path.
+The sysroot build copies this directory into the build environment, where it's available for use by your custom setup script at `./custom-data/`.
 
 **Example:**
 
@@ -183,17 +183,17 @@ ros2 run cross_compile cross_compile --sysroot-path /absolute/path/to/sysroot \
 
 Now, during the sysroot creation process, you should see the contents of `something.txt` printed during the execution of the custom script.
 
-NOTE: For trivial text files, as in the example above, you could just as easily create those files fully within the `--custom-setup-script`. However, for binary data such as precompiled libraries, this feature comes to the rescue.
+NOTE: for trivial text files, as in the preceding example, you could have created those files fully within the `--custom-setup-script`. But for large or binary data such as precompiled libraries, this feature comes to the rescue.
 
 
 ## Tutorial
 
 For a new user, this section walks you through a representative use case, step by step.
 
-In this tutorial, we will cross-compile the File Talker tool https://github.com/ros-tooling/file_talker against ROS2 Dashing, to run on an ARM64 Ubuntu system.
-This workflow can be generalized to any `.repos` file for your project.
+This tutorial demonstrates how to cross-compile the [File Talker tool](https://github.com/ros-tooling/file_talker) against ROS2 Dashing, to run on an ARM64 Ubuntu system.
+You can generalize this workflow to any `.repos` file for your project.
 
-NOTE: This tutorial currently assumes a Debian-based (including Ubuntu) Linux distribution as the host platform.
+NOTE: this tutorial assumes a Debian-based (including Ubuntu) Linux distribution as the host platform.
 
 ### Creating a cross-compilation workspace
 
@@ -215,37 +215,37 @@ NOTE: This tutorial currently assumes a Debian-based (including Ubuntu) Linux di
     * `cp /usr/bin/qemu-*-static sysroot/qemu-user-static`
     * `vcs import ros_ws/src < file_talker.repos`
 
-### Running the Cross-Compilation
+### Running the cross-compilation
 
 ```
-ros2 run cross_compile cross_compile \  # Invoke the cross-compilation tool
+ros2 run cross_compile cross_compile \
   --sysroot-path $(pwd) \
   --rosdistro dashing \
   --arch aarch64 \
   --os ubuntu
 ```
 
-Let's run through the arguments we passed to the script:
+Here is a detailed look at the arguments passed to the script:
 
 * `--sysroot-path $(pwd)`
 
-We are pointing the `cross_compile` tool to the absolute path of the directory containing the `sysroot` directory we created.
-You could run the tool from any directory, but in this case we were already in the directory that contained sysroot, hence `$(pwd)`
+Point the `cross_compile` tool to the absolute path of the directory containing the `sysroot` directory created earlier.
+You could run the tool from any directory, but in this case the current working directory contains `sysroot`, hence `$(pwd)`
 
 * `--rosdistro dashing`
 
-Both ROS and ROS2 distros can be specified by name (e.g. kinetic).
-`cross_compile -h` will print the supported distros for this option
+You may specify both ROS and ROS2 distributions by name, for example, `kinetic` (ROS) or `dashing` (ROS 2).
+`cross_compile -h` prints the supported distributions for this option
 
 * `--arch aarch64`
 
-We are targeting the ARMv8 / ARM64 / aarch64 architecture (which are different names for the same thing).
-`cross_compile -h` will print the supported architectures for this option.
+Target the ARMv8 / ARM64 / aarch64 architecture (which are different names for the same thing).
+`cross_compile -h` prints the supported architectures for this option.
 
 * `--os ubuntu`
 
-The target OS is Ubuntu - the version of the OS will be chosen automatically based on the ROS Distro's target OS.
-In our case for ROS2 Dashing, it is 18.04 Bionic Beaver.
+The target OS is Ubuntu - the tool chooses the OS version automatically based on the ROS Distro's target OS.
+In this case for ROS2 Dashing - 18.04 Bionic Beaver.
 
 ### Outputs of the build
 
@@ -255,7 +255,7 @@ Run the following command
 ls sysroot/ros_ws/
 ```
 
-If the build succeeded, the directory will look like this:
+If the build succeeded, the directory looks like this:
 
 ```
 ros_ws/
@@ -266,7 +266,7 @@ ros_ws/
 ```
 
 The created directory `install_aarch64` is the installation of your ROS workspace for your target architecture.
-You can double check this for yourself:
+You can verify this:
 
 ```
 $ file ros_ws/install_aarch64/lib/file_talker/file_talker                                                               0s
@@ -275,9 +275,9 @@ ros_ws/install_aarch64/lib/file_talker/file_talker: ELF 64-bit LSB shared object
 
 ### Using the build on a target platform
 
-Copy `install_aarch64` onto the target system into a location of your choosing. It contains all of the binaries for _your_ workspace.
+Copy `install_aarch64` onto the target system into a location of your choosing. It contains the binaries for _your_ workspace.
 
-If your workspace has any dependencies that are outside the source tree - that is, if `rosdep` had anything to install during the build - then you will still need to install these dependencies on the target system.
+If your workspace has any dependencies that are outside the source tree - that is, if `rosdep` had anything to install during the build - then you still need to install these dependencies on the target system.
 
 ```
 # Run this on the target system, which must have rosdep already installed
@@ -285,7 +285,7 @@ If your workspace has any dependencies that are outside the source tree - that i
 rosdep install --from-paths install_aarch64/share --ignore-src --rosdistro dashing -y
 ```
 
-Now you may use the ROS installation as you normally would
+Now you may use the ROS installation as you would on any other system
 
 ```
 source install_aarch64/setup.bash
