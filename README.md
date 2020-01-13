@@ -140,7 +140,7 @@ Keep in mind
 
 Below is an example script for an application that installs some custom Raspberry Pi libraries.
 
-```
+```bash
 apt-get update
 apt-get install -y software-properties-common
 
@@ -167,14 +167,14 @@ Custom data directory (`/arbitrary/local/directory`)
 
 Setup Script (`/path/to/custom-setup.sh`)
 
-```
+```bash
 #!/bin/bash
 cat custom-data/something.txt
 ```
 
 Tool invocation:
 
-```
+```bash
 ros2 run cross_compile cross_compile --sysroot-path /absolute/path/to/sysroot \
                                      --arch aarch64 --os ubuntu \
                                      --custom-setup-script /path/to/custom-setup.sh \
@@ -217,7 +217,7 @@ NOTE: this tutorial assumes a Debian-based (including Ubuntu) Linux distribution
 
 ### Running the cross-compilation
 
-```
+```bash
 ros2 run cross_compile cross_compile \
   --sysroot-path $(pwd) \
   --rosdistro dashing \
@@ -251,7 +251,7 @@ In this case for ROS2 Dashing - 18.04 Bionic Beaver.
 
 Run the following command
 
-```
+```bash
 ls sysroot/ros_ws/
 ```
 
@@ -268,7 +268,7 @@ ros_ws/
 The created directory `install_aarch64` is the installation of your ROS workspace for your target architecture.
 You can verify this:
 
-```
+```bash
 $ file ros_ws/install_aarch64/lib/file_talker/file_talker                                                               0s
 ros_ws/install_aarch64/lib/file_talker/file_talker: ELF 64-bit LSB shared object, ARM aarch64, version 1 (GNU/Linux), dynamically linked, interpreter /lib/ld-, for GNU/Linux 3.7.0, BuildID[sha1]=02ede8a648dfa6b5b30c03d54c6d87fd9151389e, not stripped
 ```
@@ -279,7 +279,7 @@ Copy `install_aarch64` onto the target system into a location of your choosing. 
 
 If your workspace has any dependencies that are outside the source tree - that is, if `rosdep` had anything to install during the build - then you still need to install these dependencies on the target system.
 
-```
+```bash
 # Run this on the target system, which must have rosdep already installed
 # remember `rosdep init`, `rosdep update`, `apt-get update` if you need them
 rosdep install --from-paths install_aarch64/share --ignore-src --rosdistro dashing -y
@@ -287,7 +287,7 @@ rosdep install --from-paths install_aarch64/share --ignore-src --rosdistro dashi
 
 Now you may use the ROS installation as you would on any other system
 
-```
+```bash
 source install_aarch64/setup.bash
 ros2 run file_talker file_talker my_text_file.txt
 ```
