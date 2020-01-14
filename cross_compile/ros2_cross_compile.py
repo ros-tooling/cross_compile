@@ -38,14 +38,8 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         '-a', '--arch',
         required=True,
         type=str,
-        choices=['armhf', 'aarch64'],
+        choices=Platform.SUPPORTED_ARCHITECTURES.keys(),
         help='Target architecture')
-    parser.add_argument(
-        '-o', '--os',
-        required=True,
-        type=str,
-        choices=['ubuntu', 'debian'],
-        help='Target OS')
     parser.add_argument(
         '-d', '--rosdistro',
         required=False,
@@ -53,6 +47,12 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         default='dashing',
         choices=Platform.SUPPORTED_ROS_DISTROS + Platform.SUPPORTED_ROS2_DISTROS,
         help='Target ROS distribution')
+    parser.add_argument(
+        '-o', '--os',
+        required=True,
+        type=str,
+        # NOTE: not specifying choices here, as different distros may support different lists
+        help='Target OS')
     parser.add_argument(
         '-r', '--rmw',
         required=False,
@@ -64,7 +64,8 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         '--sysroot-base-image',
         required=False,
         type=str,
-        help='Base Docker image to use for building the sysroot. Ex. arm64v8/ubuntu:bionic')
+        help='Override the default base Docker image to use for building the sysroot. '
+             'Ex. "arm64v8/ubuntu:bionic"')
     parser.add_argument(
         '--docker-network-mode',
         required=False,
@@ -85,7 +86,6 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         help="The subdirectory of 'sysroot' that contains your 'src' to be built."
              'The output of the cross compilation will be placed in this directory. '
              "Defaults to 'ros_ws'.")
-
     parser.add_argument(
         '--sysroot-path',
         required=False,
@@ -120,11 +120,12 @@ def main():
     """Start the cross-compilation workflow."""
     # Configuration
     args = parse_args(sys.argv[1:])
-    platform = Platform(
-        args.arch, args.os, args.rosdistro, args.rmw)
+    platform = Platform(args.arch, args.os, args.rosdistro, args.rmw)
     docker_args = DockerConfig(
-        args.arch, args.os, args.rosdistro, args.sysroot_base_image,
-        args.docker_network_mode, args.sysroot_nocache)
+        platform,
+        args.sysroot_base_image,
+        args.docker_network_mode,
+        args.sysroot_nocache)
 
     # Main pipeline
     sysroot_create = SysrootCompiler(cc_root_dir=args.sysroot_path,

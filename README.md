@@ -3,10 +3,20 @@
 ![License](https://img.shields.io/github/license/ros-tooling/cross_compile)
 [![Documentation Status](https://readthedocs.org/projects/cross_compile/badge/?version=latest)](https://cross_compile.readthedocs.io/en/latest/?badge=latest)
 
-A tool to automate ROS2 packages compilation to non-native architectures.
+A tool to automate compiling ROS and ROS2 workspaces to non-native architectures.
 
 :construction: `cross_compile` relies on running emulated builds
 using QEmu, #69 tracks progress toward enabling cross-compilation.
+
+## Supported targets
+
+This tool supports compiling a workspace for all combinations of the following:
+
+* Architecture: `armhf`, `aarch64`
+* ROS Distro
+  * ROS: `kinetic`, `melodic`
+  * ROS 2: `dashing`, `eloquent`
+* OS: `Ubuntu`, `Debian`
 
 ## Installation
 

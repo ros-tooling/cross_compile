@@ -22,6 +22,7 @@ import shutil
 from string import Template
 import tarfile
 import tempfile
+from typing import NamedTuple
 from typing import Optional
 
 import docker
@@ -59,7 +60,14 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def replace_tree(src: Path, dest: Path) -> None:
+class ArchMapping(NamedTuple):
+    """Pair the toolchain and base Docker image for a target architecture as named members."""
+
+    toolchain: str
+    docker_base: str
+
+
+def _replace_tree(src: Path, dest: Path) -> None:
     """Delete dest and copy the directory src to that location."""
     shutil.rmtree(str(dest), ignore_errors=True)  # it may or may not exist already
     shutil.copytree(str(src), str(dest))
@@ -76,29 +84,91 @@ class Platform:
     4. RMW implementation used
     """
 
+    # NOTE: when changing any following values, update README.md Supported Targets section
+    SUPPORTED_ARCHITECTURES = {
+        'armhf': ArchMapping(
+            toolchain='arm-linux-gnueabihf',
+            docker_base='arm32v7',
+        ),
+        'aarch64': ArchMapping(
+            toolchain='aarch64-linux-gnu',
+            docker_base='arm64v8',
+        )
+    }
+
     SUPPORTED_ROS2_DISTROS = ['dashing', 'eloquent']
     SUPPORTED_ROS_DISTROS = ['kinetic', 'melodic']
 
-    def __init__(self, arch: str, os: str, rosdistro: str, rmw: str):
-        """Initialize platform parameters."""
-        self.arch = arch
-        self.os = os
-        self.rosdistro = rosdistro
-        self.rmw = rmw
+    ROSDISTRO_OS_MAPPING = {
+        'kinetic': {
+            'ubuntu': 'xenial',
+            'debian': 'jessie',
+        },
+        'melodic': {
+            'ubuntu': 'bionic',
+            'debian': 'stretch',
+        },
+        'dashing': {
+            'ubuntu': 'bionic',
+            'debian': 'stretch',
+        },
+        'eloquent': {
+            'ubuntu': 'bionic',
+            'debian': 'buster',
+        },
+    }
+    # NOTE: when changing any preceding values, update README.md Supported Targets section
 
-        if self.arch == 'armhf':
-            self.cc_toolchain = 'arm-linux-gnueabihf'
-        elif self.arch == 'aarch64':
-            self.cc_toolchain = 'aarch64-linux-gnu'
+    def __init__(self, arch: str, os_name: str, rosdistro: str, rmw: str):
+        """Initialize platform parameters."""
+        self._arch = arch
+        self._rosdistro = rosdistro
+        self._os_name = os_name
+        self._rmw = rmw
+
+        try:
+            self._cc_toolchain = self.SUPPORTED_ARCHITECTURES[arch].toolchain
+        except KeyError:
+            raise ValueError('Unknown target architecture "{}" specified'.format(arch))
 
         if self.rosdistro in self.SUPPORTED_ROS2_DISTROS:
-            self.ros_version = 'ros2'
+            self._ros_version = 'ros2'
         elif self.rosdistro in self.SUPPORTED_ROS_DISTROS:
-            self.ros_version = 'ros'
+            self._ros_version = 'ros'
+        else:
+            raise ValueError('Unknown ROS distribution "{}" specified'.format(rosdistro))
+
+        if self.os_name not in self.ROSDISTRO_OS_MAPPING[self.rosdistro]:
+            raise ValueError(
+                'OS "{}" not supported for ROS distro "{}"'.format(os_name, rosdistro))
+
+    @property
+    def arch(self):
+        return self._arch
+
+    @property
+    def rosdistro(self):
+        return self._rosdistro
+
+    @property
+    def os_name(self):
+        return self._os_name
+
+    @property
+    def rmw(self):
+        return self._rmw
+
+    @property
+    def cc_toolchain(self):
+        return self._cc_toolchain
+
+    @property
+    def ros_version(self):
+        return self._ros_version
 
     def __str__(self):
         """Return string representation of platform parameters."""
-        return '-'.join((self.arch, self.os, self.rosdistro))
+        return '-'.join((self.arch, self.os_name, self.rosdistro))
 
     def get_workspace_image_tag(self) -> str:
         """Generate docker image name and tag."""
@@ -116,38 +186,18 @@ class DockerConfig:
     """
 
     def __init__(
-        self, arch: str, os: str, rosdistro: str, sysroot_base_image: str,
+        self, platform: Platform, override_base_image: Optional[str],
         docker_network_mode: str, sysroot_nocache: bool
     ):
-        base_image = {
-            'armhf': 'arm32v7',
-            'aarch64': 'arm64v8',
-        }
-        image_tag = {
-            'kinetic': {
-                'ubuntu': 'xenial',
-                'debian': 'jessie',
-            },
-            'melodic': {
-                'ubuntu': 'bionic',
-                'debian': 'stretch',
-            },
-            'dashing': {
-                'ubuntu': 'bionic',
-                'debian': 'stretch',
-            },
-            'eloquent': {
-                'ubuntu': 'bionic',
-                'debian': 'buster',
-            }
-        }
-
         """Initialize docker configuration."""
-        if sysroot_base_image is None:
-            self.base_image = \
-                self.base_image = '{}/{}:{}'.format(base_image[arch], os, image_tag[rosdistro][os])
+        if override_base_image:
+            self.base_image = override_base_image
         else:
-            self.base_image = sysroot_base_image
+            # Platform constructor has already performed validation on these values
+            docker_base = Platform.SUPPORTED_ARCHITECTURES[platform.arch].docker_base
+            distro_os = Platform.ROSDISTRO_OS_MAPPING[platform.rosdistro]
+            image_tag = distro_os[platform.os_name]
+            self.base_image = '{}/{}:{}'.format(docker_base, platform.os_name, image_tag)
 
         self.network_mode = docker_network_mode
         self.nocache = sysroot_nocache
@@ -266,7 +316,7 @@ class SysrootCompiler:
 
         mixins_src = package_path / 'mixins'
         mixins_dest = self._target_sysroot / 'mixins'
-        replace_tree(mixins_src, mixins_dest)
+        _replace_tree(mixins_src, mixins_dest)
         if not mixins_dest.exists():
             raise FileNotFoundError('Mixins not properly copied to build context')
         logger.debug('Copied mixins')
