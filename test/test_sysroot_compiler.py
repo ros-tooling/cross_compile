@@ -44,8 +44,7 @@ def platform_config() -> Platform:
 def _default_docker_kwargs() -> dict:
     return {
         'platform': Platform('aarch64', 'ubuntu', 'dashing', 'fastrtps'),
-        'override_base_image': '035662560449.dkr.ecr.us-east-2.amazonaws.com/cc-tool:'
-                               'aarch64-bionic-dashing-fastrtps-prebuilt',
+        'override_base_image': 'arm64v8/gcc:9.2.0',
         'docker_network_mode': 'host',
         'sysroot_nocache': False,
     }
@@ -67,6 +66,24 @@ def setup_mock_sysroot(path: Path) -> Tuple[Path, Path]:
     qemu_binary_mock = qemu_dir / 'qemu'
     qemu_binary_mock.ensure()
     return sysroot_dir, ros_workspace_dir
+
+
+def test_platform_argument_validation():
+    rmw = 'fastrtps'
+    p = Platform('armhf', 'ubuntu', 'dashing', rmw)
+    assert p
+
+    with pytest.raises(ValueError):
+        # invalid arch
+        p = Platform('mips', 'ubuntu', 'dashing', rmw)
+
+    with pytest.raises(ValueError):
+        # invalid distro
+        p = Platform('armhf', 'ubuntu', 'ardent', rmw)
+
+    with pytest.raises(ValueError):
+        # invalid OS
+        p = Platform('armhf', 'rhel', 'dashing', rmw)
 
 
 def test_get_workspace_image_tag(platform_config):

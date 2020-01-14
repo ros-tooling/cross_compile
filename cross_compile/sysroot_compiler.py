@@ -61,6 +61,8 @@ logger = logging.getLogger(__name__)
 
 
 class ArchMapping(NamedTuple):
+    """Pair the toolchain and base Docker image for a target architecture as named members."""
+
     toolchain: str
     docker_base: str
 
@@ -119,24 +121,50 @@ class Platform:
 
     def __init__(self, arch: str, os_name: str, rosdistro: str, rmw: str):
         """Initialize platform parameters."""
-        self.arch = arch
-        self.rosdistro = rosdistro
-        assert os_name in self.ROSDISTRO_OS_MAPPING[rosdistro], \
-            'OS "{}" not supported for ROS distro "{}"'.format(os_name, rosdistro)
-        self.os_name = os_name
-        self.rmw = rmw
+        self._arch = arch
+        self._rosdistro = rosdistro
+        self._os_name = os_name
+        self._rmw = rmw
 
         try:
-            self.cc_toolchain = self.SUPPORTED_ARCHITECTURES[arch].toolchain
+            self._cc_toolchain = self.SUPPORTED_ARCHITECTURES[arch].toolchain
         except KeyError:
             raise ValueError('Unknown target architecture "{}" specified'.format(arch))
 
         if self.rosdistro in self.SUPPORTED_ROS2_DISTROS:
-            self.ros_version = 'ros2'
+            self._ros_version = 'ros2'
         elif self.rosdistro in self.SUPPORTED_ROS_DISTROS:
-            self.ros_version = 'ros'
+            self._ros_version = 'ros'
         else:
             raise ValueError('Unknown ROS distribution "{}" specified'.format(rosdistro))
+
+        if self.os_name not in self.ROSDISTRO_OS_MAPPING[self.rosdistro]:
+            raise ValueError(
+                'OS "{}" not supported for ROS distro "{}"'.format(os_name, rosdistro))
+
+    @property
+    def arch(self):
+        return self._arch
+
+    @property
+    def rosdistro(self):
+        return self._rosdistro
+
+    @property
+    def os_name(self):
+        return self._os_name
+
+    @property
+    def rmw(self):
+        return self._rmw
+
+    @property
+    def cc_toolchain(self):
+        return self._cc_toolchain
+
+    @property
+    def ros_version(self):
+        return self._ros_version
 
     def __str__(self):
         """Return string representation of platform parameters."""
@@ -165,29 +193,14 @@ class DockerConfig:
         if override_base_image:
             self.base_image = override_base_image
         else:
-            self.base_image = self._base_image_for(platform)
+            # Platform constructor has already performed validation on these values
+            docker_base = Platform.SUPPORTED_ARCHITECTURES[platform.arch].docker_base
+            distro_os = Platform.ROSDISTRO_OS_MAPPING[platform.rosdistro]
+            image_tag = distro_os[platform.os_name]
+            self.base_image = '{}/{}:{}'.format(docker_base, platform.os_name, image_tag)
 
         self.network_mode = docker_network_mode
         self.nocache = sysroot_nocache
-
-    def _base_image_for(self, platform: Platform):
-        try:
-            docker_base = Platform.SUPPORTED_ARCHITECTURES[platform.arch].docker_base
-        except KeyError:
-            raise ValueError('Unkown target architecture "{}" specified'.format(platform.arch))
-
-        try:
-            distro_os = Platform.ROSDISTRO_OS_MAPPING[platform.rosdistro]
-        except KeyError:
-            raise ValueError('ROS distro "{}" is not supported'.format(platform.rosdistro))
-
-        try:
-            image_tag = distro_os[platform.os_name]
-        except KeyError:
-            raise ValueError('OS "{}" is not supported for ROS distro "{}"'.format(
-                platform.os_name, platform.rosdistro))
-
-        return '{}/{}:{}'.format(docker_base, platform.os_name, image_tag)
 
     def __str__(self):
         """Return string representation of docker build parameters."""
