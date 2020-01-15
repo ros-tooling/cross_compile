@@ -60,11 +60,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-class ArchMapping(NamedTuple):
-    """Pair the toolchain and base Docker image for a target architecture as named members."""
-
-    toolchain: str
-    docker_base: str
+ToolchainDockerPair = NamedTuple('ToolchainDockerPair', [('toolchain', str), ('docker_base', str)])
 
 
 def _replace_tree(src: Path, dest: Path) -> None:
@@ -86,11 +82,11 @@ class Platform:
 
     # NOTE: when changing any following values, update README.md Supported Targets section
     SUPPORTED_ARCHITECTURES = {
-        'armhf': ArchMapping(
+        'armhf': ToolchainDockerPair(
             toolchain='arm-linux-gnueabihf',
             docker_base='arm32v7',
         ),
-        'aarch64': ArchMapping(
+        'aarch64': ToolchainDockerPair(
             toolchain='aarch64-linux-gnu',
             docker_base='arm64v8',
         )
