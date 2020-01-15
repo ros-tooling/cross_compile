@@ -18,13 +18,24 @@
 import errno
 import os
 from os import path
-
+import subprocess
+import tempfile
 from xml.etree import ElementTree
 
 from setuptools import find_packages
 from setuptools import setup
 
 package_name = 'cross_compile'
+ament_lint_temporary_directory = tempfile.TemporaryDirectory()
+# The latest version at the time of this writing.
+# It should be safe to bump this to the latest ament linter version at any time.
+AMENT_LINTER_VERSION = '0.8.1'
+AMENT_LINTERS_TO_INSTALL = [
+    'ament_lint',
+    'ament_copyright',
+    'ament_flake8',
+    'ament_pep257',
+]
 
 
 def build_package_directory_path():
@@ -51,9 +62,53 @@ def read_version_from_package_xml():
     return version.text
 
 
-this_directory = build_package_directory_path()
-with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
-    long_description = f.read()
+def read_readme():
+    this_directory = build_package_directory_path()
+    with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+        return f.read()
+
+
+def fetch_ament_lint_dependency_links():
+    """
+    Construct the dependency links needed to install the eggs for the ament linters.
+
+    NOTES about dependency links:
+    * We are installing ament_lint via a URL because it is not released to PyPI and we are
+      no longer depending on rosdep for this pure-python package
+    * This feature is deprecated in pip 19 - when we upgrade to using it, we will have to install
+      our test packages in a different way. Moving test infra out of setuptools and into
+      tox (https://tox.readthedocs.io/en/latest/) seems to be the most recommended way.
+
+    NOTE explaining the local checkout into a temporary directory
+    * the ament_lint repository is a meta-repo, containing multiple modules in subdirectories
+    * pip allows for installing from URL, including pointing at a subdirectory e.g.
+      `git+https://github.com/ament/ament_lint.git#egg=ament_lint&subdirectory=ament_lint`
+      but the one part of that URL that doesn't work in setuptools is the subdirectory keyword,
+      so we can't use git links
+    * Subversion allows checking out subdirectories,
+      Github supports Subversion urls,
+      and pip supports using them for installation, e.g.
+      `svn+https://github.com/ament/ament_lint/trunk/ament_lint`,
+      but setuptools fails to invoke subversion properly for these links and raises an error,
+      so we can't use SVN links
+    * Local file:// URIs work fine in setuptools as tested in our infrastructure, so instead
+      of the nice-looking options, we manually check out the ament_lint repository and point
+      setuptools at its locally-checked-out subdirectories
+    """
+    repo_dir = str(ament_lint_temporary_directory.name)
+    subprocess.check_call([
+        'git', 'clone',
+        '--branch', AMENT_LINTER_VERSION,
+        'https://github.com/ament/ament_lint/', repo_dir],
+      stdout=subprocess.DEVNULL,
+      stderr=subprocess.DEVNULL,
+    )
+    return [
+        'file://{base}/{pkg}#egg={pkg}-{version}'.format(
+            base=repo_dir, pkg=linter, version=AMENT_LINTER_VERSION)
+        for linter in AMENT_LINTERS_TO_INSTALL
+    ]
+
 
 setup(
     name=package_name,
@@ -76,8 +131,10 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Topic :: Software Development',
     ],
+    # NOTE: when we upgrade to pip 10, we will need to update to PEP 508 syntax
+    dependency_links=fetch_ament_lint_dependency_links(),
     description='A tool to cross-compile ROS 2 packages.',
-    long_description=long_description,
+    long_description=read_readme(),
     long_description_content_type='text/markdown',
     license='Apache License, Version 2.0',
     data_files=[
@@ -89,15 +146,31 @@ setup(
         package_name: ['Dockerfile_ros', 'mixins/*.*'],
     },
     install_requires=[
-        'setuptools',
         'docker>=2,<3',
+        'setuptools',
+        'svn',
     ],
     zip_safe=True,
     tests_require=[
-        'pytest',
+        'svn',
+        'setuptools_subversion',
+        'setuptools',
         'flake8',
+        'flake8-blind-except',
+        'flake8-builtins',
+        'flake8-class-newline',
+        'flake8-comprehensions',
+        'flake8-deprecated',
+        'flake8-docstrings',
+        'flake8-import-order',
+        'flake8-quotes',
+        'pydocstyle',
+        'pytest',
+        'pytest-cov',
+        'pytest-repeat',
+        'pytest-runner',
         'yamllint',
-    ],
+    ] + AMENT_LINTERS_TO_INSTALL,
     entry_points={
         'console_scripts': [
             'cross_compile = cross_compile.ros2_cross_compile:main'
