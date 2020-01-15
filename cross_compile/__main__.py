@@ -11,13 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import absolute_import
 
+import sys
 
-"""Unit tests for the `create_cc_sysroot.py` script."""
+from cross_compile.ros_cross_compile import main as _main
 
-from cross_compile.ros_cross_compile import parse_args
-
-
-def test_trivial():
-    args = parse_args(['-a', 'aarch64', '-o', 'ubuntu'])
-    assert args
+if __name__ == '__main__':
+    sys.exit(_main())

@@ -1,5 +1,0 @@
-repositories:
-  cross_compile:
-    type: git
-    url: https://github.com/ros-tooling/cross_compile.git
-    version: master
