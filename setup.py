@@ -72,6 +72,8 @@ def fetch_ament_lint_dependency_links():
     """
     Construct the dependency links needed to install the eggs for the ament linters.
 
+    TODO(#123): remove the dependency_links logic when we move over to tox
+
     NOTES about dependency links:
     * We are installing ament_lint via a URL because it is not released to PyPI and we are
       no longer depending on rosdep for this pure-python package
@@ -99,10 +101,9 @@ def fetch_ament_lint_dependency_links():
     subprocess.check_call([
         'git', 'clone',
         '--branch', AMENT_LINTER_VERSION,
+        '--depth', '1',
         'https://github.com/ament/ament_lint/', repo_dir],
-      stdout=subprocess.DEVNULL,
-      stderr=subprocess.DEVNULL,
-    )
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     return [
         'file://{base}/{pkg}#egg={pkg}-{version}'.format(
             base=repo_dir, pkg=linter, version=AMENT_LINTER_VERSION)
@@ -131,7 +132,6 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Topic :: Software Development',
     ],
-    # NOTE: when we upgrade to pip 10, we will need to update to PEP 508 syntax
     dependency_links=fetch_ament_lint_dependency_links(),
     description='A tool to cross-compile ROS 2 packages.',
     long_description=read_readme(),
@@ -148,13 +148,9 @@ setup(
     install_requires=[
         'docker>=2,<3',
         'setuptools',
-        'svn',
     ],
     zip_safe=True,
     tests_require=[
-        'svn',
-        'setuptools_subversion',
-        'setuptools',
         'flake8',
         'flake8-blind-except',
         'flake8-builtins',
