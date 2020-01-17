@@ -22,3 +22,7 @@ assignees: ''
 ## Implementation Notes / Suggestions
 
 ** If you have ideas about how this feature might be accomplished, put them here. Note that this is not a command, but a suggestion to the implementer, so feel free to speculate. **
+
+## Testing Notes / Suggestions
+
+** All features in this project need tests. Please give some input on cases that will need to be tested - and how the testing might be implemented. **
