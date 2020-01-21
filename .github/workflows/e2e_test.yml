@@ -1,11 +1,11 @@
 name: End-to-end Testing (Nightly)
 on:
   pull_request:
-    # Running on pull requests to catch breaking changes as early as possible. 
+    # Running on pull requests to catch breaking changes as early as possible.
     # Waiting for this test to pass is recommended, but contributors can use their discretion whether they want to or not.
   schedule:
-    # Run every morning Pacific Time. Random hour and minute to avoid creating excess traffic during popular times. 
-    # Because the test takes a long time (> 30 min) to run, it is configured to run only once a day. 
+    # Run every morning Pacific Time. Random hour and minute to avoid creating excess traffic during popular times.
+    # Because the test takes a long time (> 30 min) to run, it is configured to run only once a day.
     - cron:  '17 17 * * *'
 
 jobs:
@@ -14,21 +14,24 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        supported_platforms: [aarch64, armhf]
-        supported_os: [ubuntu, debian]
-        rosdistro: [dashing, eloquent, melodic]
+        target_arch: [aarch64, armhf]
+        target_os: [ubuntu , debian]
+        rosdistro: [dashing , eloquent, melodic]
     steps:
-    - name: Setup ROS2
-      uses: ros-tooling/setup-ros2@0.0.11
+    - name: Checkout sources
+      uses: actions/checkout@v2
+    - name: Setup python
+      uses: actions/setup-python@v1
       with:
-        required-ros-distributions: ${{ matrix.rosdistro }}
+        # NOTE: doing a python version matrix on top of the
+        # already huge target matrix would take forever,
+        # so here we just target the minimum supported version
+        python-version: 3.5
     - name: Install dependencies
       run: |
         sudo apt update && sudo apt install -y qemu-user-static
-    - name: Build and test cross_compile
-      uses: ros-tooling/action-ros2-ci@0.0.11
-      with:
-        package-name: cross_compile ros2run
+    - name: Install cross-compile
+      run: pip install -e .
     - name: Run end-to-end test
       run: |
-        source ros2_ws/install/local_setup.bash && ros2_ws/src/cross_compile/test/run_e2e_test.sh -a "${{ matrix.supported_platforms }}" -o "${{ matrix.supported_os }}" -d "${{ matrix.rosdistro }}"
+        ./test/run_e2e_test.sh -a "${{ matrix.target_arch }}" -o "${{ matrix.target_os }}" -d "${{ matrix.rosdistro }}"
