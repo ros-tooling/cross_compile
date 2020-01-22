@@ -37,7 +37,7 @@ This tool requires that you have already installed
 
 If you are using a Linux host, you must also install QEmu (Docker for OSX performs emulation automatically):
 
-```
+```sh
 sudo apt-get install qemu-user-static
 ```
 
@@ -45,13 +45,13 @@ sudo apt-get install qemu-user-static
 
 To install the stable release,
 
-```
+```sh
 pip3 install ros_cross_compile
 ```
 
 If you would like the latest nightly build, you can get it from Test PyPI
 
-```
+```sh
 pip3 install --index-url https://test.pypi.org/simple/ ros_cross_compile
 ```
 
