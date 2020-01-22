@@ -14,7 +14,7 @@
 # limitations under the License.
 # -*- coding: utf-8 -*-
 #
-# cross_compile documentation build configuration file, created by
+# ros_cross_compile documentation build configuration file, created by
 # sphinx-quickstart on Thu Sep 19 08:53:28 2019.
 #
 # This file is execfile()d with the current directory set to its
@@ -68,7 +68,7 @@ source_suffix = ['.rst', '.md']
 master_doc = 'index'
 
 # General information about the project.
-project = 'cross_compile'
+project = 'ros_cross_compile'
 copyright = '2019, ROS 2 Tooling Working Group'  # NOQA
 author = 'AWS Robomaker'
 
@@ -138,7 +138,7 @@ html_sidebars = {
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'cross_compiledoc'
+htmlhelp_basename = 'ros_cross_compiledoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -165,7 +165,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'cross_compile.tex', 'cross_compile Documentation',
+    (master_doc, 'ros_cross_compile.tex', 'ros_cross_compile Documentation',
      'AWS Robomaker', 'manual'),
 ]
 
@@ -175,7 +175,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'cross_compile', 'cross_compile Documentation',
+    (master_doc, 'ros_cross_compile', 'ros_cross_compile Documentation',
      [author], 1)
 ]
 
@@ -186,7 +186,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'cross_compile', 'cross_compile Documentation',
-     author, 'cross_compile', 'One line description of project.',
+    (master_doc, 'ros_cross_compile', 'ros_cross_compile Documentation',
+     author, 'ros_cross_compile', 'One line description of project.',
      'Miscellaneous'),
 ]

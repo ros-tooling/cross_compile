@@ -117,7 +117,7 @@ setup "$CONTAINER_NAME"
 
 # Run the cross compilation script
 log "Executing cross compilation script..."
-python3 -m cross_compile --arch "$arch" --os "$os" --rosdistro "$distro" --rmw "$rmw" \
+python3 -m ros_cross_compile --arch "$arch" --os "$os" --rosdistro "$distro" --rmw "$rmw" \
                                         --sysroot-path "$test_sysroot_dir"
 CC_SCRIPT_STATUS=$?
 if [[ "$CC_SCRIPT_STATUS" -ne 0 ]]; then

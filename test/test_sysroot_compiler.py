@@ -20,14 +20,14 @@ import os
 from pathlib import Path
 from typing import Tuple
 
-from cross_compile.sysroot_compiler import DockerConfig
-from cross_compile.sysroot_compiler import Platform
-from cross_compile.sysroot_compiler import QEMU_DIR_NAME
-from cross_compile.sysroot_compiler import ROS_DOCKERFILE_NAME
-from cross_compile.sysroot_compiler import SYSROOT_DIR_NAME
-from cross_compile.sysroot_compiler import SysrootCompiler
 import docker
 import pytest
+from ros_cross_compile.sysroot_compiler import DockerConfig
+from ros_cross_compile.sysroot_compiler import Platform
+from ros_cross_compile.sysroot_compiler import QEMU_DIR_NAME
+from ros_cross_compile.sysroot_compiler import ROS_DOCKERFILE_NAME
+from ros_cross_compile.sysroot_compiler import SYSROOT_DIR_NAME
+from ros_cross_compile.sysroot_compiler import SysrootCompiler
 
 THIS_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 

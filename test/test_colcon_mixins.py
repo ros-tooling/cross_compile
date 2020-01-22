@@ -29,7 +29,7 @@ from yamllint.cli import run
 @pytest.mark.linter
 def test_colcon_mixins():
     any_error = False
-    mixins_dir = pkg_resources.resource_filename('cross_compile', 'mixins')
+    mixins_dir = pkg_resources.resource_filename('ros_cross_compile', 'mixins')
     for name in sorted(os.listdir(mixins_dir)):
         if name != 'index.yaml' and not name.endswith('.mixin'):
             continue
