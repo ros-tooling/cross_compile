@@ -28,7 +28,6 @@ jobs:
       run: pip install tox
     - name: Run tests
       run: tox -e py
-      working-directory: cross_compile
     - uses: codecov/codecov-action@v1
       # Prevent being rate limited by only reporting coverage from the Ubuntu
       # build.
