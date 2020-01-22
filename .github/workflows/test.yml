@@ -16,26 +16,30 @@ jobs:
       fail-fast: false
       matrix:
           os: [macOS-latest, ubuntu-18.04]
+          python-version: [3.5, 3.6, 3.7]
     steps:
-    - uses: ros-tooling/setup-ros2@0.0.5
-    - uses: ros-tooling/action-ros2-ci@0.0.5
+    - name: Checkout sources
+      uses: actions/checkout@v2
+    - uses: actions/setup-python@v1
       with:
-        package-name: cross_compile
+        python-version: ${{ matrix.python-version }}
+        architecture: x64
+    - name: Install Tox for testing
+      run: pip install tox
+    - name: Run tests
+      run: tox -e py
+      working-directory: cross_compile
     - uses: codecov/codecov-action@v1
       # Prevent being rate limited by only reporting coverage from the Ubuntu
       # build.
       if: matrix.os == 'ubuntu-18.04'
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        file: ros2_ws/src/cross_compile/coverage.xml
+        file: coverage.xml
         flags: unittests
         name: codecov-umbrella
         yml: ./codecov.yml
         fail_ci_if_error: true
-    - uses: actions/upload-artifact@master
-      with:
-        name: colcon-logs-${{ matrix.os }}
-        path: ros2_ws/log
     # Upload the package to the PyPI test repository.
     # This will silently fail if a package with this version number already
     # exists.

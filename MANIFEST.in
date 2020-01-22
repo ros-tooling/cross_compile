@@ -1,0 +1,12 @@
+include CONTRIBUTING.md
+include LICENSE
+include README.md
+
+exclude .coveragerc
+exclude .readthedocs.yml
+exclude .vale.ini
+exclude tox.ini
+
+prune .github
+prune docs/build
+prune test

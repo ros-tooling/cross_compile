@@ -1,14 +1,14 @@
 #!/bin/bash
-# This end-to-end test runs the entire cross-compilation pipeline for ROS2 packages.
+# This end-to-end test runs the entire cross-compilation pipeline for this tool
 # This test does the following:
 # 1. Mocks a sysroot directory in a temporary directory.
-# 2. Runs the cross compilation script against the mock sysroot, compiling all the ROS2 packages.
+# 2. Runs the cross compilation script against the mock sysroot, compiling all the packages.
 # 3. Runs a Docker container using the image built from cross compilation script.
-# 4. Executes a ROS2 C++ example demo publisher node in the container.
+# 4. Executes a C++ example demo node in the container.
 # 5. Closes the Docker container.
 # The test passes if none of the above actions fail to complete.
 
-set -uxo pipefail
+set -euxo pipefail
 
 # Terminal output colors
 readonly RED='\033[0;31m'
@@ -115,15 +115,9 @@ trap 'cleanup $CONTAINER_NAME $result' EXIT
 # Testing starts here
 setup "$CONTAINER_NAME"
 
-# Check if the ros2 command exists
-log "Checking for ros2 command in PATH..."
-if ! type ros2 > /dev/null; then
-  panic "Unable to find ros2 in PATH. Make sure you have sourced your environment/workspace properly."
-fi
-
 # Run the cross compilation script
 log "Executing cross compilation script..."
-ros2 run cross_compile cross_compile --arch "$arch" --os "$os" --rosdistro "$distro" --rmw "$rmw" \
+python3 -m cross_compile --arch "$arch" --os "$os" --rosdistro "$distro" --rmw "$rmw" \
                                         --sysroot-path "$test_sysroot_dir"
 CC_SCRIPT_STATUS=$?
 if [[ "$CC_SCRIPT_STATUS" -ne 0 ]]; then
