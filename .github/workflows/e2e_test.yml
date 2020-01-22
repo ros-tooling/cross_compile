@@ -15,8 +15,8 @@ jobs:
       fail-fast: false
       matrix:
         target_arch: [aarch64, armhf]
-        target_os: [ubuntu , debian]
-        rosdistro: [dashing , eloquent, melodic]
+        target_os: [ubuntu, debian]
+        rosdistro: [dashing, eloquent, melodic]
     steps:
     - name: Checkout sources
       uses: actions/checkout@v2
