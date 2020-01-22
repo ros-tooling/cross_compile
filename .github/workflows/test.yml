@@ -43,7 +43,7 @@ jobs:
     # Upload the package to the PyPI test repository.
     # This will silently fail if a package with this version number already
     # exists.
-    - uses: ros-tooling/action-pypi@0.0.1
+    - uses: ros-tooling/action-pypi@0.0.2
       # As the package is platform-independent, only trigger this step on Linux
       # and only on push.
       # This action should never happen on pull-request, as it would lead us
@@ -52,7 +52,6 @@ jobs:
       # we cannot overwrite packages.
       if: matrix.os == 'ubuntu-18.04' && github.event_name == 'push'
       with:
-        package-directory: ros2_ws/src/cross_compile
         username: ${{ secrets.PYPI_USERNAME }}
         password: ${{ secrets.PYPI_PASSWORD }}
         repository-url: https://test.pypi.org/legacy/
