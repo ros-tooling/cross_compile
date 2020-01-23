@@ -1,0 +1,37 @@
+name: End-to-end Production Testing (Nightly)
+on:
+  schedule:
+    # Run every morning Pacific Time.
+    # Random hour and minute to avoid creating excess traffic during popular times.
+    # Because the test takes a long time (> 30 min) to run, it is configured to run only once a day.
+    - cron:  '17 17 * * *'
+
+jobs:
+  build_and_test:
+    runs-on: [ubuntu-18.04, macos-latest]
+    strategy:
+      fail-fast: false
+      matrix:
+        target_arch: [aarch64, armhf]
+        target_os: [ubuntu]
+        rosdistro: [dashing]
+        install_type:
+          - pip install -e .
+          - pip install -i https://test.pypi.org/simple/ cross-compile
+          - pip install cross-compile
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v2
+    - name: Setup python
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.5
+    - name: Install dependencies
+      run: |
+        sudo apt update && sudo apt install -y qemu-user-static
+    - name: Install cross-compile
+      run: |
+        ${{ matrix.install_type }}
+    - name: Run end-to-end test
+      run: |
+        ./test/run_e2e_test.sh -a "${{ matrix.target_arch }}" -o "${{ matrix.target_os }}" -d "${{ matrix.rosdistro }}"
