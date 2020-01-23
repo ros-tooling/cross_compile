@@ -11,6 +11,6 @@ python:
     # Ensure sphinx-build is in PATH
     - method: setuptools
       path: docs/sphinx_build_symlink/
-    # Install cross_compile using setuptools
+    # Install ros_cross_compile using setuptools
     - method: setuptools
       path: .

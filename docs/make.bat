@@ -9,7 +9,7 @@ if "%SPHINXBUILD%" == "" (
 )
 set SOURCEDIR=source
 set BUILDDIR=build
-set SPHINXPROJ=cross_compile
+set SPHINXPROJ=ros_cross_compile
 
 if "%1" == "" goto help
 

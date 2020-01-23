@@ -15,7 +15,7 @@
 
 """Unit tests for the `create_cc_sysroot.py` script."""
 
-from cross_compile.ros_cross_compile import parse_args
+from ros_cross_compile.ros_cross_compile import parse_args
 
 
 def test_trivial():

@@ -5,7 +5,7 @@
 
 A tool to automate compiling ROS and ROS2 workspaces to non-native architectures.
 
-:construction: `cross_compile` relies on running emulated builds
+:construction: `ros_cross_compile` relies on running emulated builds
 using QEmu, #69 tracks progress toward enabling cross-compilation.
 
 ## Supported targets
@@ -18,71 +18,43 @@ This tool supports compiling a workspace for all combinations of the following:
   * ROS 2: `dashing`, `eloquent`
 * OS: `Ubuntu`, `Debian`
 
+## Supported hosts
+
+This tool officially supports running on the following host systems.
+Note that many others likely work, but these are being thoroughly tested.
+
+* Ubuntu 18.04 Bionic Beaver
+* OSX Mojave
+
 ## Installation
 
 ### Prerequisites
 
-This tool requires:
+This tool requires that you have already installed
+* [Docker](https://docs.docker.com/install/)
+  * Follow the instructions to add yourself to the `docker` group as well, so you can run containers as a non-root user
+* Python 3.5 or higher
 
-- Docker
-- Python 3.5, or newer.
-- QEmu
+If you are using a Linux host, you must also install QEmu (Docker for OSX performs emulation automatically):
 
-#### Installing system dependencies on Ubuntu
-
-On Ubuntu Bionic (18.04), run the following commands to install system
-dependencies:
-
-```bash
-# Install requirements for Docker and qemu-user-static
-sudo apt update && sudo apt install -y curl qemu-user-static
-
-# Full instructions on installing Docker may be found here:
-# https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-engine---community
-curl -fsSL https://get.docker.com | sudo sh -
-
-# Allow the current user to invoke Docker CLI.
-sudo usermod -aG docker $USER
-
-# Reload the group permissions in the current shell. Otherwise logout and login again to apply permissions
-newgrp docker
-
-# Verify current user can run Docker
-docker run hello-world
+```sh
+sudo apt-get install qemu-user-static
 ```
 
-### Installing from source
+### Installing ros_cross_compile
 
-#### Latest (unstable development - `master` branch)
+To install the stable release,
 
-Please follow those instructions if you plan to contribute to this repository.
-
-* Install all software dependencies required for ROS 2 development by following
-  the [ROS 2 documentation][ros2_dev_setup]
-* Checkout the source code and compile it as follows
-
-```bash
-mkdir -p ~/ros_cross_compile_ws/src
-cd ros_cross_compile_ws
-
-# Use vcs to clone all required repositories
-curl -fsSL https://raw.githubusercontent.com/ros2/ros2/master/ros2.repos | vcs import src/
-curl -fsSL https://raw.githubusercontent.com/ros-tooling/cross_compile/master/cross_compile.repos | vcs import src/
-
-# Install all required system dependencies
-# Some packages may fail to install, this is expected on an unstable branch,
-# and is generally OK.
-sudo rosdep init
-rosdep update
-rosdep install -r -y --rosdistro=eloquent --ignore-packages-from-source --from-paths src/
-
-# Use colcon to compile cross_compile code and all its dependencies
-# ros2run is required to run the cross_compile script, but may be installed elsewhere on the host.
-colcon build --packages-up-to cross_compile ros2run
-
-# If you use bash or zsh, source .bash or .zsh, instead of .sh
-source install/local_setup.sh
+```sh
+pip3 install ros_cross_compile
 ```
+
+If you would like the latest nightly build, you can get it from Test PyPI
+
+```sh
+pip3 install --index-url https://test.pypi.org/simple/ ros_cross_compile
+```
+
 
 ## Usage
 
@@ -92,6 +64,7 @@ the toolchain.
 The following instructions explain how to create a `sysroot` directory.
 
 #### Create the directory structure
+
 ```bash
 mkdir -p sysroot/qemu-user-static
 mkdir -p sysroot/ros_ws/src
@@ -113,6 +86,7 @@ Once you have the desired sources, copy them in the `sysroot` to use with the to
 cp -r <full_path_to_your_ros_ws>/src sysroot/ros_ws/src
 ```
 
+
 #### Run the cross compilation script
 
 In the end your `sysroot` directory should look like this:
@@ -130,10 +104,12 @@ sysroot/
 Then run the tool:
 
 ```bash
-ros2 run cross_compile cross_compile --sysroot-path /absolute/path/to/sysroot \
-                                     --arch aarch64 \
-                                     --os ubuntu
+python3 -m ros_cross_compile \
+  --sysroot-path /absolute/path/to/sysroot \
+  --arch aarch64 \
+  --os ubuntu
 ```
+
 
 ### Custom setup script
 
@@ -185,10 +161,11 @@ cat custom-data/something.txt
 Tool invocation:
 
 ```bash
-ros2 run cross_compile cross_compile --sysroot-path /absolute/path/to/sysroot \
-                                     --arch aarch64 --os ubuntu \
-                                     --custom-setup-script /path/to/custom-setup.sh \
-                                     --custom-data-dir /arbitrary/local/directory
+python3 -m ros_cross_compile \
+  --sysroot-path /absolute/path/to/sysroot
+  --arch aarch64 --os ubuntu \
+  --custom-setup-script /path/to/custom-setup.sh \
+  --custom-data-dir /arbitrary/local/directory
 ```
 
 Now, during the sysroot creation process, you should see the contents of `something.txt` printed during the execution of the custom script.
@@ -228,7 +205,7 @@ NOTE: this tutorial assumes a Debian-based (including Ubuntu) Linux distribution
 ### Running the cross-compilation
 
 ```bash
-ros2 run cross_compile cross_compile \
+python3 -m ros_cross_compile \
   --sysroot-path $(pwd) \
   --rosdistro dashing \
   --arch aarch64 \
@@ -239,18 +216,18 @@ Here is a detailed look at the arguments passed to the script:
 
 * `--sysroot-path $(pwd)`
 
-Point the `cross_compile` tool to the absolute path of the directory containing the `sysroot` directory created earlier.
+Point the `ros_cross_compile` tool to the absolute path of the directory containing the `sysroot` directory created earlier.
 You could run the tool from any directory, but in this case the current working directory contains `sysroot`, hence `$(pwd)`
 
 * `--rosdistro dashing`
 
 You may specify both ROS and ROS2 distributions by name, for example, `kinetic` (ROS) or `dashing` (ROS 2).
-`cross_compile -h` prints the supported distributions for this option
+`ros_cross_compile -h` prints the supported distributions for this option
 
 * `--arch aarch64`
 
 Target the ARMv8 / ARM64 / aarch64 architecture (which are different names for the same thing).
-`cross_compile -h` prints the supported architectures for this option.
+`ros_cross_compile -h` prints the supported architectures for this option.
 
 * `--os ubuntu`
 

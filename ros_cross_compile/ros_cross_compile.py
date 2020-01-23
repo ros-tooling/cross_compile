@@ -22,9 +22,9 @@ import os
 import sys
 from typing import List
 
-from cross_compile.sysroot_compiler import DockerConfig
-from cross_compile.sysroot_compiler import Platform
-from cross_compile.sysroot_compiler import SysrootCompiler
+from ros_cross_compile.sysroot_compiler import DockerConfig
+from ros_cross_compile.sysroot_compiler import Platform
+from ros_cross_compile.sysroot_compiler import SysrootCompiler
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -33,6 +33,7 @@ logger = logging.getLogger(__name__)
 def parse_args(args: List[str]) -> argparse.Namespace:
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
+        prog='ros_cross_compile',  # this can be invoked from __main__.py, so be explicit
         description='Sysroot creator for cross compilation workflows.')
     parser.add_argument(
         '-a', '--arch',

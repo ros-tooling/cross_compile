@@ -16,7 +16,7 @@ from os import path
 from setuptools import find_packages
 from setuptools import setup
 
-package_name = 'cross_compile'
+package_name = 'ros_cross_compile'
 
 this_directory = path.abspath(path.dirname(__file__))
 with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
@@ -57,7 +57,7 @@ setup(
     zip_safe=True,
     entry_points={
         'console_scripts': [
-            'cross_compile = cross_compile.ros2_cross_compile:main'
+            'ros_cross_compile = ros_cross_compile.ros_cross_compile:main'
         ]
     },
     python_requires='>=3.5',

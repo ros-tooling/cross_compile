@@ -4,7 +4,7 @@
 # You can set these variables from the command line.
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
-SPHINXPROJ    = cross_compile
+SPHINXPROJ    = ros_cross_compile
 SOURCEDIR     = source
 BUILDDIR      = build
 
