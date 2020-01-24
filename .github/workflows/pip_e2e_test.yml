@@ -1,6 +1,5 @@
 name: End-to-end testing for ros-cross-compile using PIP (Nightly Canary)
 on:
-  pull_request:
   schedule:
     # Run every morning Pacific Time.
     # Random hour and minute to avoid creating excess traffic during popular times.
