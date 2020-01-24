@@ -1,0 +1,41 @@
+name: End-to-end testing for ros-cross-compile using PIP (Nightly Canary)
+on:
+  schedule:
+    # Run every morning Pacific Time.
+    # Random hour and minute to avoid creating excess traffic during popular times.
+    # Because the test takes a long time (> 30 min) to run, it is configured to run only once a day.
+    - cron:  '17 23 * * *'
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-18.04
+    strategy:
+      fail-fast: false
+      matrix:
+        target_arch: [aarch64, armhf]
+        target_os: [ubuntu]
+        rosdistro: [dashing]
+        install_type:
+          - test
+          - prod
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v2
+    - name: Setup python
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.5
+    - name: Install dependencies
+      run: |
+        sudo apt update && sudo apt install -y qemu-user-static
+    - name: Install ros-cross-compile from Test PyPi
+      if: matrix.install_type == 'test'
+      run: |
+        pip install 'docker>=2,<3'
+        pip install -i https://test.pypi.org/simple/ ros-cross-compile
+    - name: Install ros-cross-compile from Prod PyPi
+      if: matrix.install_type == 'prod'
+      run: pip install ros-cross-compile
+    - name: Run end-to-end test
+      run: |
+        ./test/run_e2e_test.sh -a "${{ matrix.target_arch }}" -o "${{ matrix.target_os }}" -d "${{ matrix.rosdistro }}"
