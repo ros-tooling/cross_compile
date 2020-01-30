@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Contains all classes used by the sysroot_compiler.py script."""
+"""Contains all classes used by the sysroot_creator.py script."""
 
 import getpass
 import logging
@@ -54,7 +54,7 @@ SYSROOT_NOT_FOUND_ERROR_STRING = Template(
 
 SYSROOT_DIR_NAME = 'sysroot'  # type: str
 QEMU_DIR_NAME = 'qemu-user-static'  # type: str
-ROS_DOCKERFILE_NAME = 'Dockerfile_ros'  # type: str
+ROS_DOCKERFILE_NAME = 'sysroot.Dockerfile'  # type: str
 DOCKER_CLIENT = docker.from_env()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -194,8 +194,13 @@ class DockerConfig:
         return 'Base Image: {}\nCaching: {}'.format(self.base_image, self.nocache)
 
 
-class SysrootCompiler:
-    """Build Docker containers for cross-compiling ROS2 packages."""
+class SysrootCreator:
+    """
+    Create a sysroot with all dependencies for a workspace.
+
+    Uses Docker to install dependencies on an emulated target, which produces
+    a Docker image with everything installed.
+    """
 
     def __init__(
       self,
@@ -207,7 +212,7 @@ class SysrootCompiler:
       custom_data_dir: Optional[str] = None,
     ) -> None:
         """
-        Construct a SysrootCompiler object building ROS 2 Docker container.
+        Construct a SysrootCreator object building ROS 2 Docker container.
 
         :param cc_root_dir: The directory containing the 'sysroot' directory
                             with the ROS2 workspace and QEMU binaries.
@@ -282,7 +287,7 @@ class SysrootCompiler:
         logger.debug('QEMU binaries exist')
 
         package_path = Path(__file__).parent
-        dockerfile_src = str(package_path / ROS_DOCKERFILE_NAME)
+        dockerfile_src = str(package_path / 'docker' / ROS_DOCKERFILE_NAME)
         shutil.copy(dockerfile_src, str(self._target_sysroot))
         if not self._final_dockerfile_path.exists():
             raise FileNotFoundError(COPY_DOCKER_WS_ERROR_STRING.substitute(
