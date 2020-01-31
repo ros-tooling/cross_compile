@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Contains all classes used by the sysroot_creator.py script."""
-
 import getpass
 import logging
 import os
