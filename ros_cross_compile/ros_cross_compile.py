@@ -68,12 +68,6 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         help='Override the default base Docker image to use for building the sysroot. '
              'Ex. "arm64v8/ubuntu:bionic"')
     parser.add_argument(
-        '--docker-network-mode',
-        required=False,
-        type=str,
-        default='host',
-        help="Docker's network_mode parameter to use for all Docker interactions")
-    parser.add_argument(
         '--sysroot-nocache',
         action='store_true',
         required=False,
@@ -125,7 +119,6 @@ def main():
     docker_args = DockerConfig(
         platform,
         args.sysroot_base_image,
-        args.docker_network_mode,
         args.sysroot_nocache)
 
     # Main pipeline

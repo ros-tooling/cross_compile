@@ -176,14 +176,12 @@ class DockerConfig:
     Represents docker build parameters used in creating sysroot.
 
     Includes:
-    1. Base docker image to use for building sysroot
-    2. Docker network mode
-    3. Setting to enable/disable caching during docker build
+    * Base docker image to use for building sysroot
+    * Setting to enable/disable caching during docker build
     """
 
     def __init__(
-        self, platform: Platform, override_base_image: Optional[str],
-        docker_network_mode: str, sysroot_nocache: bool
+        self, platform: Platform, override_base_image: Optional[str], sysroot_nocache: bool
     ):
         """Initialize docker configuration."""
         if override_base_image:
@@ -195,13 +193,11 @@ class DockerConfig:
             image_tag = distro_os[platform.os_name]
             self.base_image = '{}/{}:{}'.format(docker_base, platform.os_name, image_tag)
 
-        self.network_mode = docker_network_mode
         self.nocache = sysroot_nocache
 
     def __str__(self):
         """Return string representation of docker build parameters."""
-        return 'Base Image: {}\nNetwork Mode: {}\nCaching: {}'.format(
-            self.base_image, self.network_mode, self.nocache)
+        return 'Base Image: {}\nCaching: {}'.format(self.base_image, self.nocache)
 
 
 class SysrootCompiler:
@@ -353,7 +349,6 @@ class SysrootCompiler:
             buildargs=buildargs,
             quiet=False,
             nocache=self._docker_config.nocache,
-            network_mode=self._docker_config.network_mode,
             decode=True)
         self._parse_build_output(log_generator)
 
