@@ -45,7 +45,6 @@ def _default_docker_kwargs() -> dict:
     return {
         'platform': Platform('aarch64', 'ubuntu', 'dashing', 'fastrtps'),
         'override_base_image': 'arm64v8/gcc:9.2.0',
-        'docker_network_mode': 'host',
         'sysroot_nocache': False,
     }
 
@@ -99,10 +98,9 @@ def test_docker_config_args(docker_config):
     args = _default_docker_kwargs()
     test_config_string = (
         'Base Image: {}\n'
-        'Network Mode: {}\n'
         'Caching: {}'
     ).format(
-        args['override_base_image'], args['docker_network_mode'], args['sysroot_nocache']
+        args['override_base_image'], args['sysroot_nocache']
     )
     config_string = str(docker_config)
     assert isinstance(config_string, str)
@@ -195,12 +193,9 @@ def test_sysroot_compiler_tree_additions(platform_config, docker_config, tmpdir)
 def verify_base_docker_images(arch, os, rosdistro, image_name):
     """Assert correct base image is generated."""
     override_base_image = None
-    docker_network_mode = 'host'
     sysroot_nocache = 'False'
     platform = Platform(arch, os, rosdistro, 'fastrtps')
-    assert DockerConfig(
-        platform, override_base_image,
-        docker_network_mode, sysroot_nocache).base_image == image_name
+    assert DockerConfig(platform, override_base_image, sysroot_nocache).base_image == image_name
 
 
 def test_get_docker_base_image():
