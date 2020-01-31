@@ -42,7 +42,7 @@ def platform_config() -> Platform:
 
 def _default_docker_kwargs() -> dict:
     return {
-        'platform': Platform('aarch64', 'ubuntu', 'dashing', 'fastrtps'),
+        'platform': Platform('aarch64', 'ubuntu', 'dashing'),
         'override_base_image': 'arm64v8/gcc:9.2.0',
         'sysroot_nocache': False,
     }
@@ -192,7 +192,7 @@ def verify_base_docker_images(arch, os, rosdistro, image_name):
     """Assert correct base image is generated."""
     override_base_image = None
     sysroot_nocache = 'False'
-    platform = Platform(arch, os, rosdistro, 'fastrtps')
+    platform = Platform(arch, os, rosdistro)
     assert DockerConfig(platform, override_base_image, sysroot_nocache).base_image == image_name
 
 
