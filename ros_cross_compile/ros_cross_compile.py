@@ -55,13 +55,6 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         # NOTE: not specifying choices here, as different distros may support different lists
         help='Target OS')
     parser.add_argument(
-        '-r', '--rmw',
-        required=False,
-        type=str,
-        default='fastrtps',
-        choices=['fastrtps', 'cyclonedds'],
-        help='Target RMW implementation')
-    parser.add_argument(
         '--sysroot-base-image',
         required=False,
         type=str,
@@ -115,7 +108,7 @@ def main():
     """Start the cross-compilation workflow."""
     # Configuration
     args = parse_args(sys.argv[1:])
-    platform = Platform(args.arch, args.os, args.rosdistro, args.rmw)
+    platform = Platform(args.arch, args.os, args.rosdistro)
     docker_args = DockerConfig(
         platform,
         args.sysroot_base_image,
