@@ -83,9 +83,9 @@ def test_platform_argument_validation():
         p = Platform('armhf', 'rhel', 'dashing')
 
 
-def test_get_workspace_image_tag(platform_config):
+def test_sysroot_image_tag(platform_config):
     """Make sure the image tag is created correctly."""
-    image_tag = platform_config.get_workspace_image_tag()
+    image_tag = platform_config.sysroot_image_tag
     test_tag = '{}/{}:latest'.format(getpass.getuser(), str(platform_config))
     assert isinstance(image_tag, str)
     assert image_tag == test_tag

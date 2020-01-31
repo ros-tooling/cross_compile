@@ -20,8 +20,6 @@ import os
 from pathlib import Path
 import shutil
 from string import Template
-import tarfile
-import tempfile
 from typing import NamedTuple
 from typing import Optional
 
@@ -42,8 +40,8 @@ QEMU_EMPTY_ERROR_STRING = Template(
     """"$qemu_dir" is empty. Make sure you copy the binaries from """
     """"/usr/bin/qemu-*" into "$qemu_dir".""")
 
-COPY_DOCKER_WS_ERROR_STRING = Template(
-    """Unable to copy the "$dockerfile" file. Make sure you """
+COPY_WS_FILE_ERROR_STRING = Template(
+    """Unable to copy the "$filename" file. Make sure you """
     """have write permissions to the sysroot directory."""
 )
 
@@ -55,7 +53,6 @@ SYSROOT_NOT_FOUND_ERROR_STRING = Template(
 SYSROOT_DIR_NAME = 'sysroot'  # type: str
 QEMU_DIR_NAME = 'qemu-user-static'  # type: str
 ROS_DOCKERFILE_NAME = 'sysroot.Dockerfile'  # type: str
-DOCKER_CLIENT = docker.from_env()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -67,6 +64,12 @@ def _replace_tree(src: Path, dest: Path) -> None:
     """Delete dest and copy the directory src to that location."""
     shutil.rmtree(str(dest), ignore_errors=True)  # it may or may not exist already
     shutil.copytree(str(src), str(dest))
+
+
+def _ensure_exists(src: Path) -> None:
+    """Check that a path exists and raise a FileNotFoundError if not."""
+    if not src.exists():
+        raise FileNotFoundError(COPY_WS_FILE_ERROR_STRING.substitute(filename=src))
 
 
 class Platform:
@@ -160,7 +163,8 @@ class Platform:
         """Return string representation of platform parameters."""
         return '-'.join((self.arch, self.os_name, self.rosdistro))
 
-    def get_workspace_image_tag(self) -> str:
+    @property
+    def sysroot_image_tag(self) -> str:
         """Generate docker image name and tag."""
         return getpass.getuser() + '/' + str(self) + ':latest'
 
@@ -238,6 +242,7 @@ class SysrootCreator:
             raise TypeError(
                 'Argument `docker_config` must be of type DockerConfig.')
 
+        self._docker_client = docker.from_env()
         workspace_root = Path(cc_root_dir).resolve()
         self._target_sysroot = workspace_root / SYSROOT_DIR_NAME
         self._ros_workspace_relative_to_sysroot = ros_workspace_dir
@@ -289,10 +294,13 @@ class SysrootCreator:
         package_path = Path(__file__).parent
         dockerfile_src = str(package_path / 'docker' / ROS_DOCKERFILE_NAME)
         shutil.copy(dockerfile_src, str(self._target_sysroot))
-        if not self._final_dockerfile_path.exists():
-            raise FileNotFoundError(COPY_DOCKER_WS_ERROR_STRING.substitute(
-                dockerfile=ROS_DOCKERFILE_NAME))
+        _ensure_exists(self._final_dockerfile_path)
         logger.debug('Copied Dockerfile')
+
+        build_script_src = str(package_path / 'docker' / 'build_workspace.sh')
+        shutil.copy(build_script_src, str(self._target_sysroot))
+        _ensure_exists(self._target_sysroot / 'build_workspace.sh')
+        logger.debug('Copied builder script')
 
         custom_data_dest = str(self._target_sysroot / 'user-custom-data')
         shutil.rmtree(
@@ -321,11 +329,11 @@ class SysrootCreator:
                 custom_script_file.write('#!/bin/sh\necho "No custom setup"\n')
             logger.debug('No custom script provided - created empty script')
 
-    def build_workspace_sysroot_image(self) -> None:
-        """Build the target sysroot docker image."""
+    def create_workspace_sysroot_image(self) -> str:
+        """Build the target sysroot docker image and return its full name."""
         logger.info('Fetching sysroot base image: %s', self._docker_config.base_image)
-        DOCKER_CLIENT.images.pull(self._docker_config.base_image)
-        image_tag = self._platform.get_workspace_image_tag()
+        self._docker_client.images.pull(self._docker_config.base_image)
+        image_tag = self._platform.sysroot_image_tag
         buildargs = {
             'BASE_IMAGE': self._docker_config.base_image,
             'ROS_WORKSPACE': self._ros_workspace_relative_to_sysroot,
@@ -337,11 +345,11 @@ class SysrootCreator:
         logger.info('Building workspace image: %s', image_tag)
 
         # Switch to low-level API to expose build logs
-        docker_client = docker.APIClient(base_url='unix://var/run/docker.sock')
+        docker_api = docker.APIClient(base_url='unix://var/run/docker.sock')
         # Note the difference:
         # path – Path to the directory containing the Dockerfile
         # dockerfile – Path within the build context to the Dockerfile
-        log_generator = docker_client.build(
+        log_generator = docker_api.build(
             path=str(self._target_sysroot),
             dockerfile=str(self._final_dockerfile_path),
             tag=image_tag,
@@ -368,35 +376,3 @@ class SysrootCreator:
             line = line.rstrip().lstrip()
             if line:
                 logger.info(line)
-
-    def export_cross_compiled_build(self) -> None:
-        """Done cross compiling, export the build into the ROS workspace."""
-        logger.info('Exporting sysroot to path [%s]', self._target_sysroot)
-        with tempfile.TemporaryFile() as install_tar_file:
-            image_tag = self._platform.get_workspace_image_tag()
-            logger.info(
-                'Fetching cross-compiled install directory of image {} into tempfile'.format(
-                    image_tag))
-
-            sysroot_container = DOCKER_CLIENT.containers.run(
-                image=image_tag, detach=True)
-            install_stream, install_stat = sysroot_container.get_archive(
-                '/ros_ws/install_{}'.format(self._platform.arch))
-            install_tar_file.writelines(install_stream)
-            sysroot_container.stop()
-
-            logger.info('Extracting install tarball to {}'.format(self._ros_workspace_dir))
-            # rewind so tarfile can read from the beginning
-            install_tar_file.seek(0)
-            with tarfile.open(fileobj=install_tar_file) as install_tar:
-                install_tar.extractall(str(self._ros_workspace_dir))
-
-        logger.info(
-            'Successfully exported cross-compiled workspace install to path {}'.format(
-                self._ros_workspace_dir / 'install'))
-
-    def execute_cc_pipeline(self) -> bool:
-        """Execute the entire cross compilation workflow."""
-        self.build_workspace_sysroot_image()
-        self.export_cross_compiled_build()
-        return True

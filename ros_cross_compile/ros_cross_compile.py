@@ -22,9 +22,10 @@ import os
 import sys
 from typing import List
 
-from ros_cross_compile.sysroot_compiler import DockerConfig
-from ros_cross_compile.sysroot_compiler import Platform
-from ros_cross_compile.sysroot_compiler import SysrootCompiler
+from ros_cross_compile.builders import run_emulated_docker_build
+from ros_cross_compile.sysroot_creator import DockerConfig
+from ros_cross_compile.sysroot_creator import Platform
+from ros_cross_compile.sysroot_creator import SysrootCreator
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -113,15 +114,15 @@ def main():
         platform,
         args.sysroot_base_image,
         args.sysroot_nocache)
-
-    # Main pipeline
-    sysroot_create = SysrootCompiler(cc_root_dir=args.sysroot_path,
+    sysroot_creator = SysrootCreator(cc_root_dir=args.sysroot_path,
                                      ros_workspace_dir=args.ros_workspace,
                                      platform=platform,
                                      docker_config=docker_args,
                                      custom_setup_script_path=args.custom_setup_script,
                                      custom_data_dir=args.custom_data_dir)
-    sysroot_create.execute_cc_pipeline()
+    sysroot_creator.create_workspace_sysroot_image()
+    ros_workspace_dir = os.path.join(args.sysroot_path, 'sysroot', args.ros_workspace)
+    run_emulated_docker_build(platform.sysroot_image_tag, ros_workspace_dir)
 
 
 if __name__ == '__main__':
