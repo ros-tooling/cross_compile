@@ -20,7 +20,6 @@ readonly NORM='\033[0m'
 arch=aarch64  # or "armhf"
 os=ubuntu     # or "debian"
 distro=dashing
-rmw=fastrtps
 result=1        # Default to failure
 
 # Loggers
@@ -96,10 +95,6 @@ do
       distro="$2"
       shift 2
       ;;
-      -r|--rmw)
-      rmw="$2"
-      shift 2
-      ;;
       *)
       panic "Unrecognized option $1"
       ;;
@@ -117,7 +112,7 @@ setup "$CONTAINER_NAME"
 
 # Run the cross compilation script
 log "Executing cross compilation script..."
-python3 -m ros_cross_compile --arch "$arch" --os "$os" --rosdistro "$distro" --rmw "$rmw" \
+python3 -m ros_cross_compile --arch "$arch" --os "$os" --rosdistro "$distro" \
                                         --sysroot-path "$test_sysroot_dir"
 CC_SCRIPT_STATUS=$?
 if [[ "$CC_SCRIPT_STATUS" -ne 0 ]]; then

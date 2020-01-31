@@ -74,10 +74,9 @@ class Platform:
     A class that represents platform specification for cross compiling.
 
     Includes:
-    1. Target architecture
-    2. Target operating system
-    3. ROS2 distribution used
-    4. RMW implementation used
+    * Target architecture
+    * Target operating system
+    * ROS2 distribution used
     """
 
     # NOTE: when changing any following values, update README.md Supported Targets section
@@ -115,12 +114,11 @@ class Platform:
     }
     # NOTE: when changing any preceding values, update README.md Supported Targets section
 
-    def __init__(self, arch: str, os_name: str, rosdistro: str, rmw: str):
+    def __init__(self, arch: str, os_name: str, rosdistro: str):
         """Initialize platform parameters."""
         self._arch = arch
         self._rosdistro = rosdistro
         self._os_name = os_name
-        self._rmw = rmw
 
         try:
             self._cc_toolchain = self.SUPPORTED_ARCHITECTURES[arch].toolchain
@@ -149,10 +147,6 @@ class Platform:
     @property
     def os_name(self):
         return self._os_name
-
-    @property
-    def rmw(self):
-        return self._rmw
 
     @property
     def cc_toolchain(self):

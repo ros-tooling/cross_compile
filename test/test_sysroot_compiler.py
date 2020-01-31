@@ -37,13 +37,12 @@ def platform_config() -> Platform:
     return Platform(
         arch='aarch64',
         os_name='ubuntu',
-        rosdistro='dashing',
-        rmw='fastrtps')
+        rosdistro='dashing')
 
 
 def _default_docker_kwargs() -> dict:
     return {
-        'platform': Platform('aarch64', 'ubuntu', 'dashing', 'fastrtps'),
+        'platform': Platform('aarch64', 'ubuntu', 'dashing'),
         'override_base_image': 'arm64v8/gcc:9.2.0',
         'sysroot_nocache': False,
     }
@@ -68,21 +67,20 @@ def setup_mock_sysroot(path: Path) -> Tuple[Path, Path]:
 
 
 def test_platform_argument_validation():
-    rmw = 'fastrtps'
-    p = Platform('armhf', 'ubuntu', 'dashing', rmw)
+    p = Platform('armhf', 'ubuntu', 'dashing')
     assert p
 
     with pytest.raises(ValueError):
         # invalid arch
-        p = Platform('mips', 'ubuntu', 'dashing', rmw)
+        p = Platform('mips', 'ubuntu', 'dashing')
 
     with pytest.raises(ValueError):
         # invalid distro
-        p = Platform('armhf', 'ubuntu', 'ardent', rmw)
+        p = Platform('armhf', 'ubuntu', 'ardent')
 
     with pytest.raises(ValueError):
         # invalid OS
-        p = Platform('armhf', 'rhel', 'dashing', rmw)
+        p = Platform('armhf', 'rhel', 'dashing')
 
 
 def test_get_workspace_image_tag(platform_config):
@@ -194,7 +192,7 @@ def verify_base_docker_images(arch, os, rosdistro, image_name):
     """Assert correct base image is generated."""
     override_base_image = None
     sysroot_nocache = 'False'
-    platform = Platform(arch, os, rosdistro, 'fastrtps')
+    platform = Platform(arch, os, rosdistro)
     assert DockerConfig(platform, override_base_image, sysroot_nocache).base_image == image_name
 
 
