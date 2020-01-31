@@ -14,6 +14,9 @@ ARG ROS_DISTRO
 ARG TARGET_TRIPLE
 ARG TARGET_ARCH
 
+ENV ROS_DISTRO=${ROS_DISTRO}
+ENV TARGET_ARCH=${TARGET_ARCH}
+
 SHELL ["/bin/bash", "-c"]
 
 COPY qemu-user-static/ /usr/bin/
@@ -97,11 +100,11 @@ RUN chmod +x ./user-custom-setup && \
     ./user-custom-setup && \
     rm -rf /var/lib/apt/lists/*
 
-# Setup ROS workspace
+# Copy in ROS workspace
 COPY ${ROS_WORKSPACE}/src /ros_ws/src
 WORKDIR /ros_ws
 
-# Run rosdep to get dependencies for the copied-in ROS workspace
+# Run rosdep to install dependencies for the ROS workspace
 ENV ROSDEP_SKIP_KEYS="console_bridge fastcdr fastrtps libopensplice67 libopensplice69 rti-connext-dds-5.3.1 urdfdom_headers"
 
 RUN rm -f /etc/ros/rosdep/sources.list.d/20-default.list
@@ -114,9 +117,12 @@ RUN rosdep update && \
         --skip-keys "${ROSDEP_SKIP_KEYS}" \
     && rm -rf /var/lib/apt/lists/*
 
-# Set up and run the build for the workspace (this will be removed from here when we get to host-native cross-compiling)
+# Set up build tools for the workspace
 COPY mixins/ mixins/
 RUN colcon mixin add cc_mixin file://$(pwd)/mixins/index.yaml && colcon mixin update cc_mixin
-RUN mkdir -p /opt/ros/${ROS_DISTRO} && touch /opt/ros/${ROS_DISTRO}/setup.sh
-RUN . /opt/ros/${ROS_DISTRO}/setup.sh && \
-    colcon build --mixin ${TARGET_ARCH}-docker --install-base install_${TARGET_ARCH}
+# In case the workspace did not actually install any dependencies, add these for uniformity
+RUN mkdir -p /opt/ros/${ROS_DISTRO} && \
+    touch /opt/ros/${ROS_DISTRO}/setup.sh && \
+    touch /opt/ros/${ROS_DISTRO}/setup.bash
+COPY build_workspace.sh /root
+ENTRYPOINT ["/root/build_workspace.sh"]

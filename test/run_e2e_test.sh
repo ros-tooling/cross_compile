@@ -47,19 +47,16 @@ success(){
 
 # Utilities
 cleanup(){
-  # Usage: cleanup CONTAINER_NAME RESULT
-  if [[ "$2" -eq 0 ]]; then
+  # Usage: cleanup RESULT
+  if [[ "$1" -eq 0 ]]; then
     success PASS
   else
     error FAIL
   fi
-  rm -rf "$test_sysroot_dir/sysroot";
-  docker stop -t 2 "$1"
-  docker rm "$1" >/dev/null 2>/dev/null;
+  rm -rf "$test_sysroot_dir";
 }
 
 setup(){
-  # Usage: setup CONTAINER_NAME
   test_sysroot_dir=$(mktemp -d)
   mkdir "$test_sysroot_dir/sysroot"
   mkdir -p "$test_sysroot_dir/sysroot/ros_ws/src/"
@@ -70,11 +67,6 @@ setup(){
   # Copy QEMU binaries
   mkdir -p "$test_sysroot_dir/sysroot/qemu-user-static"
   cp /usr/bin/qemu-* "$test_sysroot_dir/sysroot/qemu-user-static"
-
-  if [[ $(docker inspect -f "{{.State.Running}}" "$CONTAINER_NAME") == "true" ]]; then
-    warning "Container named $CONTAINER_NAME already running. Stopping it before proceeding."
-    docker stop -t 2 "$CONTAINER_NAME"
-  fi
 }
 
 # Argparser
@@ -102,39 +94,22 @@ do
 done
 
 # Expected name of the container
-readonly CONTAINER_NAME="cc-$arch-$os-$distro"
-readonly CONTAINER_TAG="$(whoami)/$arch-$os-$distro:latest"
+readonly IMAGE_TAG="$(whoami)/$arch-$os-$distro:latest"
 # Create trap to make sure all artifacts are removed on exit
-trap 'cleanup $CONTAINER_NAME $result' EXIT
+trap 'cleanup $result' EXIT
 
 # Testing starts here
-setup "$CONTAINER_NAME"
+setup
 
 # Run the cross compilation script
 log "Executing cross compilation script..."
-python3 -m ros_cross_compile --arch "$arch" --os "$os" --rosdistro "$distro" \
-                                        --sysroot-path "$test_sysroot_dir"
+python3 -m ros_cross_compile \
+  --arch "$arch" --os "$os" --rosdistro "$distro" \
+  --sysroot-path "$test_sysroot_dir"
 CC_SCRIPT_STATUS=$?
 if [[ "$CC_SCRIPT_STATUS" -ne 0 ]]; then
   panic "Failed to run cross compile script."
 fi
-
-# Check the container was created
-log "Running Docker container..."
-docker run --name "$CONTAINER_NAME" -td "$CONTAINER_TAG" /bin/bash
-IS_CONTAINER_RUNNING=$(docker inspect -f "{{.State.Running}}" "$CONTAINER_NAME")
-if [[ "$IS_CONTAINER_RUNNING" != "true" ]]; then
-  panic "Container was not created."
-fi
-
-log "Executing node in Docker container..."
-docker exec -t "$CONTAINER_NAME" bash -c "source /ros_ws/install_${arch}/local_setup.bash && dummy_binary"
-IS_PUBLISHER_RUNNING=$?
-if [[ "IS_PUBLISHER_RUNNING" -ne 0 ]]; then
-  panic "Failed to run the dummy binary in the Docker container."
-fi
-log "Stopping Docker container..."
-docker stop -t 2 "$CONTAINER_NAME"
 
 install_dir=$test_sysroot_dir/sysroot/ros_ws/install_$arch
 
@@ -149,15 +124,25 @@ if [ ! -d "$test_sysroot_dir/sysroot/ros_ws/src" ]; then
 fi
 
 log "Checking that the binary output is in the correct architecture..."
-binary_file_info=$(file "$install_dir"/bin/dummy_binary)
 if [ "$arch" = 'armhf' ]; then
   expected_binary='ELF 32-bit LSB shared object, ARM'
 elif [ "$arch" = 'aarch64' ]; then
   expected_binary='ELF 64-bit LSB shared object, ARM aarch64'
 fi
-
+binary_file_info=$(file "$install_dir"/bin/dummy_binary)
 if [[ "$binary_file_info" != *"$expected_binary"* ]]; then
   panic "The binary output was not of the expected architecture"
+fi
+
+log "Running example node in the builder container..."
+docker run --rm \
+  --entrypoint "/bin/bash" \
+  -v "$test_sysroot_dir"/sysroot/ros_ws:/ros_ws \
+  "$IMAGE_TAG" \
+  -c "source /ros_ws/install_${arch}/local_setup.bash && dummy_binary"
+RUN_RESULT=$?
+if [[ "$RUN_RESULT" -ne 0 ]]; then
+  panic "Failed to run the dummy binary in the Docker container."
 fi
 
 result=0

@@ -22,12 +22,12 @@ from typing import Tuple
 
 import docker
 import pytest
-from ros_cross_compile.sysroot_compiler import DockerConfig
-from ros_cross_compile.sysroot_compiler import Platform
-from ros_cross_compile.sysroot_compiler import QEMU_DIR_NAME
-from ros_cross_compile.sysroot_compiler import ROS_DOCKERFILE_NAME
-from ros_cross_compile.sysroot_compiler import SYSROOT_DIR_NAME
-from ros_cross_compile.sysroot_compiler import SysrootCompiler
+from ros_cross_compile.sysroot_creator import DockerConfig
+from ros_cross_compile.sysroot_creator import Platform
+from ros_cross_compile.sysroot_creator import QEMU_DIR_NAME
+from ros_cross_compile.sysroot_creator import ROS_DOCKERFILE_NAME
+from ros_cross_compile.sysroot_creator import SYSROOT_DIR_NAME
+from ros_cross_compile.sysroot_creator import SysrootCreator
 
 THIS_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -83,9 +83,9 @@ def test_platform_argument_validation():
         p = Platform('armhf', 'rhel', 'dashing')
 
 
-def test_get_workspace_image_tag(platform_config):
+def test_sysroot_image_tag(platform_config):
     """Make sure the image tag is created correctly."""
-    image_tag = platform_config.get_workspace_image_tag()
+    image_tag = platform_config.sysroot_image_tag
     test_tag = '{}/{}:latest'.format(getpass.getuser(), str(platform_config))
     assert isinstance(image_tag, str)
     assert image_tag == test_tag
@@ -105,21 +105,21 @@ def test_docker_config_args(docker_config):
     assert config_string == test_config_string
 
 
-def test_sysroot_compiler_constructor(
+def test_sysroot_creator_constructor(
         platform_config, docker_config, tmpdir):
-    """Test the SysrootCompiler constructor assuming valid path setup."""
+    """Test the SysrootCreator constructor assuming valid path setup."""
     # Create mock directories and files
     sysroot_dir, ros_workspace_dir = setup_mock_sysroot(tmpdir)
-    sysroot_compiler = SysrootCompiler(
+    sysroot_creator = SysrootCreator(
         str(tmpdir), 'ros_ws', platform_config, docker_config)
 
-    assert isinstance(sysroot_compiler.get_build_setup_script_path(), Path)
-    assert isinstance(sysroot_compiler.get_system_setup_script_path(), Path)
+    assert isinstance(sysroot_creator.get_build_setup_script_path(), Path)
+    assert isinstance(sysroot_creator.get_system_setup_script_path(), Path)
 
 
 def test_custom_setup_script(platform_config, docker_config, tmpdir):
     sysroot_dir, ros_workspace_dir = setup_mock_sysroot(tmpdir)
-    compiler = SysrootCompiler(
+    compiler = SysrootCreator(
         str(tmpdir), 'ros_ws', platform_config, docker_config,
         custom_setup_script_path=os.path.join(THIS_SCRIPT_DIR, 'custom-setup.sh'))
     assert compiler
@@ -128,16 +128,16 @@ def test_custom_setup_script(platform_config, docker_config, tmpdir):
 
 def test_custom_data_dir(platform_config, docker_config, tmpdir):
     sysroot_dir, ros_workspace_dir = setup_mock_sysroot(tmpdir)
-    compiler = SysrootCompiler(
+    compiler = SysrootCreator(
         str(tmpdir), 'ros_ws', platform_config, docker_config,
         custom_data_dir=os.path.join(THIS_SCRIPT_DIR, 'data'))
     assert compiler
     assert (sysroot_dir / 'user-custom-data' / 'arbitrary.txt').exists()
 
 
-def test_sysroot_compiler_tree_validation(platform_config, docker_config, tmpdir):
+def test_sysroot_creator_tree_validation(platform_config, docker_config, tmpdir):
     """
-    Ensure that the SysrootCompiler constructor validates the workspace.
+    Ensure that the SysrootCreator constructor validates the workspace.
 
     Start with empty directory and add one piece at a time, expecting failures until
     all parts are present.
@@ -152,36 +152,36 @@ def test_sysroot_compiler_tree_validation(platform_config, docker_config, tmpdir
 
     # There's no 'sysroot' at all yet
     with pytest.raises(FileNotFoundError):
-        compiler = SysrootCompiler(**kwargs)
+        compiler = SysrootCreator(**kwargs)
 
     sysroot_dir = tmpdir / SYSROOT_DIR_NAME
     sysroot_dir.mkdir()
     # ROS2 ws and qemu dirs are missing
     with pytest.raises(FileNotFoundError):
-        compiler = SysrootCompiler(**kwargs)
+        compiler = SysrootCreator(**kwargs)
 
     ros_workspace_dir = sysroot_dir / 'ros_ws'
     ros_workspace_dir.mkdir()
     # qemu dirs are missing
     with pytest.raises(FileNotFoundError):
-        compiler = SysrootCompiler(**kwargs)
+        compiler = SysrootCreator(**kwargs)
 
     qemu_dir = sysroot_dir / QEMU_DIR_NAME
     qemu_dir.mkdir()
     # the qemu binary is still missing
     with pytest.raises(FileNotFoundError):
-        compiler = SysrootCompiler(**kwargs)
+        compiler = SysrootCreator(**kwargs)
 
     qemu_binary_mock = qemu_dir / 'qemu'
     qemu_binary_mock.ensure()
     # everything is present now
-    compiler = SysrootCompiler(**kwargs)
+    compiler = SysrootCreator(**kwargs)
     assert compiler
 
 
-def test_sysroot_compiler_tree_additions(platform_config, docker_config, tmpdir):
+def test_sysroot_creator_tree_additions(platform_config, docker_config, tmpdir):
     sysroot_dir, ros_workspace_dir = setup_mock_sysroot(tmpdir)
-    compiler = SysrootCompiler(str(tmpdir), 'ros_ws', platform_config, docker_config)
+    compiler = SysrootCreator(str(tmpdir), 'ros_ws', platform_config, docker_config)
     assert compiler
     assert (sysroot_dir / ROS_DOCKERFILE_NAME).exists()
     assert (sysroot_dir / 'mixins' / 'cross-compile.mixin').exists()
@@ -221,10 +221,10 @@ def test_get_docker_base_image():
 
 def test_parse_docker_build_output(
         platform_config, docker_config, tmpdir):
-    """Test the SysrootCompiler constructor assuming valid path setup."""
+    """Test the SysrootCreator constructor assuming valid path setup."""
     # Create mock directories and files
     sysroot_dir, ros_workspace_dir = setup_mock_sysroot(tmpdir)
-    sysroot_compiler = SysrootCompiler(
+    sysroot_creator = SysrootCreator(
         str(tmpdir), 'ros_ws', platform_config, docker_config, None)
 
     log_generator_without_errors = [
@@ -240,7 +240,7 @@ def test_parse_docker_build_output(
         {'stream': 'Successfully built 032b8b2855fc\\n'},
     ]
     # Just expect it not to raise
-    sysroot_compiler._parse_build_output(log_generator_without_errors)
+    sysroot_creator._parse_build_output(log_generator_without_errors)
 
     log_generator_with_errors = [
         {'stream': ' ---\\u003e a9eb17255234\\n'},
@@ -252,7 +252,7 @@ def test_parse_docker_build_output(
         {'error': ' ---\\COMMAND NOT FOUND\\n'},
     ]
     with pytest.raises(docker.errors.BuildError):
-        sysroot_compiler._parse_build_output(log_generator_with_errors)
+        sysroot_creator._parse_build_output(log_generator_with_errors)
 
 
 def test_docker_py_version():

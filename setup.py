@@ -48,7 +48,7 @@ setup(
     long_description_content_type='text/markdown',
     license='Apache License, Version 2.0',
     package_data={
-        package_name: ['Dockerfile_ros', 'mixins/*.*'],
+        package_name: ['docker/*.*', 'mixins/*.*'],
     },
     install_requires=[
         'docker>=2,<3',
