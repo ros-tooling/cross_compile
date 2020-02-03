@@ -1,9 +1,9 @@
-# ROS2 Cross Compile
+# ROS 2 Cross Compile
 
 ![License](https://img.shields.io/github/license/ros-tooling/cross_compile)
 [![Documentation Status](https://readthedocs.org/projects/cross_compile/badge/?version=latest)](https://cross_compile.readthedocs.io/en/latest/?badge=latest)
 
-A tool to automate compiling ROS and ROS2 workspaces to non-native architectures.
+A tool to automate compiling ROS and ROS 2 workspaces to non-native architectures.
 
 :construction: `ros_cross_compile` relies on running emulated builds
 using QEmu, #69 tracks progress toward enabling cross-compilation.
@@ -177,7 +177,7 @@ NOTE: for trivial text files, as in the preceding example, you could have create
 
 For a new user, this section walks you through a representative use case, step by step.
 
-This tutorial demonstrates how to cross-compile the [File Talker tool](https://github.com/ros-tooling/file_talker) against ROS2 Dashing, to run on an ARM64 Ubuntu system.
+This tutorial demonstrates how to cross-compile the [File Talker tool](https://github.com/ros-tooling/file_talker) against ROS 2 Dashing, to run on an ARM64 Ubuntu system.
 You can generalize this workflow to any `.repos` file for your project.
 
 NOTE: this tutorial assumes a Debian-based (including Ubuntu) Linux distribution as the host platform.
@@ -221,7 +221,7 @@ You could run the tool from any directory, but in this case the current working 
 
 * `--rosdistro dashing`
 
-You may specify both ROS and ROS2 distributions by name, for example, `kinetic` (ROS) or `dashing` (ROS 2).
+You may specify both ROS and ROS 2 distributions by name, for example, `kinetic` (ROS) or `dashing` (ROS 2).
 `ros_cross_compile -h` prints the supported distributions for this option
 
 * `--arch aarch64`
@@ -232,7 +232,7 @@ Target the ARMv8 / ARM64 / aarch64 architecture (which are different names for t
 * `--os ubuntu`
 
 The target OS is Ubuntu - the tool chooses the OS version automatically based on the ROS Distro's target OS.
-In this case for ROS2 Dashing - 18.04 Bionic Beaver.
+In this case for ROS 2 Dashing - 18.04 Bionic Beaver.
 
 ### Outputs of the build
 

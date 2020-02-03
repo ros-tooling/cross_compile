@@ -25,9 +25,9 @@ assignees: ''
 
 ## System (please complete the following information)
  - OS: [e.g. Ubuntu Bionic]
- - ROS2 Distro: [e.g. Dashing]
+ - ROS 2 Distro: [e.g. Dashing]
 
-** For ROS2 bugs - please attach a VCS.repos or Dockerfile if possible to help us reproduce the environment **
+** For ROS 2 bugs - please attach a VCS.repos or Dockerfile if possible to help us reproduce the environment **
 
 ## Additional context
 ** Add any other context about the problem here **
