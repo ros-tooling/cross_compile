@@ -108,6 +108,7 @@ python3 -m ros_cross_compile \
   --sysroot-path /absolute/path/to/sysroot \
   --arch aarch64 \
   --os ubuntu
+  --rosdistro dashing
 ```
 
 
