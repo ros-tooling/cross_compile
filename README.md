@@ -1,4 +1,4 @@
-# ROS 2 Cross Compile
+# ROS / ROS 2 Cross Compile Tool
 
 ![License](https://img.shields.io/github/license/ros-tooling/cross_compile)
 [![Documentation Status](https://readthedocs.org/projects/cross_compile/badge/?version=latest)](https://cross_compile.readthedocs.io/en/latest/?badge=latest)
