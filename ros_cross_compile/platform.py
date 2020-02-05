@@ -19,10 +19,10 @@ ARCHITECTURE_DOCKER_MAP = {
     'armhf': 'arm32v7',
     'aarch64': 'arm64v8',
 }
-SUPPORTED_ARCHITECTURES = list(ARCHITECTURE_DOCKER_MAP.keys())
+SUPPORTED_ARCHITECTURES = tuple(ARCHITECTURE_DOCKER_MAP.keys())
 
-SUPPORTED_ROS2_DISTROS = ['dashing', 'eloquent']
-SUPPORTED_ROS_DISTROS = ['kinetic', 'melodic']
+SUPPORTED_ROS2_DISTROS = ('dashing', 'eloquent')
+SUPPORTED_ROS_DISTROS = ('kinetic', 'melodic')
 
 ROSDISTRO_OS_MAP = {
     'kinetic': {
