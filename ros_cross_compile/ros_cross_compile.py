@@ -23,8 +23,10 @@ import sys
 from typing import List
 
 from ros_cross_compile.builders import run_emulated_docker_build
-from ros_cross_compile.sysroot_creator import DockerConfig
-from ros_cross_compile.sysroot_creator import Platform
+from ros_cross_compile.platform import Platform
+from ros_cross_compile.platform import SUPPORTED_ARCHITECTURES
+from ros_cross_compile.platform import SUPPORTED_ROS2_DISTROS
+from ros_cross_compile.platform import SUPPORTED_ROS_DISTROS
 from ros_cross_compile.sysroot_creator import SysrootCreator
 
 logging.basicConfig(level=logging.INFO)
@@ -40,14 +42,14 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         '-a', '--arch',
         required=True,
         type=str,
-        choices=Platform.SUPPORTED_ARCHITECTURES.keys(),
+        choices=SUPPORTED_ARCHITECTURES,
         help='Target architecture')
     parser.add_argument(
         '-d', '--rosdistro',
         required=False,
         type=str,
         default='dashing',
-        choices=Platform.SUPPORTED_ROS_DISTROS + Platform.SUPPORTED_ROS2_DISTROS,
+        choices=SUPPORTED_ROS_DISTROS + SUPPORTED_ROS2_DISTROS,
         help='Target ROS distribution')
     parser.add_argument(
         '-o', '--os',
@@ -109,15 +111,11 @@ def main():
     """Start the cross-compilation workflow."""
     # Configuration
     args = parse_args(sys.argv[1:])
-    platform = Platform(args.arch, args.os, args.rosdistro)
-    docker_args = DockerConfig(
-        platform,
-        args.sysroot_base_image,
-        args.sysroot_nocache)
+    platform = Platform(args.arch, args.os, args.rosdistro, args.sysroot_base_image)
     sysroot_creator = SysrootCreator(cc_root_dir=args.sysroot_path,
                                      ros_workspace_dir=args.ros_workspace,
                                      platform=platform,
-                                     docker_config=docker_args,
+                                     docker_no_cache=args.sysroot_nocache,
                                      custom_setup_script_path=args.custom_setup_script,
                                      custom_data_dir=args.custom_data_dir)
     sysroot_creator.create_workspace_sysroot_image()

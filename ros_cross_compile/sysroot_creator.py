@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import getpass
 import logging
 import os
 from pathlib import Path
@@ -22,6 +21,8 @@ from typing import NamedTuple
 from typing import Optional
 
 import docker
+
+from ros_cross_compile.platform import Platform
 
 ROS_WS_DIR_ERROR_STRING = Template(
     """"$ros_ws" does not exist in the sysroot directory. Make """
@@ -70,132 +71,6 @@ def _ensure_exists(src: Path) -> None:
         raise FileNotFoundError(COPY_WS_FILE_ERROR_STRING.substitute(filename=src))
 
 
-class Platform:
-    """
-    A class that represents platform specification for cross compiling.
-
-    Includes:
-    * Target architecture
-    * Target operating system
-    * ROS2 distribution used
-    """
-
-    # NOTE: when changing any following values, update README.md Supported Targets section
-    SUPPORTED_ARCHITECTURES = {
-        'armhf': ToolchainDockerPair(
-            toolchain='arm-linux-gnueabihf',
-            docker_base='arm32v7',
-        ),
-        'aarch64': ToolchainDockerPair(
-            toolchain='aarch64-linux-gnu',
-            docker_base='arm64v8',
-        )
-    }
-
-    SUPPORTED_ROS2_DISTROS = ['dashing', 'eloquent']
-    SUPPORTED_ROS_DISTROS = ['kinetic', 'melodic']
-
-    ROSDISTRO_OS_MAPPING = {
-        'kinetic': {
-            'ubuntu': 'xenial',
-            'debian': 'jessie',
-        },
-        'melodic': {
-            'ubuntu': 'bionic',
-            'debian': 'stretch',
-        },
-        'dashing': {
-            'ubuntu': 'bionic',
-            'debian': 'stretch',
-        },
-        'eloquent': {
-            'ubuntu': 'bionic',
-            'debian': 'buster',
-        },
-    }
-    # NOTE: when changing any preceding values, update README.md Supported Targets section
-
-    def __init__(self, arch: str, os_name: str, rosdistro: str):
-        """Initialize platform parameters."""
-        self._arch = arch
-        self._rosdistro = rosdistro
-        self._os_name = os_name
-
-        try:
-            self._cc_toolchain = self.SUPPORTED_ARCHITECTURES[arch].toolchain
-        except KeyError:
-            raise ValueError('Unknown target architecture "{}" specified'.format(arch))
-
-        if self.rosdistro in self.SUPPORTED_ROS2_DISTROS:
-            self._ros_version = 'ros2'
-        elif self.rosdistro in self.SUPPORTED_ROS_DISTROS:
-            self._ros_version = 'ros'
-        else:
-            raise ValueError('Unknown ROS distribution "{}" specified'.format(rosdistro))
-
-        if self.os_name not in self.ROSDISTRO_OS_MAPPING[self.rosdistro]:
-            raise ValueError(
-                'OS "{}" not supported for ROS distro "{}"'.format(os_name, rosdistro))
-
-    @property
-    def arch(self):
-        return self._arch
-
-    @property
-    def rosdistro(self):
-        return self._rosdistro
-
-    @property
-    def os_name(self):
-        return self._os_name
-
-    @property
-    def cc_toolchain(self):
-        return self._cc_toolchain
-
-    @property
-    def ros_version(self):
-        return self._ros_version
-
-    def __str__(self):
-        """Return string representation of platform parameters."""
-        return '-'.join((self.arch, self.os_name, self.rosdistro))
-
-    @property
-    def sysroot_image_tag(self) -> str:
-        """Generate docker image name and tag."""
-        return getpass.getuser() + '/' + str(self) + ':latest'
-
-
-class DockerConfig:
-    """
-    Represents docker build parameters used in creating sysroot.
-
-    Includes:
-    * Base docker image to use for building sysroot
-    * Setting to enable/disable caching during docker build
-    """
-
-    def __init__(
-        self, platform: Platform, override_base_image: Optional[str], sysroot_nocache: bool
-    ):
-        """Initialize docker configuration."""
-        if override_base_image:
-            self.base_image = override_base_image
-        else:
-            # Platform constructor has already performed validation on these values
-            docker_base = Platform.SUPPORTED_ARCHITECTURES[platform.arch].docker_base
-            distro_os = Platform.ROSDISTRO_OS_MAPPING[platform.rosdistro]
-            image_tag = distro_os[platform.os_name]
-            self.base_image = '{}/{}:{}'.format(docker_base, platform.os_name, image_tag)
-
-        self.nocache = sysroot_nocache
-
-    def __str__(self):
-        """Return string representation of docker build parameters."""
-        return 'Base Image: {}\nCaching: {}'.format(self.base_image, self.nocache)
-
-
 class SysrootCreator:
     """
     Create a sysroot with all dependencies for a workspace.
@@ -209,7 +84,7 @@ class SysrootCreator:
       cc_root_dir: str,
       ros_workspace_dir: str,
       platform: Platform,
-      docker_config: DockerConfig,
+      docker_no_cache: bool,
       custom_setup_script_path: Optional[str] = None,
       custom_data_dir: Optional[str] = None,
     ) -> None:
@@ -222,8 +97,7 @@ class SysrootCreator:
                                   ROS2 packages (inside a 'src' directory).
         :param platform: A custom object used to specify the the platform for
                          cross-compilation.
-        :param docker_config: A custom object used to specify the configuration
-                              of the Docker image to build.
+        :param docker_no_cache: If True, disable the Docker cache during image build.
         :param custom_setup_script_path: Optional path to a custom setup script
                                          to run arbitrary commands
         :param custom_data_dir: Optional path to a custom directory of data that
@@ -236,9 +110,6 @@ class SysrootCreator:
                 'Argument `ros_workspace_dir` must be of type string.')
         if not isinstance(platform, Platform):
             raise TypeError('Argument `platform` must be of type Platform.')
-        if not isinstance(docker_config, DockerConfig):
-            raise TypeError(
-                'Argument `docker_config` must be of type DockerConfig.')
 
         self._docker_client = docker.from_env()
         workspace_root = Path(cc_root_dir).resolve()
@@ -251,7 +122,7 @@ class SysrootCreator:
         self._system_setup_script_path = Path()
         self._build_setup_script_path = Path()
         self._platform = platform
-        self._docker_config = docker_config
+        self._docker_no_cache = docker_no_cache
         self._setup_sysroot_dir(custom_setup_script_path, custom_data_dir)
 
     def get_system_setup_script_path(self) -> Path:
@@ -329,15 +200,15 @@ class SysrootCreator:
 
     def create_workspace_sysroot_image(self) -> str:
         """Build the target sysroot docker image and return its full name."""
-        logger.info('Fetching sysroot base image: %s', self._docker_config.base_image)
-        self._docker_client.images.pull(self._docker_config.base_image)
+        base = self._platform.target_base_image
+        logger.info('Fetching sysroot base image: %s', base)
+        self._docker_client.images.pull(base)
         image_tag = self._platform.sysroot_image_tag
         buildargs = {
-            'BASE_IMAGE': self._docker_config.base_image,
+            'BASE_IMAGE': base,
             'ROS_WORKSPACE': self._ros_workspace_relative_to_sysroot,
             'ROS_VERSION': self._platform.ros_version,
-            'ROS_DISTRO': self._platform.rosdistro,
-            'TARGET_TRIPLE': self._platform.cc_toolchain,
+            'ROS_DISTRO': self._platform.ros_distro,
             'TARGET_ARCH': self._platform.arch,
         }
         logger.info('Building workspace image: %s', image_tag)
@@ -353,7 +224,7 @@ class SysrootCreator:
             tag=image_tag,
             buildargs=buildargs,
             quiet=False,
-            nocache=self._docker_config.nocache,
+            nocache=self._docker_no_cache,
             decode=True)
         self._parse_build_output(log_generator)
 

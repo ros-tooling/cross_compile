@@ -22,7 +22,6 @@ from typing import Tuple
 
 import docker
 import pytest
-from ros_cross_compile.sysroot_creator import DockerConfig
 from ros_cross_compile.sysroot_creator import Platform
 from ros_cross_compile.sysroot_creator import QEMU_DIR_NAME
 from ros_cross_compile.sysroot_creator import ROS_DOCKERFILE_NAME
@@ -37,7 +36,7 @@ def platform_config() -> Platform:
     return Platform(
         arch='aarch64',
         os_name='ubuntu',
-        rosdistro='dashing')
+        ros_distro='dashing')
 
 
 def _default_docker_kwargs() -> dict:
@@ -46,11 +45,6 @@ def _default_docker_kwargs() -> dict:
         'override_base_image': 'arm64v8/gcc:9.2.0',
         'sysroot_nocache': False,
     }
-
-
-@pytest.fixture
-def docker_config() -> DockerConfig:
-    return DockerConfig(**_default_docker_kwargs())
 
 
 def setup_mock_sysroot(path: Path) -> Tuple[Path, Path]:
@@ -91,51 +85,37 @@ def test_sysroot_image_tag(platform_config):
     assert image_tag == test_tag
 
 
-def test_docker_config_args(docker_config):
-    """Make sure the Docker configuration is setup correctly."""
-    args = _default_docker_kwargs()
-    test_config_string = (
-        'Base Image: {}\n'
-        'Caching: {}'
-    ).format(
-        args['override_base_image'], args['sysroot_nocache']
-    )
-    config_string = str(docker_config)
-    assert isinstance(config_string, str)
-    assert config_string == test_config_string
-
-
 def test_sysroot_creator_constructor(
-        platform_config, docker_config, tmpdir):
+        platform_config, tmpdir):
     """Test the SysrootCreator constructor assuming valid path setup."""
     # Create mock directories and files
     sysroot_dir, ros_workspace_dir = setup_mock_sysroot(tmpdir)
     sysroot_creator = SysrootCreator(
-        str(tmpdir), 'ros_ws', platform_config, docker_config)
+        str(tmpdir), 'ros_ws', platform_config, False)
 
     assert isinstance(sysroot_creator.get_build_setup_script_path(), Path)
     assert isinstance(sysroot_creator.get_system_setup_script_path(), Path)
 
 
-def test_custom_setup_script(platform_config, docker_config, tmpdir):
+def test_custom_setup_script(platform_config, tmpdir):
     sysroot_dir, ros_workspace_dir = setup_mock_sysroot(tmpdir)
     compiler = SysrootCreator(
-        str(tmpdir), 'ros_ws', platform_config, docker_config,
+        str(tmpdir), 'ros_ws', platform_config, False,
         custom_setup_script_path=os.path.join(THIS_SCRIPT_DIR, 'custom-setup.sh'))
     assert compiler
     assert (sysroot_dir / 'user-custom-setup').exists()
 
 
-def test_custom_data_dir(platform_config, docker_config, tmpdir):
+def test_custom_data_dir(platform_config, tmpdir):
     sysroot_dir, ros_workspace_dir = setup_mock_sysroot(tmpdir)
     compiler = SysrootCreator(
-        str(tmpdir), 'ros_ws', platform_config, docker_config,
+        str(tmpdir), 'ros_ws', platform_config, False,
         custom_data_dir=os.path.join(THIS_SCRIPT_DIR, 'data'))
     assert compiler
     assert (sysroot_dir / 'user-custom-data' / 'arbitrary.txt').exists()
 
 
-def test_sysroot_creator_tree_validation(platform_config, docker_config, tmpdir):
+def test_sysroot_creator_tree_validation(platform_config, tmpdir):
     """
     Ensure that the SysrootCreator constructor validates the workspace.
 
@@ -146,7 +126,7 @@ def test_sysroot_creator_tree_validation(platform_config, docker_config, tmpdir)
         'cc_root_dir': str(tmpdir),
         'ros_workspace_dir': 'ros_ws',
         'platform': platform_config,
-        'docker_config': docker_config,
+        'docker_no_cache': False,
         'custom_setup_script_path': None,
     }
 
@@ -179,9 +159,9 @@ def test_sysroot_creator_tree_validation(platform_config, docker_config, tmpdir)
     assert compiler
 
 
-def test_sysroot_creator_tree_additions(platform_config, docker_config, tmpdir):
+def test_sysroot_creator_tree_additions(platform_config, tmpdir):
     sysroot_dir, ros_workspace_dir = setup_mock_sysroot(tmpdir)
-    compiler = SysrootCreator(str(tmpdir), 'ros_ws', platform_config, docker_config)
+    compiler = SysrootCreator(str(tmpdir), 'ros_ws', platform_config, False)
     assert compiler
     assert (sysroot_dir / ROS_DOCKERFILE_NAME).exists()
     assert (sysroot_dir / 'mixins' / 'cross-compile.mixin').exists()
@@ -190,10 +170,8 @@ def test_sysroot_creator_tree_additions(platform_config, docker_config, tmpdir):
 
 def verify_base_docker_images(arch, os, rosdistro, image_name):
     """Assert correct base image is generated."""
-    override_base_image = None
-    sysroot_nocache = 'False'
     platform = Platform(arch, os, rosdistro)
-    assert DockerConfig(platform, override_base_image, sysroot_nocache).base_image == image_name
+    assert platform.target_base_image == image_name
 
 
 def test_get_docker_base_image():
@@ -220,12 +198,12 @@ def test_get_docker_base_image():
 
 
 def test_parse_docker_build_output(
-        platform_config, docker_config, tmpdir):
+        platform_config, tmpdir):
     """Test the SysrootCreator constructor assuming valid path setup."""
     # Create mock directories and files
     sysroot_dir, ros_workspace_dir = setup_mock_sysroot(tmpdir)
     sysroot_creator = SysrootCreator(
-        str(tmpdir), 'ros_ws', platform_config, docker_config, None)
+        str(tmpdir), 'ros_ws', platform_config, False, None)
 
     log_generator_without_errors = [
         {'stream': ' ---\\u003e a9eb17255234\\n'},
