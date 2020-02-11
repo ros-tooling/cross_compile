@@ -19,7 +19,6 @@ import os
 from pathlib import Path
 from typing import Tuple
 
-import docker
 import pytest
 from ros_cross_compile.sysroot_creator import Platform
 from ros_cross_compile.sysroot_creator import QEMU_DIR_NAME
@@ -64,8 +63,7 @@ def test_sysroot_creator_constructor(
     """Test the SysrootCreator constructor assuming valid path setup."""
     # Create mock directories and files
     sysroot_dir, ros_workspace_dir = setup_mock_sysroot(tmpdir)
-    sysroot_creator = SysrootCreator(
-        str(tmpdir), 'ros_ws', platform_config, False)
+    sysroot_creator = SysrootCreator(str(tmpdir), 'ros_ws', platform_config)
 
     assert isinstance(sysroot_creator.get_build_setup_script_path(), Path)
     assert isinstance(sysroot_creator.get_system_setup_script_path(), Path)
@@ -74,7 +72,7 @@ def test_sysroot_creator_constructor(
 def test_custom_setup_script(platform_config, tmpdir):
     sysroot_dir, ros_workspace_dir = setup_mock_sysroot(tmpdir)
     compiler = SysrootCreator(
-        str(tmpdir), 'ros_ws', platform_config, False,
+        str(tmpdir), 'ros_ws', platform_config,
         custom_setup_script_path=os.path.join(THIS_SCRIPT_DIR, 'custom-setup.sh'))
     assert compiler
     assert (sysroot_dir / 'user-custom-setup').exists()
@@ -83,7 +81,7 @@ def test_custom_setup_script(platform_config, tmpdir):
 def test_custom_data_dir(platform_config, tmpdir):
     sysroot_dir, ros_workspace_dir = setup_mock_sysroot(tmpdir)
     compiler = SysrootCreator(
-        str(tmpdir), 'ros_ws', platform_config, False,
+        str(tmpdir), 'ros_ws', platform_config,
         custom_data_dir=os.path.join(THIS_SCRIPT_DIR, 'data'))
     assert compiler
     assert (sysroot_dir / 'user-custom-data' / 'arbitrary.txt').exists()
@@ -100,7 +98,6 @@ def test_sysroot_creator_tree_validation(platform_config, tmpdir):
         'cc_root_dir': str(tmpdir),
         'ros_workspace_dir': 'ros_ws',
         'platform': platform_config,
-        'docker_no_cache': False,
         'custom_setup_script_path': None,
     }
 
@@ -135,44 +132,8 @@ def test_sysroot_creator_tree_validation(platform_config, tmpdir):
 
 def test_sysroot_creator_tree_additions(platform_config, tmpdir):
     sysroot_dir, ros_workspace_dir = setup_mock_sysroot(tmpdir)
-    compiler = SysrootCreator(str(tmpdir), 'ros_ws', platform_config, False)
+    compiler = SysrootCreator(str(tmpdir), 'ros_ws', platform_config)
     assert compiler
     assert (sysroot_dir / ROS_DOCKERFILE_NAME).exists()
     assert (sysroot_dir / 'mixins' / 'cross-compile.mixin').exists()
     assert (sysroot_dir / 'mixins' / 'index.yaml').exists()
-
-
-def test_parse_docker_build_output(
-        platform_config, tmpdir):
-    """Test the SysrootCreator constructor assuming valid path setup."""
-    # Create mock directories and files
-    sysroot_dir, ros_workspace_dir = setup_mock_sysroot(tmpdir)
-    sysroot_creator = SysrootCreator(
-        str(tmpdir), 'ros_ws', platform_config, False, None)
-
-    log_generator_without_errors = [
-        {'stream': ' ---\\u003e a9eb17255234\\n'},
-        {'stream': 'Step 1 : VOLUME /data\\n'},
-        {'stream': ' ---\\u003e Running in abdc1e6896c6\\n'},
-        {'stream': ' ---\\u003e 713bca62012e\\n'},
-        {'stream': 'Removing intermediate container abdc1e6896c6\\n'},
-        {'stream': 'Step 2 : CMD [\\"/bin/sh\\"]\\n'},
-        {'stream': ' ---\\u003e Running in dba30f2a1a7e\\n'},
-        {'stream': ' ---\\u003e 032b8b2855fc\\n'},
-        {'stream': 'Removing intermediate container dba30f2a1a7e\\n'},
-        {'stream': 'Successfully built 032b8b2855fc\\n'},
-    ]
-    # Just expect it not to raise
-    sysroot_creator._parse_build_output(log_generator_without_errors)
-
-    log_generator_with_errors = [
-        {'stream': ' ---\\u003e a9eb17255234\\n'},
-        {'stream': 'Step 1 : VOLUME /data\\n'},
-        {'stream': ' ---\\u003e Running in abdc1e6896c6\\n'},
-        {'stream': ' ---\\u003e 713bca62012e\\n'},
-        {'stream': 'Removing intermediate container abdc1e6896c6\\n'},
-        {'stream': 'Step 2 : CMD [\\"/bin/sh\\"]\\n'},
-        {'error': ' ---\\COMMAND NOT FOUND\\n'},
-    ]
-    with pytest.raises(docker.errors.BuildError):
-        sysroot_creator._parse_build_output(log_generator_with_errors)

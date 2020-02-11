@@ -41,14 +41,12 @@ RUN apt-get update && apt-get install -y \
         gnupg2 \
         lsb-release \
     && rm -rf /var/lib/apt/lists/*
-RUN apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' \
-    --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654 \
-    && apt-get clean && apt-get update
+RUN apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
 
-RUN echo "deb http://packages.ros.org/${ROS_VERSION}/ubuntu `lsb_release -cs` main" \
-    > /etc/apt/sources.list.d/${ROS_VERSION}-latest.list
+RUN echo "deb http://packages.ros.org/ros/ubuntu `lsb_release -cs` main" > /etc/apt/sources.list.d/ros-latest.list
+RUN echo "deb http://packages.ros.org/ros2/ubuntu `lsb_release -cs` main" > /etc/apt/sources.list.d/ros2-latest.list
 
-# ROS dependencies
+# Buildtool dependencies
 RUN apt-get update && apt-get install -y \
       build-essential \
       cmake \
@@ -56,7 +54,6 @@ RUN apt-get update && apt-get install -y \
       python3-colcon-common-extensions \
       python3-colcon-mixin \
       python3-pip \
-      python-rosdep \
       wget \
     && rm -rf /var/lib/apt/lists/*
 
@@ -81,16 +78,15 @@ RUN if [[ "${ROS_VERSION}" == "ros2" ]]; then \
     pytest \
     pytest-cov \
     pytest-runner \
-    vcstool; \
-  fi
+  ; fi
 
 # Install Fast-RTPS dependencies for ROS 2
 RUN if [[ "${ROS_VERSION}" == "ros2" ]]; then \
     apt-get update && apt-get install --no-install-recommends -y \
         libasio-dev \
         libtinyxml2-dev \
-    && rm -rf /var/lib/apt/lists/*; \
-  fi
+    && rm -rf /var/lib/apt/lists/* \
+  ; fi
 
 # Run arbitrary user setup (copy data and run script)
 COPY user-custom-data/ custom-data/
@@ -99,22 +95,13 @@ RUN chmod +x ./user-custom-setup && \
     ./user-custom-setup && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy in ROS workspace
-COPY ${ROS_WORKSPACE}/src /ros_ws/src
+# Copy in ROS dependency installation script
 WORKDIR /ros_ws
-
-# Run rosdep to install dependencies for the ROS workspace
-ENV ROSDEP_SKIP_KEYS="console_bridge fastcdr fastrtps libopensplice67 libopensplice69 rti-connext-dds-5.3.1 urdfdom_headers"
-
-RUN rm -f /etc/ros/rosdep/sources.list.d/20-default.list
-RUN c_rehash /etc/ssl/certs && rosdep init
-RUN rosdep update && \
-    apt-get update && \
-    rosdep install --from-paths src \
-        --ignore-src \
-        --rosdistro ${ROS_DISTRO} -y \
-        --skip-keys "${ROSDEP_SKIP_KEYS}" \
-    && rm -rf /var/lib/apt/lists/*
+COPY ${ROS_WORKSPACE}/cc_internals .
+# This script was created by the rosdep gathering step
+RUN apt-get update && \
+    ./install_rosdeps.sh && \
+    rm -rf /var/lib/apt/lists/*
 
 # Set up build tools for the workspace
 COPY mixins/ mixins/
