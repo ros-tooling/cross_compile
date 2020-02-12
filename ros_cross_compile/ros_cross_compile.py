@@ -121,7 +121,7 @@ def main():
                                      custom_data_dir=args.custom_data_dir)
     sysroot_creator.create_workspace_sysroot_image(docker_client)
     ros_workspace_dir = os.path.join(args.sysroot_path, 'sysroot', args.ros_workspace)
-    run_emulated_docker_build(platform.sysroot_image_tag, ros_workspace_dir)
+    run_emulated_docker_build(docker_client, platform.sysroot_image_tag, ros_workspace_dir)
 
 
 if __name__ == '__main__':
