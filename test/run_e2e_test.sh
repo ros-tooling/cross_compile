@@ -57,13 +57,23 @@ cleanup(){
 }
 
 setup(){
+  if [[ "$distro" =~ ^(kinetic|melodic|noetic)$ ]]; then
+    ros_version=ros
+  else
+    ros_version=ros2
+  fi
+
   test_sysroot_dir=$(mktemp -d)
   mkdir "$test_sysroot_dir/sysroot"
   mkdir -p "$test_sysroot_dir/sysroot/ros_ws/src/"
   # Get full directory name of the script no matter where it is being called from
   dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-  # Copy dummy pkg
-  cp -r "$dir/dummy_pkg" "$test_sysroot_dir/sysroot/ros_ws/src"
+  # Copy correct dummy test pkg for the current argument set
+  if [ "$os" == "ubuntu" ] && [ "$ros_version" == "ros2" ]; then
+    cp -r "$dir/dummy_pkg_ros2" "$test_sysroot_dir/sysroot/ros_ws/src"
+  else
+    cp -r "$dir/dummy_pkg" "$test_sysroot_dir/sysroot/ros_ws/src"
+  fi
   # Copy QEMU binaries
   mkdir -p "$test_sysroot_dir/sysroot/qemu-user-static"
   cp /usr/bin/qemu-* "$test_sysroot_dir/sysroot/qemu-user-static"
@@ -139,7 +149,7 @@ docker run --rm \
   --entrypoint "/bin/bash" \
   -v "$test_sysroot_dir"/sysroot/ros_ws:/ros_ws \
   "$IMAGE_TAG" \
-  -c "source /ros_ws/install_${arch}/local_setup.bash && dummy_binary"
+  -c "source /ros_ws/install_${arch}/setup.bash && dummy_binary"
 RUN_RESULT=$?
 if [[ "$RUN_RESULT" -ne 0 ]]; then
   panic "Failed to run the dummy binary in the Docker container."
