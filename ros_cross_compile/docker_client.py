@@ -70,12 +70,14 @@ class DockerClient:
                         error_line))
                 raise docker.errors.BuildError(error_line)
             line = chunk.get('stream', '')
-            line = line.rstrip().lstrip()
+            line = line.rstrip()
             if line:
                 logger.info(line)
 
     def run_container(
-        self, image_name: str, environment: Dict[str, str], volumes: Dict[Path, str]
+        self, image_name: str,
+        environment: Dict[str, str] = {},
+        volumes: Dict[Path, str] = {}
     ) -> None:
         """
         Run a container of an existing image.
@@ -85,13 +87,17 @@ class DockerClient:
         :param volumes: Map of absolute path to a host directory, to str of mount destination.
         :return None
         """
+        docker_volumes = {
+            str(src): {
+                'bind': dest,
+                'mode': 'rw',
+            }
+            for src, dest in volumes.items()
+        }
         container = self._client.containers.run(
             image=image_name,
             environment=environment,
-            volumes={
-                str(src): {'bind': dest, 'mode': 'rw'}
-                for src, dest in volumes.items()
-            } if volumes else {},
+            volumes=docker_volumes,
             remove=True,
             detach=True,
             network_mode='host',
