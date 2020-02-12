@@ -18,6 +18,7 @@
 import os
 from pathlib import Path
 from typing import Tuple
+from unittest.mock import Mock
 
 import pytest
 from ros_cross_compile.sysroot_creator import Platform
@@ -67,6 +68,22 @@ def test_sysroot_creator_constructor(
 
     assert isinstance(sysroot_creator.get_build_setup_script_path(), Path)
     assert isinstance(sysroot_creator.get_system_setup_script_path(), Path)
+
+
+def test_sysroot_creator_constructor_argument_validation(platform_config, tmpdir):
+    """Make sure SysrootCreator constructor validates input types properly."""
+    sysroot_dir, ros_worspace_dir = setup_mock_sysroot(tmpdir)
+    root = str(tmpdir)
+    ws = 'ros_ws'
+    with pytest.raises(TypeError):
+        creator = SysrootCreator(tmpdir, ws, platform_config)
+    with pytest.raises(TypeError):
+        creator = SysrootCreator(root, Path(ws), platform_config)
+    with pytest.raises(TypeError):
+        creator = SysrootCreator(root, ws, 'not a Platform')
+
+    creator = SysrootCreator(root, ws, platform_config)
+    assert creator
 
 
 def test_custom_setup_script(platform_config, tmpdir):
@@ -137,3 +154,13 @@ def test_sysroot_creator_tree_additions(platform_config, tmpdir):
     assert (sysroot_dir / ROS_DOCKERFILE_NAME).exists()
     assert (sysroot_dir / 'mixins' / 'cross-compile.mixin').exists()
     assert (sysroot_dir / 'mixins' / 'index.yaml').exists()
+
+
+def test_basic_sysroot_creation(platform_config, tmpdir):
+    """Very simple smoke test to validate that syntax is correct."""
+    # Very simple smoke test to validate that all internal syntax is correct
+    mock_docker_client = Mock()
+    sysroot_dir, ros_workspace_dir = setup_mock_sysroot(tmpdir)
+    creator = SysrootCreator(str(tmpdir), 'ros_ws', platform_config)
+    creator.create_workspace_sysroot_image(mock_docker_client)
+    assert mock_docker_client.build_image.call_count == 1
