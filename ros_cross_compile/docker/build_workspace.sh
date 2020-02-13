@@ -1,4 +1,6 @@
 #!/bin/bash
+# No -u because setup.bash for ROS has unset variables
+# No -x because it prints all of setup.bash steps, which are numerous and noisy
 set -eo pipefail
 
 [ "${ROS_DISTRO}" ] || (echo "ROSDISTRO var unset" && exit 1)
