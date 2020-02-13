@@ -69,11 +69,16 @@ setup(){
   # Get full directory name of the script no matter where it is being called from
   dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
   # Copy correct dummy test pkg for the current argument set
-  if [ "$os" == "ubuntu" ] && [ "$ros_version" == "ros2" ]; then
-    cp -r "$dir/dummy_pkg_ros2" "$test_sysroot_dir/sysroot/ros_ws/src"
+  if [ "$ros_version" == "ros2" ] && [ "$os" == "ubuntu" ]; then
+    # ROS2 + Debian info
+    # Debian is a Tier 3 package for current ROS 2 distributions, so it doesn't have apt releases
+    # Therefore we can't resolve the rclcpp dependency of the ros2 package, so we build the empty project
+    test_package_name="dummy_pkg_ros2"
   else
-    cp -r "$dir/dummy_pkg" "$test_sysroot_dir/sysroot/ros_ws/src"
+    test_package_name="dummy_pkg"
   fi
+  cp -r "$dir/$test_package_name" "$test_sysroot_dir/sysroot/ros_ws/src"
+
   # Copy QEMU binaries
   mkdir -p "$test_sysroot_dir/sysroot/qemu-user-static"
   cp /usr/bin/qemu-* "$test_sysroot_dir/sysroot/qemu-user-static"

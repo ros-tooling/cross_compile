@@ -18,6 +18,11 @@ This tool supports compiling a workspace for all combinations of the following:
   * ROS 2: `dashing`, `eloquent`
 * OS: `Ubuntu`, `Debian`
 
+NOTE: ROS 2 supports Debian only as a Tier 3 platform.
+This means that there are not `apt` repositories available for the ROS 2 Core on this platform.
+Because of that, when targeting Debian for a ROS 2 workspace, you must also include the source for the core as well.
+It is recommended to use a release branch of `ros2.repos` from https://github.com/ros2/ros2 to do so, rather than `master`, so that you are not affected by development branch bugs and API changes.
+
 ## Supported hosts
 
 This tool officially supports running on the following host systems.
