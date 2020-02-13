@@ -20,7 +20,7 @@ from ros_cross_compile.docker_client import DockerClient
 def test_parse_docker_build_output():
     """Test the SysrootCreator constructor assuming valid path setup."""
     # Create mock directories and files
-    client = DockerClient(nocache=False)
+    client = DockerClient()
     log_generator_without_errors = [
         {'stream': ' ---\\u003e a9eb17255234\\n'},
         {'stream': 'Step 1 : VOLUME /data\\n'},

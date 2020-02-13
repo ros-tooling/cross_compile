@@ -25,9 +25,14 @@ logger = logging.getLogger('Docker Client')
 class DockerClient:
     """Simplified Docker API for this package's usage patterns."""
 
-    def __init__(self, nocache):
+    def __init__(self, disable_cache: bool = False):
+        """
+        Construct the DockerClient.
+
+        :param disable_cache: If True, disable the Docker cache when building images.
+        """
         self._client = docker.from_env()
-        self._nocache = nocache
+        self._disable_cache = disable_cache
 
     def build_image(
         self,
@@ -54,7 +59,7 @@ class DockerClient:
             tag=tag,
             buildargs=buildargs,
             quiet=False,
-            nocache=self._nocache,
+            nocache=self._disable_cache,
             decode=True,
         )
         self._process_build_log(log_generator)
