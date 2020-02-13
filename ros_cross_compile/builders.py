@@ -15,27 +15,27 @@ import logging
 import os
 from pathlib import Path
 
-import docker
+from ros_cross_compile.docker_client import DockerClient
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def run_emulated_docker_build(image_tag: str, workspace_path: Path) -> None:
+def run_emulated_docker_build(
+    docker_client: DockerClient, image_tag: str, workspace_path: Path
+) -> None:
     """
     Spin up a sysroot docker container and run an emulated build inside.
 
     :param image_tag: Docker image that contains all preinstalled dependencies for workspace.
     :param workspace: Absolute path to the user's source workspace.
     """
-    docker_client = docker.from_env()
-    docker_client.containers.run(
-        image=image_tag,
+    docker_client.run_container(
+        image_name=image_tag,
         environment={
             'OWNER_USER': os.getuid(),
         },
         volumes={
-            str(workspace_path): {'bind': '/ros_ws', 'mode': 'rw'},
+            workspace_path: '/ros_ws',
         },
-        remove=True,
     )

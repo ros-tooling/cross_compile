@@ -23,6 +23,7 @@ import sys
 from typing import List
 
 from ros_cross_compile.builders import run_emulated_docker_build
+from ros_cross_compile.docker_client import DockerClient
 from ros_cross_compile.platform import Platform
 from ros_cross_compile.platform import SUPPORTED_ARCHITECTURES
 from ros_cross_compile.platform import SUPPORTED_ROS2_DISTROS
@@ -112,15 +113,15 @@ def main():
     # Configuration
     args = parse_args(sys.argv[1:])
     platform = Platform(args.arch, args.os, args.rosdistro, args.sysroot_base_image)
+    docker_client = DockerClient(args.sysroot_nocache)
     sysroot_creator = SysrootCreator(cc_root_dir=args.sysroot_path,
                                      ros_workspace_dir=args.ros_workspace,
                                      platform=platform,
-                                     docker_no_cache=args.sysroot_nocache,
                                      custom_setup_script_path=args.custom_setup_script,
                                      custom_data_dir=args.custom_data_dir)
-    sysroot_creator.create_workspace_sysroot_image()
+    sysroot_creator.create_workspace_sysroot_image(docker_client)
     ros_workspace_dir = os.path.join(args.sysroot_path, 'sysroot', args.ros_workspace)
-    run_emulated_docker_build(platform.sysroot_image_tag, ros_workspace_dir)
+    run_emulated_docker_build(docker_client, platform.sysroot_image_tag, ros_workspace_dir)
 
 
 if __name__ == '__main__':

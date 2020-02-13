@@ -17,11 +17,9 @@ import os
 from pathlib import Path
 import shutil
 from string import Template
-from typing import NamedTuple
 from typing import Optional
 
-import docker
-
+from ros_cross_compile.docker_client import DockerClient
 from ros_cross_compile.platform import Platform
 
 ROS_WS_DIR_ERROR_STRING = Template(
@@ -56,9 +54,6 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-ToolchainDockerPair = NamedTuple('ToolchainDockerPair', [('toolchain', str), ('docker_base', str)])
-
-
 def _replace_tree(src: Path, dest: Path) -> None:
     """Delete dest and copy the directory src to that location."""
     shutil.rmtree(str(dest), ignore_errors=True)  # it may or may not exist already
@@ -84,7 +79,6 @@ class SysrootCreator:
       cc_root_dir: str,
       ros_workspace_dir: str,
       platform: Platform,
-      docker_no_cache: bool,
       custom_setup_script_path: Optional[str] = None,
       custom_data_dir: Optional[str] = None,
     ) -> None:
@@ -97,7 +91,6 @@ class SysrootCreator:
                                   ROS2 packages (inside a 'src' directory).
         :param platform: A custom object used to specify the the platform for
                          cross-compilation.
-        :param docker_no_cache: If True, disable the Docker cache during image build.
         :param custom_setup_script_path: Optional path to a custom setup script
                                          to run arbitrary commands
         :param custom_data_dir: Optional path to a custom directory of data that
@@ -111,7 +104,6 @@ class SysrootCreator:
         if not isinstance(platform, Platform):
             raise TypeError('Argument `platform` must be of type Platform.')
 
-        self._docker_client = docker.from_env()
         workspace_root = Path(cc_root_dir).resolve()
         self._target_sysroot = workspace_root / SYSROOT_DIR_NAME
         self._ros_workspace_relative_to_sysroot = ros_workspace_dir
@@ -122,7 +114,6 @@ class SysrootCreator:
         self._system_setup_script_path = Path()
         self._build_setup_script_path = Path()
         self._platform = platform
-        self._docker_no_cache = docker_no_cache
         self._setup_sysroot_dir(custom_setup_script_path, custom_data_dir)
 
     def get_system_setup_script_path(self) -> Path:
@@ -198,50 +189,21 @@ class SysrootCreator:
                 custom_script_file.write('#!/bin/sh\necho "No custom setup"\n')
             logger.debug('No custom script provided - created empty script')
 
-    def create_workspace_sysroot_image(self) -> str:
+    def create_workspace_sysroot_image(self, docker_client: DockerClient) -> str:
         """Build the target sysroot docker image and return its full name."""
-        base = self._platform.target_base_image
-        logger.info('Fetching sysroot base image: %s', base)
-        self._docker_client.images.pull(base)
         image_tag = self._platform.sysroot_image_tag
-        buildargs = {
-            'BASE_IMAGE': base,
-            'ROS_WORKSPACE': self._ros_workspace_relative_to_sysroot,
-            'ROS_VERSION': self._platform.ros_version,
-            'ROS_DISTRO': self._platform.ros_distro,
-            'TARGET_ARCH': self._platform.arch,
-        }
-        logger.info('Building workspace image: %s', image_tag)
 
-        # Switch to low-level API to expose build logs
-        docker_api = docker.APIClient(base_url='unix://var/run/docker.sock')
-        # Note the difference:
-        # path – Path to the directory containing the Dockerfile
-        # dockerfile – Path within the build context to the Dockerfile
-        log_generator = docker_api.build(
-            path=str(self._target_sysroot),
-            dockerfile=str(self._final_dockerfile_path),
+        logger.info('Building sysroot image: %s', image_tag)
+        docker_client.build_image(
+            dockerfile_dir=self._target_sysroot,
+            dockerfile_name=ROS_DOCKERFILE_NAME,
             tag=image_tag,
-            buildargs=buildargs,
-            quiet=False,
-            nocache=self._docker_no_cache,
-            decode=True)
-        self._parse_build_output(log_generator)
-
+            buildargs={
+                'BASE_IMAGE': self._platform.target_base_image,
+                'ROS_WORKSPACE': self._ros_workspace_relative_to_sysroot,
+                'ROS_VERSION': self._platform.ros_version,
+                'ROS_DISTRO': self._platform.ros_distro,
+                'TARGET_ARCH': self._platform.arch,
+            }
+        )
         logger.info('Successfully created sysroot docker image: %s', image_tag)
-
-    def _parse_build_output(self, log_generator) -> None:
-        for chunk in log_generator:
-            # There are two outputs we want to capture, stream and error.
-            # We also want to remove newline (\n) and carriage returns (\r) to
-            # avoid mangled output.
-            error_line = chunk.get('error', None)
-            if error_line:
-                logger.exception(
-                    'Error building sysroot image. The following error was caught:\n%s',
-                    error_line)
-                raise docker.errors.BuildError(error_line)
-            line = chunk.get('stream', '')
-            line = line.rstrip().lstrip()
-            if line:
-                logger.info(line)
