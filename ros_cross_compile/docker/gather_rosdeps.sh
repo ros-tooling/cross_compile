@@ -1,7 +1,8 @@
 #!/bin/bash
 set -euxo pipefail
 
-[ "${ROSDISTRO}" ] || (echo "ROSDISTRO var unset" && exit 1)
+[ "${ROSDISTRO}" ] || (echo "ROSDISTRO variable not set" && exit 1)
+[ "${TARGET_OS}" ] || (echo "TARGET_OS variable not set" && exit 1)
 
 if [ ! -d ./src ]; then
   echo "No src/ directory found at /root/ws, did you remember to mount your workspace?"
@@ -20,11 +21,13 @@ set -euxo pipefail
 EOF
 
 rosdep install \
+    --os "${TARGET_OS}" \
+    --rosdistro "${ROSDISTRO}" \
     --from-paths ./src  \
     --ignore-src \
+    --reinstall \
+    --default-yes \
     --simulate \
-    -y \
-    --rosdistro "${ROSDISTRO}" \
   >> "${rosdep_script}"
 
 chmod +x "${rosdep_script}"
