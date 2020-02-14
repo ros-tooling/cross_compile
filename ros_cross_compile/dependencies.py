@@ -33,27 +33,20 @@ def gather_rosdeps(
     :param docker_dir: Absolute path to directory where Dockerfiles can be found.
     :return None
     """
-    image_name = 'rcc/rosdep:{arch}-{os_name}-{os_distro}'.format(
-        arch=platform.arch,
-        os_name=platform.os_name,
-        os_distro=platform.os_distro,
-    )
+    image_name = 'ros_cross_compile:rosdep'
     logger.info('Building rosdep collector image: %s', image_name)
     docker_client.build_image(
-        docker_dir=docker_dir,
+        dockerfile_dir=docker_dir,
         dockerfile_name='rosdep.Dockerfile',
         tag=image_name,
-        buildargs={
-            'BASE_IMAGE': platform.native_base_image,
-        },
     )
-    logger.info('Successfully created rosdep collector image: %s', image_name)
 
     logger.info('Running rosdep collector image on workspace...')
     docker_client.run_container(
         image_name=image_name,
         environment={
             'ROSDISTRO': platform.ros_distro,
+            'TARGET_OS': '{}:{}'.format(platform.os_name, platform.os_distro),
         },
         volumes={
             workspace: '/root/ws'
