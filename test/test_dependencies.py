@@ -14,27 +14,18 @@
 from pathlib import Path
 from unittest.mock import Mock
 
+from ros_cross_compile.dependencies import build_rosdep_image
+from ros_cross_compile.dependencies import gather_rosdeps
 from ros_cross_compile.platform import Platform
-from ros_cross_compile.ros_cross_compile import cross_compile_pipeline
-from ros_cross_compile.ros_cross_compile import parse_args
-from ros_cross_compile.sysroot_creator import SysrootCreator
-
-from .test_sysroot_creator import setup_mock_sysroot
 
 
-def test_trivial():
-    args = parse_args(['-a', 'aarch64', '-o', 'ubuntu'])
-    assert args
-
-
-def test_pipeline_smoke(tmpdir):
-    """Simple test to make sure the cross_compile_pipeline has proper syntax."""
+def test_smoke():
+    # Very simple smoke test to validate that all internal syntax is correct
     platform = Platform(arch='aarch64', os_name='ubuntu', ros_distro='dashing')
-    mock_docker_client = Mock()
-    setup_mock_sysroot(tmpdir)
-    sysroot_creator = SysrootCreator(str(tmpdir), 'ros_ws', platform)
-    cross_compile_pipeline(mock_docker_client, platform, sysroot_creator, Path('dummy_path'))
 
-    # One build and run each for rosdep and sysroot
-    assert mock_docker_client.build_image.call_count == 2
-    assert mock_docker_client.run_container.call_count == 2
+    mock_docker_client = Mock()
+    image_tag = build_rosdep_image(mock_docker_client, platform, Path('dummy_path'))
+    assert mock_docker_client.build_image.call_count == 1
+
+    gather_rosdeps(mock_docker_client, image_tag, Path('dummy_path'), 'eloquent')
+    assert mock_docker_client.run_container.call_count == 1
