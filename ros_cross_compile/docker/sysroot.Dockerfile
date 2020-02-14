@@ -112,4 +112,5 @@ RUN mkdir -p /opt/ros/${ROS_DISTRO} && \
     touch /opt/ros/${ROS_DISTRO}/setup.sh && \
     touch /opt/ros/${ROS_DISTRO}/setup.bash
 COPY build_workspace.sh /root
+WORKDIR /ros_ws
 ENTRYPOINT ["/root/build_workspace.sh"]

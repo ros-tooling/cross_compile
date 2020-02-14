@@ -14,7 +14,6 @@
 from pathlib import Path
 from unittest.mock import Mock
 
-from ros_cross_compile.dependencies import build_rosdep_image
 from ros_cross_compile.dependencies import gather_rosdeps
 from ros_cross_compile.platform import Platform
 
@@ -22,10 +21,7 @@ from ros_cross_compile.platform import Platform
 def test_smoke():
     # Very simple smoke test to validate that all internal syntax is correct
     platform = Platform(arch='aarch64', os_name='ubuntu', ros_distro='dashing')
-
     mock_docker_client = Mock()
-    image_tag = build_rosdep_image(mock_docker_client, platform, Path('dummy_path'))
+    gather_rosdeps(mock_docker_client, platform, Path('dummy_workspace'), Path('dummy_docker_dir'))
     assert mock_docker_client.build_image.call_count == 1
-
-    gather_rosdeps(mock_docker_client, image_tag, Path('dummy_path'), 'eloquent')
     assert mock_docker_client.run_container.call_count == 1
