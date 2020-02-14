@@ -119,8 +119,3 @@ class Platform:
     def target_base_image(self) -> str:
         """Name of the base OS Docker image for the target architecture."""
         return self._docker_target_base
-
-    @property
-    def native_base_image(self) -> str:
-        """Name of the base OS Docker image for the host architecture."""
-        return self._docker_native_base
