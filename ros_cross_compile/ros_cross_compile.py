@@ -19,10 +19,12 @@
 import argparse
 import logging
 import os
+from pathlib import Path
 import sys
 from typing import List
 
 from ros_cross_compile.builders import run_emulated_docker_build
+from ros_cross_compile.dependencies import gather_rosdeps
 from ros_cross_compile.docker_client import DockerClient
 from ros_cross_compile.platform import Platform
 from ros_cross_compile.platform import SUPPORTED_ARCHITECTURES
@@ -108,6 +110,18 @@ def parse_args(args: List[str]) -> argparse.Namespace:
     return parser.parse_args(args)
 
 
+def cross_compile_pipeline(
+    docker_client: DockerClient,
+    platform: Platform,
+    sysroot_creator: SysrootCreator,
+    ros_workspace: Path
+):
+    docker_dir = Path(__file__).parent / 'docker'
+    gather_rosdeps(docker_client, platform, ros_workspace, docker_dir)
+    sysroot_creator.create_workspace_sysroot_image(docker_client)
+    run_emulated_docker_build(docker_client, platform.sysroot_image_tag, ros_workspace)
+
+
 def main():
     """Start the cross-compilation workflow."""
     # Configuration
@@ -119,9 +133,8 @@ def main():
                                      platform=platform,
                                      custom_setup_script_path=args.custom_setup_script,
                                      custom_data_dir=args.custom_data_dir)
-    sysroot_creator.create_workspace_sysroot_image(docker_client)
-    ros_workspace_dir = os.path.join(args.sysroot_path, 'sysroot', args.ros_workspace)
-    run_emulated_docker_build(docker_client, platform.sysroot_image_tag, ros_workspace_dir)
+    ros_workspace_dir = Path(args.sysroot_path).resolve() / 'sysroot' / args.ros_workspace
+    cross_compile_pipeline(docker_client, platform, sysroot_creator, ros_workspace_dir)
 
 
 if __name__ == '__main__':
