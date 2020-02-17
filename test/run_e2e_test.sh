@@ -57,13 +57,28 @@ cleanup(){
 }
 
 setup(){
+  if [[ "$distro" =~ ^(kinetic|melodic|noetic)$ ]]; then
+    ros_version=ros
+  else
+    ros_version=ros2
+  fi
+
   test_sysroot_dir=$(mktemp -d)
   mkdir "$test_sysroot_dir/sysroot"
   mkdir -p "$test_sysroot_dir/sysroot/ros_ws/src/"
   # Get full directory name of the script no matter where it is being called from
   dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-  # Copy dummy pkg
-  cp -r "$dir/dummy_pkg" "$test_sysroot_dir/sysroot/ros_ws/src"
+  # Copy correct dummy test pkg for the current argument set
+  if [ "$ros_version" == "ros2" ] && [ "$os" == "ubuntu" ]; then
+    # ROS2 + Debian info
+    # Debian is a Tier 3 package for current ROS 2 distributions, so it doesn't have apt releases
+    # Therefore we can't resolve the rclcpp dependency of the ros2 package, so we build the empty project
+    test_package_name="dummy_pkg_ros2"
+  else
+    test_package_name="dummy_pkg"
+  fi
+  cp -r "$dir/$test_package_name" "$test_sysroot_dir/sysroot/ros_ws/src"
+
   # Copy QEMU binaries
   mkdir -p "$test_sysroot_dir/sysroot/qemu-user-static"
   cp /usr/bin/qemu-* "$test_sysroot_dir/sysroot/qemu-user-static"
@@ -139,7 +154,7 @@ docker run --rm \
   --entrypoint "/bin/bash" \
   -v "$test_sysroot_dir"/sysroot/ros_ws:/ros_ws \
   "$IMAGE_TAG" \
-  -c "source /ros_ws/install_${arch}/local_setup.bash && dummy_binary"
+  -c "source /ros_ws/install_${arch}/setup.bash && dummy_binary"
 RUN_RESULT=$?
 if [[ "$RUN_RESULT" -ne 0 ]]; then
   panic "Failed to run the dummy binary in the Docker container."
