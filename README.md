@@ -83,7 +83,7 @@ Use [ROS](http://wiki.ros.org/ROS/Installation) or [ROS 2](https://index.ros.org
 Once you have the desired sources, copy them in the `sysroot` to use with the tool.
 ```bash
 # Copy ros sources into the sysroot directory
-cp -r <full_path_to_your_ros_ws>/src sysroot/ros_ws/src
+cp -r <full_path_to_your_ros_ws>/src sysroot/ros_ws
 ```
 
 
@@ -163,7 +163,7 @@ Tool invocation:
 
 ```bash
 python3 -m ros_cross_compile \
-  --sysroot-path /absolute/path/to/sysroot
+  --sysroot-path /absolute/path/to/directory/containing/sysroot
   --arch aarch64 --os ubuntu \
   --custom-setup-script /path/to/custom-setup.sh \
   --custom-data-dir /arbitrary/local/directory
