@@ -52,6 +52,7 @@ setup(
     },
     install_requires=[
         'docker>=2,<3',
+        'rosdep',
         'setuptools',
     ],
     zip_safe=True,
