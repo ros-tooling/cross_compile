@@ -116,8 +116,9 @@ def cross_compile_pipeline(
     sysroot_creator: SysrootCreator,
     ros_workspace: Path
 ):
-    docker_dir = Path(__file__).parent / 'docker'
-    gather_rosdeps(docker_client, platform, ros_workspace, docker_dir)
+    sources_dir = ros_workspace / 'src'
+    rosdep_script = gather_rosdeps(platform, sources_dir)
+    ros_workspace / 'cc_internals' / 'install_rosdeps.sh'
     sysroot_creator.create_workspace_sysroot_image(docker_client)
     run_emulated_docker_build(docker_client, platform.sysroot_image_tag, ros_workspace)
 

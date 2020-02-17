@@ -36,5 +36,5 @@ def test_pipeline_smoke(tmpdir):
     cross_compile_pipeline(mock_docker_client, platform, sysroot_creator, Path('dummy_path'))
 
     # One build and run each for rosdep and sysroot
-    assert mock_docker_client.build_image.call_count == 2
-    assert mock_docker_client.run_container.call_count == 2
+    assert mock_docker_client.build_image.call_count == 1
+    assert mock_docker_client.run_container.call_count == 1

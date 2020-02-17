@@ -12,16 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from pathlib import Path
-from unittest.mock import Mock
 
 from ros_cross_compile.dependencies import gather_rosdeps
 from ros_cross_compile.platform import Platform
 
 
-def test_smoke():
-    # Very simple smoke test to validate that all internal syntax is correct
+def test_dummy_ros2_pkg():
     platform = Platform(arch='aarch64', os_name='ubuntu', ros_distro='dashing')
-    mock_docker_client = Mock()
-    gather_rosdeps(mock_docker_client, platform, Path('dummy_workspace'), Path('dummy_docker_dir'))
-    assert mock_docker_client.build_image.call_count == 1
-    assert mock_docker_client.run_container.call_count == 1
+    outy = gather_rosdeps(platform, Path('test') / 'dummy_pkg_ros2')
+    expected = """#[apt] Installation commands:
+  apt-get install -y ros-dashing-rclcpp
+  apt-get install -y ros-dashing-ament-cmake
+"""
+    assert outy == expected, 'Rosdep output did not meet expectations.'
