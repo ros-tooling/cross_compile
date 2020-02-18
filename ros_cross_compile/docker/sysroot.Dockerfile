@@ -52,12 +52,10 @@ RUN echo "deb http://packages.ros.org/${ROS_VERSION}/ubuntu `lsb_release -cs` ma
 RUN apt-get update && apt-get install -y \
       build-essential \
       cmake \
-      git \
       python3-colcon-common-extensions \
       python3-colcon-mixin \
       python3-pip \
       python-rosdep \
-      wget \
     && rm -rf /var/lib/apt/lists/*
 
 RUN python3 -m pip install -U \
@@ -66,7 +64,6 @@ RUN python3 -m pip install -U \
 # Install some pip packages needed for testing ROS 2
 RUN if [[ "${ROS_VERSION}" == "ros2" ]]; then \
     python3 -m pip install -U \
-    argcomplete \
     flake8 \
     flake8-blind-except \
     flake8-builtins \
@@ -81,7 +78,6 @@ RUN if [[ "${ROS_VERSION}" == "ros2" ]]; then \
     pytest \
     pytest-cov \
     pytest-runner \
-    vcstool; \
   fi
 
 # Install Fast-RTPS dependencies for ROS 2
