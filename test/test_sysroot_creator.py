@@ -162,5 +162,5 @@ def test_basic_sysroot_creation(platform_config, tmpdir):
     mock_docker_client = Mock()
     sysroot_dir, ros_workspace_dir = setup_mock_sysroot(tmpdir)
     creator = SysrootCreator(str(tmpdir), 'ros_ws', platform_config)
-    creator.create_workspace_sysroot_image(mock_docker_client)
+    creator.create_workspace_sysroot_image(mock_docker_client, Path('installer.sh'))
     assert mock_docker_client.build_image.call_count == 1

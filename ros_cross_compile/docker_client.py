@@ -80,7 +80,9 @@ class DockerClient:
                 logger.info(line)
 
     def run_container(
-        self, image_name: str,
+        self,
+        image_name: str,
+        command: Optional[str] = None,
         environment: Dict[str, str] = {},
         volumes: Dict[Path, str] = {}
     ) -> None:
@@ -101,6 +103,7 @@ class DockerClient:
         }
         container = self._client.containers.run(
             image=image_name,
+            command=command,
             environment=environment,
             volumes=docker_volumes,
             remove=True,

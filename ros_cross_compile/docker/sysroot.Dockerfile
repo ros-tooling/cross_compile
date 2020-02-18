@@ -1,20 +1,18 @@
-# This dockerfile takes ROS 1 or 2 source packages from ${ROS_WORKSPACE}/ros_ws/src
-# and builds them for the specified target platform.
-# It uses qemu user-mode static emulation libraries from ${ROS_WORKSPACE}/qemu-user-static/
-# to emulate the target platform.
-
-# Assumptions: ros_ws/src and qemu-user-static directories are present in ${ROS_WORKSPACE}.
+# This Dockerfile creates an image with all build tools and dependencies
+# preinstalled for a target workspace.
+#
+# When `run` against mounted sources, it performs a build for the target OS and architecture.
+# It uses qemu user-mode static emulation libraries to emulate the target platform for the build.
+# Required build arguments:
+#  - BASE_IMAGE: the base Docker image to start from, e.g. arm64v8/ubuntu:bionic
+#  - DEPENDENCY_SCRIPT_PATH: a path (relative to the PWD of the `docker build` command) of a script that installs the source workspace's dependencies
+#  - ROS_VERSION: "ros" or "ros2"
 
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE}
 
-ARG ROS_WORKSPACE
+ARG DEPENDENCY_SCRIPT_PATH
 ARG ROS_VERSION
-ARG ROS_DISTRO
-ARG TARGET_ARCH
-
-ENV ROS_DISTRO=${ROS_DISTRO}
-ENV TARGET_ARCH=${TARGET_ARCH}
 
 SHELL ["/bin/bash", "-c"]
 
@@ -99,18 +97,14 @@ RUN chmod +x ./user-custom-setup && \
     rm -rf /var/lib/apt/lists/*
 
 # Use generated rosdep installation script
-COPY ${ROS_WORKSPACE}/cc_internals/install_rosdeps.sh .
+COPY ${DEPENDENCY_SCRIPT_PATH} ${DEPENDENCY_SCRIPT_PATH}
 RUN apt-get update && \
-    ./install_rosdeps.sh && \
+    ./"${DEPENDENCY_SCRIPT_PATH}" && \
     rm -rf /var/lib/apt/lists/*
 
 # Set up build tools for the workspace
 COPY mixins/ mixins/
 RUN colcon mixin add cc_mixin file://$(pwd)/mixins/index.yaml && colcon mixin update cc_mixin
-# In case the workspace did not actually install any dependencies, add these for uniformity
-RUN mkdir -p /opt/ros/${ROS_DISTRO} && \
-    touch /opt/ros/${ROS_DISTRO}/setup.sh && \
-    touch /opt/ros/${ROS_DISTRO}/setup.bash
 COPY build_workspace.sh /root
 WORKDIR /ros_ws
 ENTRYPOINT ["/root/build_workspace.sh"]

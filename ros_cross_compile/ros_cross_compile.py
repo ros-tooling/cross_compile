@@ -25,6 +25,7 @@ from typing import List
 
 from ros_cross_compile.builders import run_emulated_docker_build
 from ros_cross_compile.dependencies import gather_rosdeps
+from ros_cross_compile.dependencies import write_installer_script
 from ros_cross_compile.docker_client import DockerClient
 from ros_cross_compile.platform import Platform
 from ros_cross_compile.platform import SUPPORTED_ARCHITECTURES
@@ -117,10 +118,12 @@ def cross_compile_pipeline(
     ros_workspace: Path
 ):
     sources_dir = ros_workspace / 'src'
-    rosdep_script = gather_rosdeps(platform, sources_dir)
-    ros_workspace / 'cc_internals' / 'install_rosdeps.sh'
-    sysroot_creator.create_workspace_sysroot_image(docker_client)
-    run_emulated_docker_build(docker_client, platform.sysroot_image_tag, ros_workspace)
+    rosdep_script_contents = gather_rosdeps(platform, sources_dir)
+    install_script_path = write_installer_script(
+        ros_workspace, rosdep_script_contents)
+    sysroot_creator.create_workspace_sysroot_image(
+        docker_client, install_script_path)
+    run_emulated_docker_build(docker_client, platform, ros_workspace)
 
 
 def main():

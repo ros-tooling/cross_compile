@@ -189,7 +189,9 @@ class SysrootCreator:
                 custom_script_file.write('#!/bin/sh\necho "No custom setup"\n')
             logger.debug('No custom script provided - created empty script')
 
-    def create_workspace_sysroot_image(self, docker_client: DockerClient) -> str:
+    def create_workspace_sysroot_image(
+        self, docker_client: DockerClient, dependency_script_path: Path,
+    ) -> str:
         """Build the target sysroot docker image and return its full name."""
         image_tag = self._platform.sysroot_image_tag
 
@@ -200,10 +202,8 @@ class SysrootCreator:
             tag=image_tag,
             buildargs={
                 'BASE_IMAGE': self._platform.target_base_image,
-                'ROS_WORKSPACE': self._ros_workspace_relative_to_sysroot,
+                'DEPENDENCY_SCRIPT_PATH': str(dependency_script_path),
                 'ROS_VERSION': self._platform.ros_version,
-                'ROS_DISTRO': self._platform.ros_distro,
-                'TARGET_ARCH': self._platform.arch,
             }
         )
         logger.info('Successfully created sysroot docker image: %s', image_tag)

@@ -59,3 +59,11 @@ def gather_rosdeps(platform: Platform, sources_path: Path) -> str:
         except SystemExit:
             raise RuntimeError(iocapture.getvalue())
     return iocapture.getvalue()
+
+
+def write_installer_script(ros_workspace: Path, rosdep_script_contents: str) -> Path:
+    relative_path = Path('cc_internals') / 'install_rosdeps.sh'
+    full_path = ros_workspace / relative_path
+    full_path.parent.mkdir(exist_ok=True)
+    full_path.write_text(rosdep_script_contents)
+    return relative_path
