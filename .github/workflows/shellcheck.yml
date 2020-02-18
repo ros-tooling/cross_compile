@@ -1,0 +1,11 @@
+name: Run shellcheck linter
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+jobs:
+  run_linter:
+    steps:
+      - name: Run Shellcheck on shell scripts
+        uses: zbeekman/ShellCheck-Linter-Action@v1.0.1 
