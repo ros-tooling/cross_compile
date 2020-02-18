@@ -78,15 +78,15 @@ RUN if [[ "${ROS_VERSION}" == "ros2" ]]; then \
     pytest \
     pytest-cov \
     pytest-runner \
-  fi
+  ; fi
 
 # Install Fast-RTPS dependencies for ROS 2
 RUN if [[ "${ROS_VERSION}" == "ros2" ]]; then \
     apt-get update && apt-get install --no-install-recommends -y \
         libasio-dev \
         libtinyxml2-dev \
-    && rm -rf /var/lib/apt/lists/*; \
-  fi
+    && rm -rf /var/lib/apt/lists/* \
+  ; fi
 
 # Run arbitrary user setup (copy data and run script)
 COPY user-custom-data/ custom-data/
