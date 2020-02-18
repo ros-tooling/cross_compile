@@ -189,8 +189,8 @@ class SysrootCreator:
                 custom_script_file.write('#!/bin/sh\necho "No custom setup"\n')
             logger.debug('No custom script provided - created empty script')
 
-    def create_workspace_sysroot_image(self, docker_client: DockerClient) -> str:
-        """Build the target sysroot docker image and return its full name."""
+    def create_workspace_sysroot_image(self, docker_client: DockerClient) -> None:
+        """Build the target sysroot docker image."""
         image_tag = self._platform.sysroot_image_tag
 
         logger.info('Building sysroot image: %s', image_tag)

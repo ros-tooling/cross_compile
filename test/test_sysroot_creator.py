@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import Tuple
 from unittest.mock import Mock
 
+import py
 import pytest
 from ros_cross_compile.sysroot_creator import Platform
 from ros_cross_compile.sysroot_creator import QEMU_DIR_NAME
@@ -46,7 +47,7 @@ def _default_docker_kwargs() -> dict:
     }
 
 
-def setup_mock_sysroot(path: Path) -> Tuple[Path, Path]:
+def setup_mock_sysroot(path: py.path.local) -> Tuple[Path, Path]:
     """Create mock directories to correctly construct the SysrootCreator."""
     sysroot_dir = path / SYSROOT_DIR_NAME
     sysroot_dir.mkdir()
