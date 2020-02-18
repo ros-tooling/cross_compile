@@ -33,7 +33,7 @@ def run_emulated_docker_build(
     docker_client.run_container(
         image_name=image_tag,
         environment={
-            'OWNER_USER': os.getuid(),
+            'OWNER_USER': str(os.getuid()),
         },
         volumes={
             workspace_path: '/ros_ws',

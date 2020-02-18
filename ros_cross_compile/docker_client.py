@@ -71,8 +71,7 @@ class DockerClient:
             error_line = chunk.get('error', None)
             if error_line:
                 logger.exception(
-                    'Error building Docker image. The follow error was caught:\n%s'.format(
-                        error_line))
+                    'Error building Docker image. The follow error was caught:\n' + error_line)
                 raise docker.errors.BuildError(error_line)
             line = chunk.get('stream', '')
             line = line.rstrip()

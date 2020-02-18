@@ -35,7 +35,7 @@ sphinx_build = next(pathlib.Path('/').glob('**/sphinx-build'))
 bin_directory = next(pathlib.Path.home().glob('**/bin'))
 
 try:
-    os.symlink(sphinx_build, bin_directory / 'sphinx-build')
+    os.symlink(str(sphinx_build), str(bin_directory / 'sphinx-build'))
 except FileExistsError:
     # readthedocs re-use venvs acrosss multiple builds, which means that,
     # sometimes, the sphinx-build will have been previously created.
