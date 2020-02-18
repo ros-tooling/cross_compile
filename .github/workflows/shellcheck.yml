@@ -1,0 +1,13 @@
+name: Run shellcheck linter
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+jobs:
+  lint:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v1
+      - name: Run Shellcheck on shell scripts
+        uses: zbeekman/ShellCheck-Linter-Action@v1.0.1

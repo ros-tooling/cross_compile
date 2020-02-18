@@ -7,6 +7,7 @@ set -eo pipefail
 [ "${TARGET_ARCH}" ] || (echo "TARGET_ARCH var unset" && exit 1)
 [ "${OWNER_USER}" ] || (echo "OWNER_USER var unset" && exit 1)
 
+# shellcheck source=/dev/null
 source /opt/ros/"${ROS_DISTRO}"/setup.bash
 colcon build --mixin "${TARGET_ARCH}"-docker \
   --build-base build_"${TARGET_ARCH}" \
