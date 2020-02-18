@@ -5,7 +5,9 @@ on:
     branches:
       - master
 jobs:
-  run_linter:
+  lint:
+    runs-on: ubuntu-18.04
     steps:
+      - uses: actions/checkout@v1
       - name: Run Shellcheck on shell scripts
-        uses: zbeekman/ShellCheck-Linter-Action@v1.0.1 
+        uses: zbeekman/ShellCheck-Linter-Action@v1.0.1
