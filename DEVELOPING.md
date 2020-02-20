@@ -1,10 +1,10 @@
 # Developing ros-cross-compile
 
-This document is intended to contain instructions, guidelines, and requirements for developing this tool.
+This document contains instructions, guidelines, and requirements for developing this tool.
 
 ## Writing Code
 
-It is recommended to use `virtualenv` to manage the dependency environment.
+For easiest development, use `virtualenv` to manage the dependency environment.
 
 ```
 # create a virtualenv
@@ -19,7 +19,7 @@ ros_cross_compile
 
 ## Tests
 
-There are currently two test entrypoints
+These are testing entrypoints:
 
 * Unit tests via `tox`
   * run `tox -e py`
@@ -28,12 +28,10 @@ There are currently two test entrypoints
 
 ## Host Platforms
 
-This tool aims to support as host platforms
-* all ROS 2 Tier 1 platforms
-* on x86_64 (cross-compiling _from_ ARM platforms has not been deemed necessary)
-* for LTS distributions that have not hit EOL
+The target host platforms for this tool are the Tier 1 platforms specified by non-EOL ROS 2 LTS distributions, on x86_64.
+Cross-compiling on ARM host platforms is out of scope.
 
-See [REP 2000](https://www.ros.org/reps/rep-2000.html) to determine this target, which as of this writing is:
+See [REP 2000](https://www.ros.org/reps/rep-2000.html) for this list, which is now:
 * Dashing Diademata
   * Ubuntu Bionic 18.04
     * support installation via `pip` and `apt`
@@ -42,4 +40,4 @@ See [REP 2000](https://www.ros.org/reps/rep-2000.html) to determine this target,
   * Windows 10 (VS2019)
     * support installation via `pip`
 
-Though not all of these platforms may be supported yet, design decisions may not be made that rule out support for those platforms in the future.
+Though not all of these targets may be fully supported yet, design decisions may not be made that rule out support for those platforms in the future.
