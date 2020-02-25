@@ -24,7 +24,7 @@ COPY qemu-user-static/ /usr/bin/
 RUN echo 'Etc/UTC' > /etc/timezone && \
     ln -sf /usr/share/zoneinfo/Etc/UTC /etc/localtime
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install --no-install-recommends -y \
         tzdata \
         locales \
     && rm -rf /var/lib/apt/lists/*
@@ -37,7 +37,7 @@ ENV LANG en_US.UTF-8
 ENV LC_ALL C.UTF-8
 
 # Add the ros apt repo
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install --no-install-recommends -y \
         gnupg2 \
         lsb-release \
     && rm -rf /var/lib/apt/lists/*
@@ -49,7 +49,7 @@ RUN echo "deb http://packages.ros.org/${ROS_VERSION}/ubuntu `lsb_release -cs` ma
     > /etc/apt/sources.list.d/${ROS_VERSION}-latest.list
 
 # ROS dependencies
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install --no-install-recommends -y \
       build-essential \
       cmake \
       python3-colcon-common-extensions \
