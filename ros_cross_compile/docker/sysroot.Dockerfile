@@ -38,6 +38,7 @@ ENV LC_ALL C.UTF-8
 
 # Add the ros apt repo
 RUN apt-get update && apt-get install --no-install-recommends -y \
+        dirmngr \
         gnupg2 \
         lsb-release \
     && rm -rf /var/lib/apt/lists/*
