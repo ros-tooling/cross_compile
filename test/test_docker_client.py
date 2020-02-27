@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import platform
+
 import docker
 import pytest
 
@@ -49,6 +51,8 @@ def test_parse_docker_build_output():
         client._process_build_log(log_generator_with_errors)
 
 
+@pytest.mark.skipif(
+    platform.system() == 'Darwin', reason='CI environment cannot run docker on Mac')
 def test_fail_docker_run():
     client = DockerClient()
     with pytest.raises(docker.errors.ContainerError):
