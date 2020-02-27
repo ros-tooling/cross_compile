@@ -79,33 +79,36 @@ class DockerClient:
                 logger.info(line)
 
     def run_container(
-        self, image_name: str,
+        self,
+        image_name: str,
+        command: Optional[str] = None,
         environment: Dict[str, str] = {},
-        volumes: Dict[Path, str] = {}
+        volumes: Dict[Path, str] = {},
     ) -> None:
         """
         Run a container of an existing image.
 
         :param image_name: Name of the image to run.
+        :param command: Optional command to run on the container
         :param environment: Map of environment variable names to values.
         :param volumes: Map of absolute path to a host directory, to str of mount destination.
+        :raises docker.errors.ContainerError if container run has nonzero exit code
         :return None
         """
-        docker_volumes = {
-            str(src): {
+        docker_volumes = {}
+        for src, dest in volumes.items():
+            docker_volumes[str(src)] = {
                 'bind': dest,
                 'mode': 'rw',
             }
-            for src, dest in volumes.items()
-        }
-        container = self._client.containers.run(
+        logs = self._client.containers.run(
             image=image_name,
+            command=command,
             environment=environment,
             volumes=docker_volumes,
             remove=True,
-            detach=True,
+            stream=True,
             network_mode='host',
         )
-        logs = container.logs(stream=True)
         for line in logs:
             logger.info(line.decode('utf-8').rstrip())

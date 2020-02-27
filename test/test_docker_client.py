@@ -47,3 +47,9 @@ def test_parse_docker_build_output():
     ]
     with pytest.raises(docker.errors.BuildError):
         client._process_build_log(log_generator_with_errors)
+
+
+def test_fail_docker_run():
+    client = DockerClient()
+    with pytest.raises(docker.errors.ContainerError):
+        client.run_container('alpine', command='/bin/sh -c "exit 1"')
