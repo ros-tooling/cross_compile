@@ -95,12 +95,13 @@ class DockerClient:
         :raises docker.errors.ContainerError if container run has nonzero exit code
         :return None
         """
-        docker_volumes = {}
-        for src, dest in volumes.items():
-            docker_volumes[str(src)] = {
+        docker_volumes = {
+            str(src): {
                 'bind': dest,
                 'mode': 'rw',
             }
+            for src, dest in volumes.items()
+        }
         logs = self._client.containers.run(
             image=image_name,
             command=command,
