@@ -1,14 +1,10 @@
-# This dockerfile takes ROS 1 or 2 source packages from ${ROS_WORKSPACE}/ros_ws/src
-# and builds them for the specified target platform.
-# It uses qemu user-mode static emulation libraries from ${ROS_WORKSPACE}/qemu-user-static/
-# to emulate the target platform.
-
-# Assumptions: ros_ws/src and qemu-user-static directories are present in ${ROS_WORKSPACE}.
+# This file describes an image that has everything necessary installed to build a target ROS workspace
+# It uses QEmu user-mode emulation to perform dependency installation and build
+# Assumptions: qemu-user-static directory is present in docker build context
 
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE}
 
-ARG ROS_WORKSPACE
 ARG ROS_VERSION
 ARG ROS_DISTRO
 ARG TARGET_ARCH
