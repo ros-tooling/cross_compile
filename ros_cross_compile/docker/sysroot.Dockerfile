@@ -56,7 +56,6 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
       python3-colcon-common-extensions \
       python3-colcon-mixin \
       python3-pip \
-      python-rosdep \
     && rm -rf /var/lib/apt/lists/*
 
 RUN python3 -m pip install -U \
@@ -96,22 +95,12 @@ RUN chmod +x ./user-custom-setup && \
     ./user-custom-setup && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy in ROS workspace
-COPY ${ROS_WORKSPACE}/src /ros_ws/src
-WORKDIR /ros_ws
-
-# Run rosdep to install dependencies for the ROS workspace
-ENV ROSDEP_SKIP_KEYS="console_bridge fastcdr fastrtps libopensplice67 libopensplice69 rti-connext-dds-5.3.1 urdfdom_headers"
-
-RUN rm -f /etc/ros/rosdep/sources.list.d/20-default.list
-RUN c_rehash /etc/ssl/certs && rosdep init
-RUN rosdep update && \
-    apt-get update && \
-    rosdep install --from-paths src \
-        --ignore-src \
-        --rosdistro ${ROS_DISTRO} -y \
-        --skip-keys "${ROSDEP_SKIP_KEYS}" \
-    && rm -rf /var/lib/apt/lists/*
+# Use generated rosdep installation script
+COPY install_rosdeps.sh .
+RUN chmod +x install_rosdeps.sh
+RUN apt-get update && \
+    ./install_rosdeps.sh && \
+    rm -rf /var/lib/apt/lists/*
 
 # Set up build tools for the workspace
 COPY mixins/ mixins/
@@ -121,4 +110,5 @@ RUN mkdir -p /opt/ros/${ROS_DISTRO} && \
     touch /opt/ros/${ROS_DISTRO}/setup.sh && \
     touch /opt/ros/${ROS_DISTRO}/setup.bash
 COPY build_workspace.sh /root
+WORKDIR /ros_ws
 ENTRYPOINT ["/root/build_workspace.sh"]

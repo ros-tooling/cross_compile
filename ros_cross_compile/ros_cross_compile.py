@@ -19,10 +19,15 @@
 import argparse
 import logging
 import os
+from pathlib import Path
+import shutil
 import sys
 from typing import List
+from typing import Optional
 
 from ros_cross_compile.builders import run_emulated_docker_build
+from ros_cross_compile.dependencies import DEPENDENCY_SCRIPT_SUBPATH
+from ros_cross_compile.dependencies import gather_rosdeps
 from ros_cross_compile.docker_client import DockerClient
 from ros_cross_compile.platform import Platform
 from ros_cross_compile.platform import SUPPORTED_ARCHITECTURES
@@ -32,6 +37,10 @@ from ros_cross_compile.sysroot_creator import SysrootCreator
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+def _path_if(path: Optional[str] = None) -> Optional[Path]:
+    return Path(path) if path else None
 
 
 def parse_args(args: List[str]) -> argparse.Namespace:
@@ -87,6 +96,15 @@ def parse_args(args: List[str]) -> argparse.Namespace:
              "'ros2_ws/src' and 'qemu-user-static' directories you created can be found. "
              'Defaults to the current working directory.')
     parser.add_argument(
+        '--custom-rosdep-script',
+        required=False,
+        default=None,
+        type=str,
+        help='Provide a path to a shell script that will be executed right before collecting '
+             'the list of dependencies for the target workspace. This allows you to install '
+             'extra rosdep rules/sources that are not in the standard "rosdistro" set. See the '
+             'section "Custom Rosdep Script" in README.md for more details.')
+    parser.add_argument(
         '--custom-setup-script',
         required=False,
         default=None,
@@ -95,7 +113,7 @@ def parse_args(args: List[str]) -> argparse.Namespace:
              'right before running "rosdep install" for your ROS workspace. This allows for '
              'adding extra apt sources that rosdep may not handle, or other arbitrary setup that '
              'is specific to your application build. See the section on "Custom Setup Script" '
-             'in the README.md for more details.')
+             'in README.md for more details.')
     parser.add_argument(
         '--custom-data-dir',
         required=False,
@@ -110,7 +128,6 @@ def parse_args(args: List[str]) -> argparse.Namespace:
 
 def main():
     """Start the cross-compilation workflow."""
-    # Configuration
     args = parse_args(sys.argv[1:])
     platform = Platform(args.arch, args.os, args.rosdistro, args.sysroot_base_image)
     docker_client = DockerClient(args.sysroot_nocache)
@@ -119,8 +136,19 @@ def main():
                                      platform=platform,
                                      custom_setup_script_path=args.custom_setup_script,
                                      custom_data_dir=args.custom_data_dir)
+
+    sysroot_dir = Path(args.sysroot_path) / 'sysroot'
+    ros_workspace_dir = sysroot_dir / args.ros_workspace
+    output_rosdep_script = ros_workspace_dir / DEPENDENCY_SCRIPT_SUBPATH
+
+    gather_rosdeps(
+        docker_client=docker_client,
+        platform=platform,
+        workspace=ros_workspace_dir,
+        custom_script=_path_if(args.custom_rosdep_script),
+        custom_data_dir=_path_if(args.custom_data_dir))
+    shutil.copy(str(output_rosdep_script), str(sysroot_dir))
     sysroot_creator.create_workspace_sysroot_image(docker_client)
-    ros_workspace_dir = os.path.join(args.sysroot_path, 'sysroot', args.ros_workspace)
     run_emulated_docker_build(docker_client, platform.sysroot_image_tag, ros_workspace_dir)
 
 
