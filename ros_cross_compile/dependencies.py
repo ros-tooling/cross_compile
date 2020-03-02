@@ -23,6 +23,7 @@ logger = logging.getLogger('Rosdep Gatherer')
 
 DEPENDENCY_SCRIPT_SUBPATH = Path('cc_internals') / 'install_rosdeps.sh'
 CUSTOM_SETUP = '/usercustom/rosdep_setup'
+CUSTOM_DATA = '/usercustom/custom-data'
 
 
 def gather_rosdeps(
@@ -56,7 +57,7 @@ def gather_rosdeps(
     if custom_script:
         volumes[custom_script] = CUSTOM_SETUP
     if custom_data_dir:
-        volumes[custom_data_dir] = '/usercustom/custom-data'
+        volumes[custom_data_dir] = CUSTOM_DATA
 
     docker_client.run_container(
         image_name=image_name,
