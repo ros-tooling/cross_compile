@@ -67,7 +67,7 @@ pip3 install --index-url https://test.pypi.org/simple/ ros_cross_compile
     1. Create a Docker image that has `rosdep`
     1. Run the `rosdep` image against your target workspace to output a script that describes how to install its dependencies
 1. Create "sysroot image" that has everything needed for building target workspace
-    1. Use a base image for the target architecture
+    1. Use a base image for the target architecture (aarch64, armhf, ...)
     1. Install build tools (compilers, cmake, colcon, etc)
     1. Run the dependency installer script collected in Step 1 (if dependency list hasn't changed since last run, this uses the Docker cache)
 1. Build
@@ -134,7 +134,7 @@ python3 -m ros_cross_compile \
 Your ROS application may need nonstandard rosdep rules.
 If so, you have the option to provide a script to be run before the `rosdep install` command collects keys.
 
-This script has access to the "Custom data directory", just like the "Custom setup script" following does, so if you need any extra files, they can be used in that way.
+This script has access to the "Custom data directory" same as the "Custom setup script", see the following sections. If you need any extra files for setting up rosdep, they can be accessed via this custom data directory.
 
 Note that:
 1. Rosdeps are always collected in an Ubuntu Bionic container, so scripts must be compatible with that
