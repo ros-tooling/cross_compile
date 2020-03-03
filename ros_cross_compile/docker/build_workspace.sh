@@ -3,7 +3,7 @@ set -euxo pipefail
 
 set +ux
 # shellcheck source=/dev/null
-source "$ros_dir"/setup.bash
+source /opt/ros/"${ROS_DISTRO}"/setup.bash
 set -ux
 colcon build --mixin "${TARGET_ARCH}"-docker \
   --build-base build_"${TARGET_ARCH}" \
