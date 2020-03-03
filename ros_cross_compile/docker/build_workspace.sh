@@ -1,6 +1,9 @@
 #!/bin/bash
 set -euxo pipefail
 
+mkdir -p /opt/ros/"${ROS_DISTRO}"
+touch /opt/ros/"${ROS_DISTRO}"/setup.bash
+
 set +ux
 # shellcheck source=/dev/null
 source /opt/ros/"${ROS_DISTRO}"/setup.bash

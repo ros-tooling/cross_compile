@@ -6,11 +6,6 @@ ARG BASE_IMAGE
 FROM ${BASE_IMAGE}
 
 ARG ROS_VERSION
-ARG ROS_DISTRO
-ARG TARGET_ARCH
-
-ENV ROS_DISTRO=${ROS_DISTRO}
-ENV TARGET_ARCH=${TARGET_ARCH}
 
 SHELL ["/bin/bash", "-c"]
 
@@ -101,9 +96,6 @@ RUN apt-get update && \
 COPY mixins/ mixins/
 RUN colcon mixin add cc_mixin file://$(pwd)/mixins/index.yaml && colcon mixin update cc_mixin
 # In case the workspace did not actually install any dependencies, add these for uniformity
-RUN mkdir -p /opt/ros/${ROS_DISTRO} && \
-    touch /opt/ros/${ROS_DISTRO}/setup.sh && \
-    touch /opt/ros/${ROS_DISTRO}/setup.bash
 COPY build_workspace.sh /root
 WORKDIR /ros_ws
 ENTRYPOINT ["/root/build_workspace.sh"]

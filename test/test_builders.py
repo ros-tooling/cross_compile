@@ -15,10 +15,12 @@ from pathlib import Path
 from unittest.mock import Mock
 
 from ros_cross_compile.builders import run_emulated_docker_build
+from ros_cross_compile.platform import Platform
 
 
 def test_emulated_docker_build():
     # Very simple smoke test to validate that all internal syntax is correct
     mock_docker_client = Mock()
-    run_emulated_docker_build(mock_docker_client, 'image_tag', Path('dummy_path'))
+    platform = Platform('aarch64', 'ubuntu', 'eloquent')
+    run_emulated_docker_build(mock_docker_client, platform, Path('dummy_path'))
     assert mock_docker_client.run_container.call_count == 1

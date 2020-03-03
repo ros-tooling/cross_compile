@@ -201,8 +201,6 @@ class SysrootCreator:
             buildargs={
                 'BASE_IMAGE': self._platform.target_base_image,
                 'ROS_VERSION': self._platform.ros_version,
-                'ROS_DISTRO': self._platform.ros_distro,
-                'TARGET_ARCH': self._platform.arch,
             }
         )
         logger.info('Successfully created sysroot docker image: %s', image_tag)

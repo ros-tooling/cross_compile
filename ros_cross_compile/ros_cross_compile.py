@@ -149,7 +149,7 @@ def main():
         custom_data_dir=_path_if(args.custom_data_dir))
     shutil.copy(str(output_rosdep_script), str(sysroot_dir))
     sysroot_creator.create_workspace_sysroot_image(docker_client)
-    run_emulated_docker_build(docker_client, platform.sysroot_image_tag, ros_workspace_dir)
+    run_emulated_docker_build(docker_client, platform, ros_workspace_dir)
 
 
 if __name__ == '__main__':
