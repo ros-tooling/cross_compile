@@ -33,18 +33,20 @@ class DockerClient:
         """
         self._client = docker.from_env()
         self._disable_cache = disable_cache
+        self._default_docker_dir = str(Path(__file__).parent / 'docker')
 
     def build_image(
         self,
-        dockerfile_dir: Path,
         dockerfile_name: str,
         tag: str,
+        dockerfile_dir: Optional[Path] = None,
         buildargs: Optional[Dict[str, str]] = None,
     ) -> None:
         """
         Build a Docker image from a Dockerfile.
 
-        :param dockerfile_dir: Absolute path to directory where Dockerfile can be found.
+        :param dockerfile_dir: Absolute path to directory where Dockerfile can be found,
+            defaults to the 'docker' directory in this package.
         :param dockerfile_name: The name of the Dockerfile to build.
         :param tag: What tag to give the created image.
         :param buildargs: Optional dictionary of str->str to set arguments for the build.
@@ -54,7 +56,7 @@ class DockerClient:
         # Use low-level API to expose logs for image building
         docker_api = docker.APIClient(base_url='unix://var/run/docker.sock')
         log_generator = docker_api.build(
-            path=str(dockerfile_dir),
+            path=str(dockerfile_dir) if dockerfile_dir else self._default_docker_dir,
             dockerfile=dockerfile_name,
             tag=tag,
             buildargs=buildargs,

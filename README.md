@@ -8,6 +8,7 @@ A tool to automate compiling ROS and ROS 2 workspaces to non-native architecture
 :construction: `ros_cross_compile` relies on running emulated builds
 using QEmu, #69 tracks progress toward enabling cross-compilation.
 
+
 ## Supported targets
 
 This tool supports compiling a workspace for all combinations of the following:
@@ -60,6 +61,18 @@ If you would like the latest nightly build, you can get it from Test PyPI
 pip3 install --index-url https://test.pypi.org/simple/ ros_cross_compile
 ```
 
+## How it works, high level
+
+1. Collect dependencies
+    1. Create a Docker image that has `rosdep`
+    1. Run the `rosdep` image against your target workspace to output a script that describes how to install its dependencies
+1. Create "sysroot image" that has everything needed for building target workspace
+    1. Use a base image for the target architecture (aarch64, armhf, ...)
+    1. Install build tools (compilers, cmake, colcon, etc)
+    1. Run the dependency installer script collected in Step 1 (if dependency list hasn't changed since last run, this uses the Docker cache)
+1. Build
+    1. Runs the "sysroot image" using QEmu emulation
+    1. `colcon build`
 
 ## Usage
 
@@ -116,6 +129,33 @@ python3 -m ros_cross_compile \
   --rosdistro dashing
 ```
 
+### Custom rosdep script
+
+Your ROS application may need nonstandard rosdep rules.
+If so, you have the option to provide a script to be run before the `rosdep install` command collects keys.
+
+This script has access to the "Custom data directory" same as the "Custom setup script", see the following sections. If you need any extra files for setting up rosdep, they can be accessed via this custom data directory.
+
+Note that:
+1. Rosdeps are always collected in an Ubuntu Bionic container, so scripts must be compatible with that
+
+Here is an example script for an application that adds extra rosdep source lists
+
+```bash
+cp ./custom-data/rosdep-rules/raspicam-node.yaml /etc/ros/rosdep/custom-rules/raspicam-node.yaml
+echo "yaml file:/etc/ros/rosdep/custom-rules/raspicam-node.yaml" > /etc/ros/rosdep/sources.list.d/22-raspicam-node.list
+echo "yaml https://s3-us-west-2.amazonaws.com/rosdep/python.yaml" > /etc/ros/rosdep/sources.list.d/18-aws-python.list
+```
+
+Tool invocation for this example:
+
+```bash
+python3 -m ros_cross_compile \
+  --sysroot-path /absolute/path/to/directory/containing/sysroot
+  --arch aarch64 --os ubuntu \
+  --custom-rosdep-script /path/to/rosdep-script.sh \
+  --custom-data-dir /arbitrary/local/directory
+```
 
 ### Custom setup script
 
@@ -143,8 +183,8 @@ apt-get install -y pigpio
 
 ### Custom data directory
 
-Your custom setup script (see preceding) may need some data that is not accessible within the sysroot creation environment.
-For example, you need custom rosdep rules files to find and install your dependencies.
+Your custom setup or rosdep script (see preceding sections) may need some data that is not otherwise accessible.
+For example, you need to copy some precompiled vendor binaries to a specific location, or provide custom rosdep rules files.
 For this use case, you can use the option `--custom-data-dir` to point to an arbitrary path.
 The sysroot build copies this directory into the build environment, where it's available for use by your custom setup script at `./custom-data/`.
 
