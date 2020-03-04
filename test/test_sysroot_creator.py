@@ -34,7 +34,7 @@ THIS_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 @patch('ros_cross_compile.sysroot_creator.host_system', side_effect=lambda: 'Linux')
 def test_emulator_not_installed(tmpdir):
     with pytest.raises(RuntimeError):
-        setup_emulator('not-an-arch', Path(tmpdir))
+        setup_emulator('not-an-arch', Path(str(tmpdir)))
 
 
 @patch('ros_cross_compile.sysroot_creator.host_system', side_effect=lambda: 'Darwin')
