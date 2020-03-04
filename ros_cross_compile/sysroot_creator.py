@@ -15,6 +15,7 @@
 from distutils.dir_util import copy_tree
 import logging
 from pathlib import Path
+from platform import system
 import shutil
 from typing import Optional
 
@@ -75,7 +76,7 @@ def prepare_docker_build_environment(
         custom_setup_dest.touch()
 
     # OSX performs emulation automatically
-    if platform.system() != 'Darwin':
+    if system() != 'Darwin':
         emulator_path = Path('/') / 'usr' / 'bin' / 'qemu-{}-static'.format(platform.qemu_arch)
         if not emulator_path.is_file():
             raise RuntimeError('Could not find the expected QEmu emulator binary "{}"'.format(

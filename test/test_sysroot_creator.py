@@ -17,6 +17,7 @@
 
 import os
 from pathlib import Path
+from platform import system
 from unittest.mock import Mock
 
 from ros_cross_compile.platform import Platform
@@ -31,7 +32,7 @@ def test_prepare_docker_build_basic(tmpdir):
     tmp = Path(str(tmpdir))
     out_dir = prepare_docker_build_environment(platform, tmp, None, None)
 
-    if platform.system() != 'Darwin':
+    if system() != 'Darwin':
         assert (out_dir / 'bin' / 'qemu-arm-static').exists()
     assert (out_dir / 'rosdep.Dockerfile').exists()
     assert (out_dir / 'sysroot.Dockerfile').exists()
