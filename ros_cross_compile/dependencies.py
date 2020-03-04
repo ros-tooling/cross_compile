@@ -19,11 +19,12 @@ from typing import Optional
 
 from ros_cross_compile.docker_client import DockerClient
 from ros_cross_compile.platform import Platform
+from ros_cross_compile.sysroot_creator import build_internals_dir
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('Rosdep Gatherer')
 
-DEPENDENCY_SCRIPT_SUBPATH = Path('cc_internals') / 'install_rosdeps.sh'
+
 CUSTOM_SETUP = '/usercustom/rosdep_setup'
 CUSTOM_DATA = '/usercustom/custom-data'
 
@@ -45,7 +46,7 @@ def gather_rosdeps(
     :param custom_data_dir: Optional absolute path of a directory containing custom data for setup
     :return None
     """
-    out_path = Path('cc_internals') / str(platform) / 'install_rosdeps.sh'
+    out_path = build_internals_dir(platform) / 'install_rosdeps.sh'
 
     image_name = 'ros_cross_compile:rosdep'
     logger.info('Building rosdep collector image: %s', image_name)

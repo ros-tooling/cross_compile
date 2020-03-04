@@ -24,7 +24,9 @@ from ros_cross_compile.platform import Platform
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-INTERNALS_DIR = Path('cc_internals')
+
+def build_internals_dir(platform: Platform) -> Path:
+    return Path('cc_internals') / str(platform)
 
 
 def _copytree(src: Path, dest: Path) -> None:
@@ -52,7 +54,7 @@ def prepare_docker_build_environment(
     :return The directory that was created.
     """
     package_dir = Path(__file__).parent
-    docker_build_dir = ros_workspace / INTERNALS_DIR / str(platform)
+    docker_build_dir = ros_workspace / build_internals_dir(platform)
     docker_build_dir.mkdir(parents=True)
 
     _copytree(package_dir / 'docker', docker_build_dir)
