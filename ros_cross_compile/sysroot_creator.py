@@ -26,14 +26,17 @@ logger = logging.getLogger(__name__)
 
 
 def build_internals_dir(platform: Platform) -> Path:
+    """Construct a relative path for this build, for storing intermediate artifacts."""
     return Path('cc_internals') / str(platform)
 
 
 def _copytree(src: Path, dest: Path) -> None:
+    """Copy contents of directory 'src' into 'dest'."""
     copy_tree(str(src), str(dest))
 
 
 def _copyfile(src: Path, dest: Path) -> None:
+    """Copy a single file to a destination location."""
     shutil.copy(str(src), str(dest))
 
 
@@ -48,7 +51,6 @@ def prepare_docker_build_environment(
 
     :param platform Information about the target platform
     :param ros_workspace Location of the ROS source workspace
-    :param install_rosdep_script Path to the generated script that installs rosdeps in the sysroot
     :param custom_setup_script Optional arbitrary script
     :param custom_data_dir Optional arbitrary directory for use by custom_setup_script
     :return The directory that was created.
@@ -59,23 +61,26 @@ def prepare_docker_build_environment(
 
     _copytree(package_dir / 'docker', docker_build_dir)
     _copytree(package_dir / 'mixins', docker_build_dir / 'mixins')
+
     custom_data_dest = docker_build_dir / 'user-custom-data'
-    custom_setup_dest = docker_build_dir / 'user-custom-setup'
     if custom_data_dir:
         _copytree(custom_data_dir, custom_data_dest)
     else:
         custom_data_dest.mkdir()
+
+    custom_setup_dest = docker_build_dir / 'user-custom-setup'
     if custom_setup_script:
         _copyfile(custom_setup_script, custom_setup_dest)
     else:
         custom_setup_dest.touch()
 
-    bin_dir = docker_build_dir / 'bin'
-    bin_dir.mkdir(parents=True)
     emulator_path = Path('/') / 'usr' / 'bin' / 'qemu-{}-static'.format(platform.qemu_arch)
     if not emulator_path.is_file():
         raise RuntimeError('Could not find the expected QEmu emulator binary "{}"'.format(
             emulator_path))
+
+    bin_dir = docker_build_dir / 'bin'
+    bin_dir.mkdir(parents=True)
     _copyfile(emulator_path, bin_dir)
 
     return docker_build_dir
