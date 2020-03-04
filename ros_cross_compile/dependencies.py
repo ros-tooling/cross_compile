@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import logging
+import os
 from pathlib import Path
 from typing import Optional
 
@@ -44,6 +45,8 @@ def gather_rosdeps(
     :param custom_data_dir: Optional absolute path of a directory containing custom data for setup
     :return None
     """
+    out_path = Path('cc_internals') / str(platform) / 'install_rosdeps.sh'
+
     image_name = 'ros_cross_compile:rosdep'
     logger.info('Building rosdep collector image: %s', image_name)
     docker_client.build_image(
@@ -63,9 +66,10 @@ def gather_rosdeps(
     docker_client.run_container(
         image_name=image_name,
         environment={
+            'OWNER_USER': str(os.getuid()),
             'ROSDISTRO': platform.ros_distro,
             'TARGET_OS': '{}:{}'.format(platform.os_name, platform.os_distro),
-            'OUT_PATH': str(DEPENDENCY_SCRIPT_SUBPATH),
+            'OUT_PATH': str(out_path),
             'CUSTOM_SETUP': CUSTOM_SETUP,
         },
         volumes=volumes,

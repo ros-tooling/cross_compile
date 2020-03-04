@@ -19,5 +19,5 @@ from ros_cross_compile.ros_cross_compile import parse_args
 
 
 def test_trivial():
-    args = parse_args(['-a', 'aarch64', '-o', 'ubuntu'])
+    args = parse_args(['somepath', '-a', 'aarch64', '-o', 'ubuntu'])
     assert args

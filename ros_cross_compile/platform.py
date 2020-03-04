@@ -12,14 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import getpass
+from typing import NamedTuple
 from typing import Optional
 
+ArchNameMapping = NamedTuple('ArchNameMapping', [('docker', str), ('qemu', str)])
+
+
 # NOTE: when changing any following values, update README.md Supported Targets section
-ARCHITECTURE_DOCKER_MAP = {
-    'armhf': 'arm32v7',
-    'aarch64': 'arm64v8',
+ARCHITECTURE_NAME_MAP = {
+    'armhf': ArchNameMapping(docker='arm32v7', qemu='arm'),
+    'aarch64': ArchNameMapping(docker='arm64v8', qemu='aarch64'),
 }
-SUPPORTED_ARCHITECTURES = tuple(ARCHITECTURE_DOCKER_MAP.keys())
+SUPPORTED_ARCHITECTURES = tuple(ARCHITECTURE_NAME_MAP.keys())
 
 SUPPORTED_ROS2_DISTROS = ('dashing', 'eloquent')
 SUPPORTED_ROS_DISTROS = ('kinetic', 'melodic')
@@ -64,7 +68,7 @@ class Platform:
         self._os_name = os_name
 
         try:
-            docker_org = ARCHITECTURE_DOCKER_MAP[arch]
+            docker_org = ARCHITECTURE_NAME_MAP[arch].docker
         except KeyError:
             raise ValueError('Unknown target architecture "{}" specified'.format(arch))
 
@@ -89,6 +93,10 @@ class Platform:
     @property
     def arch(self):
         return self._arch
+
+    @property
+    def qemu_arch(self):
+        return ARCHITECTURE_NAME_MAP[self.arch].qemu
 
     @property
     def ros_distro(self):

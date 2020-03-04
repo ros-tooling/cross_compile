@@ -25,7 +25,7 @@ logger = logging.getLogger('Docker Client')
 class DockerClient:
     """Simplified Docker API for this package's usage patterns."""
 
-    def __init__(self, disable_cache: bool = False):
+    def __init__(self, disable_cache: bool = False, default_docker_dir: Optional[Path] = None):
         """
         Construct the DockerClient.
 
@@ -33,7 +33,7 @@ class DockerClient:
         """
         self._client = docker.from_env()
         self._disable_cache = disable_cache
-        self._default_docker_dir = str(Path(__file__).parent / 'docker')
+        self._default_docker_dir = str(default_docker_dir or Path(__file__).parent / 'docker')
 
     def build_image(
         self,

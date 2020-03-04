@@ -13,7 +13,8 @@ if [ -f "${CUSTOM_SETUP}" ]; then
   popd
 fi
 
-mkdir -p "$(dirname "${OUT_PATH}")"
+out_dir=$(dirname "${OUT_PATH}")
+mkdir -p "${out_dir}"
 
 rosdep update
 
@@ -33,3 +34,4 @@ rosdep install \
   >> "${OUT_PATH}"
 
 chmod +x "${OUT_PATH}"
+chown -R "${OWNER_USER}" "${out_dir}"

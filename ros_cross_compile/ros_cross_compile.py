@@ -18,22 +18,20 @@
 
 import argparse
 import logging
-import os
 from pathlib import Path
-import shutil
 import sys
 from typing import List
 from typing import Optional
 
 from ros_cross_compile.builders import run_emulated_docker_build
-from ros_cross_compile.dependencies import DEPENDENCY_SCRIPT_SUBPATH
 from ros_cross_compile.dependencies import gather_rosdeps
 from ros_cross_compile.docker_client import DockerClient
 from ros_cross_compile.platform import Platform
 from ros_cross_compile.platform import SUPPORTED_ARCHITECTURES
 from ros_cross_compile.platform import SUPPORTED_ROS2_DISTROS
 from ros_cross_compile.platform import SUPPORTED_ROS_DISTROS
-from ros_cross_compile.sysroot_creator import SysrootCreator
+from ros_cross_compile.sysroot_creator import create_workspace_sysroot_image
+from ros_cross_compile.sysroot_creator import prepare_docker_build_environment
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -48,6 +46,9 @@ def parse_args(args: List[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog='ros_cross_compile',  # this can be invoked from __main__.py, so be explicit
         description='Sysroot creator for cross compilation workflows.')
+    parser.add_argument(
+        'ros_workspace', type=str,
+        help='Path of the colcon workspace to be cross-compiled. Contains "src" directory.')
     parser.add_argument(
         '-a', '--arch',
         required=True,
@@ -79,22 +80,6 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         required=False,
         help="When set to true, this disables Docker's cache when building "
              'the Docker image for the workspace')
-    parser.add_argument(
-        '--ros-workspace',
-        required=False,
-        type=str,
-        default='ros_ws',
-        help="The subdirectory of 'sysroot' that contains your 'src' to be built."
-             'The output of the cross compilation will be placed in this directory. '
-             "Defaults to 'ros_ws'.")
-    parser.add_argument(
-        '--sysroot-path',
-        required=False,
-        default=os.getcwd(),
-        type=str,
-        help="The absolute path to the directory containing 'sysroot' where the "
-             "'ros2_ws/src' and 'qemu-user-static' directories you created can be found. "
-             'Defaults to the current working directory.')
     parser.add_argument(
         '--custom-rosdep-script',
         required=False,
@@ -130,25 +115,26 @@ def main():
     """Start the cross-compilation workflow."""
     args = parse_args(sys.argv[1:])
     platform = Platform(args.arch, args.os, args.rosdistro, args.sysroot_base_image)
-    docker_client = DockerClient(args.sysroot_nocache)
-    sysroot_creator = SysrootCreator(cc_root_dir=args.sysroot_path,
-                                     ros_workspace_dir=args.ros_workspace,
-                                     platform=platform,
-                                     custom_setup_script_path=args.custom_setup_script,
-                                     custom_data_dir=args.custom_data_dir)
 
-    sysroot_dir = Path(args.sysroot_path) / 'sysroot'
-    ros_workspace_dir = sysroot_dir / args.ros_workspace
-    output_rosdep_script = ros_workspace_dir / DEPENDENCY_SCRIPT_SUBPATH
+    ros_workspace_dir = Path(args.ros_workspace)
+    custom_data_dir = _path_if(args.custom_data_dir)
+    custom_rosdep_script = _path_if(args.custom_rosdep_script)
+    custom_setup_script = _path_if(args.custom_setup_script)
+
+    sysroot_build_context = prepare_docker_build_environment(
+        platform=platform,
+        ros_workspace=ros_workspace_dir,
+        custom_setup_script=custom_setup_script,
+        custom_data_dir=custom_data_dir)
+    docker_client = DockerClient(args.sysroot_nocache, default_docker_dir=sysroot_build_context)
 
     gather_rosdeps(
         docker_client=docker_client,
         platform=platform,
         workspace=ros_workspace_dir,
-        custom_script=_path_if(args.custom_rosdep_script),
-        custom_data_dir=_path_if(args.custom_data_dir))
-    shutil.copy(str(output_rosdep_script), str(sysroot_dir))
-    sysroot_creator.create_workspace_sysroot_image(docker_client)
+        custom_script=custom_rosdep_script,
+        custom_data_dir=custom_data_dir)
+    create_workspace_sysroot_image(docker_client, platform)
     run_emulated_docker_build(docker_client, platform, ros_workspace_dir)
 
 
