@@ -164,7 +164,7 @@ cat custom-data/something.txt
 Tool invocation:
 
 ```bash
-python3 -m ros_cross_compile /path/to/my/workspace --arch aarch64 --os ubuntu \
+ros_cross_compile /path/to/my/workspace --arch aarch64 --os ubuntu \
   --custom-setup-script /path/to/custom-setup.sh \
   --custom-data-dir /arbitrary/local/directory
 ```
