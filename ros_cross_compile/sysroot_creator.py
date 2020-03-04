@@ -15,7 +15,7 @@
 from distutils.dir_util import copy_tree
 import logging
 from pathlib import Path
-from platform import system
+from platform import system as host_system
 import shutil
 from typing import Optional
 
@@ -39,6 +39,22 @@ def _copytree(src: Path, dest: Path) -> None:
 def _copyfile(src: Path, dest: Path) -> None:
     """Copy a single file to a destination location."""
     shutil.copy(str(src), str(dest))
+
+
+def setup_emulator(arch: str, output_dir: Path) -> None:
+    """Copy the appropriate emulator binary to the output location."""
+    emulator_name = 'qemu-{}-static'.format(arch)
+    bin_dir = output_dir / 'bin'
+    bin_dir.mkdir(parents=True)
+    # OSX performs emulation automatically
+    if host_system() != 'Darwin':
+        emulator_path = Path('/') / 'usr' / 'bin' / emulator_name
+        if not emulator_path.is_file():
+            raise RuntimeError('Could not find the expected QEmu emulator binary "{}"'.format(
+                emulator_path))
+        _copyfile(emulator_path, bin_dir)
+    else:
+        (bin_dir / emulator_name).touch()
 
 
 def prepare_docker_build_environment(
@@ -74,19 +90,7 @@ def prepare_docker_build_environment(
         _copyfile(custom_setup_script, custom_setup_dest)
     else:
         custom_setup_dest.touch()
-
-    # OSX performs emulation automatically
-    emulator_name = 'qemu-{}-static'.format(platform.qemu_arch)
-    bin_dir = docker_build_dir / 'bin'
-    bin_dir.mkdir(parents=True)
-    if system() != 'Darwin':
-        emulator_path = Path('/') / 'usr' / 'bin' / emulator_name
-        if not emulator_path.is_file():
-            raise RuntimeError('Could not find the expected QEmu emulator binary "{}"'.format(
-                emulator_path))
-        _copyfile(emulator_path, bin_dir)
-    else:
-        (bin_dir / emulator_name).touch()
+    setup_emulator(platform.qemu_arch, docker_build_dir)
 
     return docker_build_dir
 

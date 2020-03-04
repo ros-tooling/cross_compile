@@ -111,9 +111,9 @@ def parse_args(args: List[str]) -> argparse.Namespace:
     return parser.parse_args(args)
 
 
-def main():
-    """Start the cross-compilation workflow."""
-    args = parse_args(sys.argv[1:])
+def cross_compile_pipeline(
+    args: argparse.Namespace,
+):
     platform = Platform(args.arch, args.os, args.rosdistro, args.sysroot_base_image)
 
     ros_workspace_dir = Path(args.ros_workspace)
@@ -136,6 +136,12 @@ def main():
         custom_data_dir=custom_data_dir)
     create_workspace_sysroot_image(docker_client, platform)
     run_emulated_docker_build(docker_client, platform, ros_workspace_dir)
+
+
+def main():
+    """Start the cross-compilation workflow."""
+    args = parse_args(sys.argv[1:])
+    cross_compile_pipeline(args)
 
 
 if __name__ == '__main__':

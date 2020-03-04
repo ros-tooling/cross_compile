@@ -12,12 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from unittest.mock import Mock
+from unittest.mock import patch
 
-"""Unit tests for the `create_cc_sysroot.py` script."""
-
+# from ros_cross_compile.docker_client import DockerClient
+from ros_cross_compile.ros_cross_compile import cross_compile_pipeline
 from ros_cross_compile.ros_cross_compile import parse_args
 
 
-def test_trivial():
+def test_trivial_argparse():
     args = parse_args(['somepath', '-a', 'aarch64', '-o', 'ubuntu'])
     assert args
+
+
+def test_mocked_cc_pipeline(tmpdir):
+    args = parse_args([str(tmpdir), '-a', 'aarch64', '-o', 'ubuntu'])
+    with patch('ros_cross_compile.ros_cross_compile.DockerClient', Mock()) as docker_mock:
+        cross_compile_pipeline(args)
+        assert docker_mock.called
+        assert docker_mock().build_image.call_count == 2
+        assert docker_mock().run_container.call_count == 2

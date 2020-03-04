@@ -19,12 +19,26 @@ import os
 from pathlib import Path
 from platform import system
 from unittest.mock import Mock
+from unittest.mock import patch
+
+import pytest
 
 from ros_cross_compile.platform import Platform
 from ros_cross_compile.sysroot_creator import create_workspace_sysroot_image
 from ros_cross_compile.sysroot_creator import prepare_docker_build_environment
+from ros_cross_compile.sysroot_creator import setup_emulator
 
 THIS_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
+def test_emulator_not_installed(tmpdir):
+    with pytest.raises(RuntimeError):
+        setup_emulator('not-an-arch', Path(tmpdir))
+
+
+@patch('ros_cross_compile.sysroot_creator.host_system', side_effect=lambda: 'Darwin')
+def test_emulator_touch(tmpdir):
+    setup_emulator('aarch64', Path(str(tmpdir)))
 
 
 def test_prepare_docker_build_basic(tmpdir):
