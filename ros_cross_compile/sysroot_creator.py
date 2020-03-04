@@ -76,15 +76,17 @@ def prepare_docker_build_environment(
         custom_setup_dest.touch()
 
     # OSX performs emulation automatically
+    emulator_name = 'qemu-{}-static'.format(platform.qemu_arch)
+    bin_dir = docker_build_dir / 'bin'
+    bin_dir.mkdir(parents=True)
     if system() != 'Darwin':
-        emulator_path = Path('/') / 'usr' / 'bin' / 'qemu-{}-static'.format(platform.qemu_arch)
+        emulator_path = Path('/') / 'usr' / 'bin' / emulator_name
         if not emulator_path.is_file():
             raise RuntimeError('Could not find the expected QEmu emulator binary "{}"'.format(
                 emulator_path))
-
-    bin_dir = docker_build_dir / 'bin'
-    bin_dir.mkdir(parents=True)
-    _copyfile(emulator_path, bin_dir)
+        _copyfile(emulator_path, bin_dir)
+    else:
+        (bin_dir / emulator_name).touch()
 
     return docker_build_dir
 
