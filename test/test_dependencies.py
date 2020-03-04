@@ -17,8 +17,8 @@ import platform
 import docker
 import pytest
 
-from ros_cross_compile.dependencies import DEPENDENCY_SCRIPT_SUBPATH
 from ros_cross_compile.dependencies import gather_rosdeps
+from ros_cross_compile.dependencies import rosdep_install_script
 from ros_cross_compile.docker_client import DockerClient
 from ros_cross_compile.platform import Platform
 
@@ -55,12 +55,12 @@ CUSTOM_KEY_PKG_XML = make_pkg_xml("""
 def test_dummy_ros2_pkg(tmpdir):
     ws = Path(str(tmpdir))
     pkg_xml = ws / 'src' / 'dummy' / 'package.xml'
-    out_script = ws / DEPENDENCY_SCRIPT_SUBPATH
     pkg_xml.parent.mkdir(parents=True)
     pkg_xml.write_text(RCLCPP_PKG_XML)
 
     client = DockerClient()
     platform = Platform(arch='aarch64', os_name='ubuntu', ros_distro='dashing')
+    out_script = ws / rosdep_install_script(platform)
 
     gather_rosdeps(client, platform, workspace=ws)
     result = out_script.read_text().splitlines()
@@ -107,7 +107,7 @@ echo "yaml file:/test_rules.yaml" > /etc/ros/rosdep/sources.list.d/22-test-rules
     rosdep_setup.write_text(script_contents)
 
     gather_rosdeps(client, platform, workspace=ws, custom_script=rosdep_setup)
-    out_script = ws / DEPENDENCY_SCRIPT_SUBPATH
+    out_script = ws / rosdep_install_script(platform)
     result = out_script.read_text().splitlines()
     expected = [
         '#!/bin/bash',
@@ -151,7 +151,7 @@ echo "yaml file:/test_rules.yaml" > /etc/ros/rosdep/sources.list.d/22-test-rules
     gather_rosdeps(
         client, platform, workspace=ws, custom_script=rosdep_setup, custom_data_dir=data_dir)
 
-    out_script = ws / DEPENDENCY_SCRIPT_SUBPATH
+    out_script = ws / rosdep_install_script(platform)
     result = out_script.read_text().splitlines()
     expected = [
         '#!/bin/bash',

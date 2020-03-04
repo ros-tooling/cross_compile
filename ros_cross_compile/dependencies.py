@@ -29,6 +29,11 @@ CUSTOM_SETUP = '/usercustom/rosdep_setup'
 CUSTOM_DATA = '/usercustom/custom-data'
 
 
+def rosdep_install_script(platform: Platform) -> Path:
+    """Construct relative path of the script that installs rosdeps into the sysroot image."""
+    return build_internals_dir(platform) / 'install_rosdeps.sh'
+
+
 def gather_rosdeps(
     docker_client: DockerClient,
     platform: Platform,
@@ -46,7 +51,7 @@ def gather_rosdeps(
     :param custom_data_dir: Optional absolute path of a directory containing custom data for setup
     :return None
     """
-    out_path = build_internals_dir(platform) / 'install_rosdeps.sh'
+    out_path = rosdep_install_script(platform)
 
     image_name = 'ros_cross_compile:rosdep'
     logger.info('Building rosdep collector image: %s', image_name)
