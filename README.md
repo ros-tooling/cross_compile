@@ -76,58 +76,17 @@ pip3 install --index-url https://test.pypi.org/simple/ ros_cross_compile
 
 ## Usage
 
-This script requires a `sysroot` directory containing the ROS 2 workspace, and
-the toolchain.
+This package installs the `ros_cross_compile` command.
+The command's first argument is the path to your ROS workspace.
 
-The following instructions explain how to create a `sysroot` directory.
-
-#### Create the directory structure
+Here is a simple invocation for a standard workflow.
 
 ```bash
-mkdir -p sysroot/qemu-user-static
-mkdir -p sysroot/ros_ws/src
+ros_cross_compile /path/to/my/workspace --arch aarch64 --os ubuntu --rosdistro dashing
 ```
 
-#### Copy the QEMU Binaries
-
-```bash
-cp /usr/bin/qemu-*-static sysroot/qemu-user-static/
-```
-
-
-#### Prepare `ros_ws`
-Use [ROS](http://wiki.ros.org/ROS/Installation) or [ROS 2](https://index.ros.org/doc/ros2/Installation/) source installation guide to get the ROS repositories needed to cross compile.
-
-Once you have the desired sources, copy them in the `sysroot` to use with the tool.
-```bash
-# Copy ros sources into the sysroot directory
-cp -r <full_path_to_your_ros_ws>/src sysroot/ros_ws
-```
-
-
-#### Run the cross compilation script
-
-In the end your `sysroot` directory should look like this:
-
-```bash
-sysroot/
- +-- qemu-user-static/
- |   +-- qemu-*-static
- +-- ros_ws/
-     +-- src/
-          |-- (ros packages)
-          +-- ...
-```
-
-Then run the tool:
-
-```bash
-python3 -m ros_cross_compile \
-  --sysroot-path /absolute/path/to/sysroot \
-  --arch aarch64 \
-  --os ubuntu
-  --rosdistro dashing
-```
+For information on all available options, run `ros_cross_compile -h`.
+See the following sections for information on the more complex options.
 
 ### Custom rosdep script
 
@@ -150,9 +109,7 @@ echo "yaml https://s3-us-west-2.amazonaws.com/rosdep/python.yaml" > /etc/ros/ros
 Tool invocation for this example:
 
 ```bash
-python3 -m ros_cross_compile \
-  --sysroot-path /absolute/path/to/directory/containing/sysroot
-  --arch aarch64 --os ubuntu \
+ros_cross_compile /path/to/my/workspace --arch aarch64 --os ubuntu \
   --custom-rosdep-script /path/to/rosdep-script.sh \
   --custom-data-dir /arbitrary/local/directory
 ```
@@ -207,9 +164,7 @@ cat custom-data/something.txt
 Tool invocation:
 
 ```bash
-python3 -m ros_cross_compile \
-  --sysroot-path /absolute/path/to/directory/containing/sysroot
-  --arch aarch64 --os ubuntu \
+ros_cross_compile /path/to/my/workspace --arch aarch64 --os ubuntu \
   --custom-setup-script /path/to/custom-setup.sh \
   --custom-data-dir /arbitrary/local/directory
 ```
@@ -228,7 +183,7 @@ You can generalize this workflow to any `.repos` file for your project.
 
 NOTE: this tutorial assumes a Debian-based (including Ubuntu) Linux distribution as the host platform.
 
-### Creating a cross-compilation workspace
+### Creating a simple source workspace
 
 1. Create a directory for your workspace
     * `mkdir cross_compile_ws`
@@ -242,28 +197,17 @@ NOTE: this tutorial assumes a Debian-based (including Ubuntu) Linux distribution
         url: https://github.com/ros-tooling/file_talker.git
         version: master
     ```
-1. Set up the sysroot environment for the cross-compiler to use
-    * `mkdir -p sysroot/qemu-user-static/`
-    * `mkdir -p sysroot/ros_ws/src/`
-    * `cp /usr/bin/qemu-*-static sysroot/qemu-user-static`
-    * `vcs import ros_ws/src < file_talker.repos`
+1. Check out the sources to build
+    * `mkdir -p src`
+    * `vcs import src < file_talker.repos`
 
 ### Running the cross-compilation
 
 ```bash
-python3 -m ros_cross_compile \
-  --sysroot-path $(pwd) \
-  --rosdistro dashing \
-  --arch aarch64 \
-  --os ubuntu
+ros_cross_compile $(pwd) --rosdistro dashing --arch aarch64 --os ubuntu
 ```
 
 Here is a detailed look at the arguments passed to the script:
-
-* `--sysroot-path $(pwd)`
-
-Point the `ros_cross_compile` tool to the absolute path of the directory containing the `sysroot` directory created earlier.
-You could run the tool from any directory, but in this case the current working directory contains `sysroot`, hence `$(pwd)`
 
 * `--rosdistro dashing`
 
@@ -285,25 +229,24 @@ In this case for ROS 2 Dashing - 18.04 Bionic Beaver.
 Run the following command
 
 ```bash
-ls sysroot/ros_ws/
+ls cross_compile_ws
 ```
 
 If the build succeeded, the directory looks like this:
 
 ```
-ros_ws/
-+-- src/
-    |-- file_talker
-+-- install_aarch64/
-    |-- ...
+src/
+|-- file_talker/
+|-- install_aarch64/
+|-- build_aarch64/
 ```
 
 The created directory `install_aarch64` is the installation of your ROS workspace for your target architecture.
 You can verify this:
 
 ```bash
-$ file ros_ws/install_aarch64/lib/file_talker/file_talker                                                               0s
-ros_ws/install_aarch64/lib/file_talker/file_talker: ELF 64-bit LSB shared object, ARM aarch64, version 1 (GNU/Linux), dynamically linked, interpreter /lib/ld-, for GNU/Linux 3.7.0, BuildID[sha1]=02ede8a648dfa6b5b30c03d54c6d87fd9151389e, not stripped
+$ file cross_compile_ws/install_aarch64/lib/file_talker/file_talker                                                               0s
+cross_compile_ws/install_aarch64/lib/file_talker/file_talker: ELF 64-bit LSB shared object, ARM aarch64, version 1 (GNU/Linux), dynamically linked, interpreter /lib/ld-, for GNU/Linux 3.7.0, BuildID[sha1]=02ede8a648dfa6b5b30c03d54c6d87fd9151389e, not stripped
 ```
 
 ### Using the build on a target platform

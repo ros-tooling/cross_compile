@@ -9,7 +9,7 @@ ARG ROS_VERSION
 
 SHELL ["/bin/bash", "-c"]
 
-COPY qemu-user-static/ /usr/bin/
+COPY bin/* /usr/bin/
 
 # Set timezone
 RUN echo 'Etc/UTC' > /etc/timezone && \

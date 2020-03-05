@@ -64,10 +64,7 @@ setup(){
   fi
 
   test_sysroot_dir=$(mktemp -d)
-  mkdir "$test_sysroot_dir/sysroot"
-  mkdir -p "$test_sysroot_dir/sysroot/ros_ws/src/"
-  # Get full directory name of the script no matter where it is being called from
-  dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+  mkdir -p "$test_sysroot_dir/src"
   # Copy correct dummy test pkg for the current argument set
   if [ "$ros_version" == "ros2" ] && [ "$os" == "ubuntu" ]; then
     # ROS2 + Debian info
@@ -77,11 +74,10 @@ setup(){
   else
     test_package_name="dummy_pkg"
   fi
-  cp -r "$dir/$test_package_name" "$test_sysroot_dir/sysroot/ros_ws/src"
 
-  # Copy QEMU binaries
-  mkdir -p "$test_sysroot_dir/sysroot/qemu-user-static"
-  cp /usr/bin/qemu-* "$test_sysroot_dir/sysroot/qemu-user-static"
+  # Get full directory name of the script no matter where it is being called from
+  dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+  cp -r "$dir/$test_package_name" "$test_sysroot_dir/src"
 }
 
 # Argparser
@@ -118,15 +114,14 @@ setup
 
 # Run the cross compilation script
 log "Executing cross compilation script..."
-python3 -m ros_cross_compile \
-  --arch "$arch" --os "$os" --rosdistro "$distro" \
-  --sysroot-path "$test_sysroot_dir"
+python3 -m ros_cross_compile "$test_sysroot_dir" \
+  --arch "$arch" --os "$os" --rosdistro "$distro"
 CC_SCRIPT_STATUS=$?
 if [[ "$CC_SCRIPT_STATUS" -ne 0 ]]; then
   panic "Failed to run cross compile script."
 fi
 
-install_dir=$test_sysroot_dir/sysroot/ros_ws/install_$arch
+install_dir=$test_sysroot_dir/install_$arch
 
 log "Checking that install directory was output to the correct place..."
 if [ ! -d "$install_dir" ]; then
@@ -134,7 +129,7 @@ if [ ! -d "$install_dir" ]; then
 fi
 
 log "Checking that extraction didn't overwrite our workspace"
-if [ ! -d "$test_sysroot_dir/sysroot/ros_ws/src" ]; then
+if [ ! -d "$test_sysroot_dir/src" ]; then
   panic "The user's source tree got deleted by the build"
 fi
 
@@ -152,7 +147,7 @@ fi
 log "Running example node in the builder container..."
 docker run --rm \
   --entrypoint "/bin/bash" \
-  -v "$test_sysroot_dir"/sysroot/ros_ws:/ros_ws \
+  -v "$test_sysroot_dir":/ros_ws \
   "$IMAGE_TAG" \
   -c "source /ros_ws/install_${arch}/setup.bash && dummy_binary"
 RUN_RESULT=$?

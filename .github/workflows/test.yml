@@ -24,6 +24,10 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
         architecture: x64
+    - name: Install dependencies
+      run: |
+        sudo apt update && sudo apt install -y qemu-user-static
+      if: matrix.os == 'ubuntu-18.04'
     - name: Install Tox for testing
       run: pip install tox
     - name: Run tests
