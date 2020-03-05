@@ -45,7 +45,7 @@ def setup_emulator(arch: str, output_dir: Path) -> None:
     """Copy the appropriate emulator binary to the output location."""
     emulator_name = 'qemu-{}-static'.format(arch)
     bin_dir = output_dir / 'bin'
-    bin_dir.mkdir(parents=True)
+    bin_dir.mkdir(parents=True, exist_ok=True)
     # OSX performs emulation automatically
     if host_system() != 'Darwin':
         emulator_path = Path('/') / 'usr' / 'bin' / emulator_name
@@ -74,7 +74,7 @@ def prepare_docker_build_environment(
     """
     package_dir = Path(__file__).parent
     docker_build_dir = ros_workspace / build_internals_dir(platform)
-    docker_build_dir.mkdir(parents=True)
+    docker_build_dir.mkdir(parents=True, exist_ok=True)
 
     _copytree(package_dir / 'docker', docker_build_dir)
     _copytree(package_dir / 'mixins', docker_build_dir / 'mixins')
@@ -83,7 +83,7 @@ def prepare_docker_build_environment(
     if custom_data_dir:
         _copytree(custom_data_dir, custom_data_dest)
     else:
-        custom_data_dest.mkdir()
+        custom_data_dest.mkdir(exist_ok=True)
 
     custom_setup_dest = docker_build_dir / 'user-custom-setup'
     if custom_setup_script:

@@ -32,13 +32,13 @@ THIS_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 @patch('ros_cross_compile.sysroot_creator.host_system', side_effect=lambda: 'Linux')
-def test_emulator_not_installed(tmpdir):
+def test_emulator_not_installed(system_mock, tmpdir):
     with pytest.raises(RuntimeError):
         setup_emulator('not-an-arch', Path(str(tmpdir)))
 
 
 @patch('ros_cross_compile.sysroot_creator.host_system', side_effect=lambda: 'Darwin')
-def test_emulator_touch(tmpdir):
+def test_emulator_touch(system_mock, tmpdir):
     setup_emulator('aarch64', Path(str(tmpdir)))
 
 
@@ -51,6 +51,14 @@ def test_prepare_docker_build_basic(tmpdir):
         assert (out_dir / 'bin' / 'qemu-arm-static').exists()
     assert (out_dir / 'rosdep.Dockerfile').exists()
     assert (out_dir / 'sysroot.Dockerfile').exists()
+
+
+def test_run_twice(tmpdir):
+    # The test is that this doesn't throw an exception for already existing paths
+    platform = Platform('armhf', 'debian', 'kinetic')
+    tmp = Path(str(tmpdir))
+    prepare_docker_build_environment(platform, tmp, None, None)
+    prepare_docker_build_environment(platform, tmp, None, None)
 
 
 def test_prepare_docker_build_with_user_custom(tmpdir):
