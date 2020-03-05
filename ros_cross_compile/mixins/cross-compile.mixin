@@ -1,9 +1,6 @@
 {
     "build": {
         "aarch64-docker": {
-            "cmake-clean-cache": true,
-            "cmake-clean-first": true,
-            "cmake-force-configure": true,
             "merge-install": true
         },
         "aarch64-linux": {
@@ -26,9 +23,6 @@
                 "-DTHREADS_PTHREAD_ARG=0",
                 "--no-warn-unused-cli"
             ],
-            "cmake-clean-cache": true,
-            "cmake-clean-first": true,
-            "cmake-force-configure": true,
             "merge-install": true
         },
         "arm-linux": {
@@ -50,9 +44,6 @@
                 "-DTHREADS_PTHREAD_ARG=0",
                 "--no-warn-unused-cli"
             ],
-            "cmake-clean-cache": true,
-            "cmake-clean-first": true,
-            "cmake-force-configure": true,
             "merge-install": true
         },
         "armhf-docker": {
@@ -61,9 +52,6 @@
                 "-DCMAKE_CXX_FLAGS=-Wno-psabi",
                 "--no-warn-unused-cli"
             ],
-            "cmake-clean-cache": true,
-            "cmake-clean-first": true,
-            "cmake-force-configure": true,
             "merge-install": true,
         },
         "armhf-linux": {
@@ -87,9 +75,6 @@
                 "-DTHREADS_PTHREAD_ARG=0",
                 "--no-warn-unused-cli"
             ],
-            "cmake-clean-cache": true,
-            "cmake-clean-first": true,
-            "cmake-force-configure": true,
             "merge-install": true
         }
     }
