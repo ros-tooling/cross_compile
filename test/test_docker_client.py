@@ -78,3 +78,20 @@ class DockerClientTest(unittest.TestCase):
         # but even on the slowest test environment consecutive prints will not take a full second
         timediff = timestamps[1] - timestamps[0]
         assert timediff >= 1
+
+    @pytest.mark.skipif(IS_MAC, reason=NO_MAC_REASON)
+    def test_removal(self):
+        client = DockerClient()
+        api_client = client._client
+        name = 'test_removing_run_container'
+        try:
+            preexisting_container = api_client.containers.get(name)
+            preexisting_container.remove()
+        except docker.errors.NotFound:
+            pass
+
+        client.run_container(
+            'ubuntu:18.04', command='/bin/sh -c "echo hello"', container_name=name)
+
+        containers = client._client.containers.list(all=True, filters={'name': name})
+        assert len(containers) == 0
