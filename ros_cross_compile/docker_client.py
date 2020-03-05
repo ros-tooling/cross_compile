@@ -104,14 +104,21 @@ class DockerClient:
             }
             for src, dest in volumes.items()
         }
-        logs = self._client.containers.run(
+        # Note that the `run` kwarg `stream` is not available
+        # in the version of dockerpy that we are using, so we must detach to live-stream logs
+        # Do not `remove` so that the container can be queried for its exit code after finishing
+        container = self._client.containers.run(
             image=image_name,
             command=command,
             environment=environment,
             volumes=docker_volumes,
-            remove=True,
-            stream=True,
+            detach=True,
             network_mode='host',
         )
+        logs = container.logs(stream=True)
         for line in logs:
             logger.info(line.decode('utf-8').rstrip())
+        exit_code = container.wait()
+        if exit_code:
+            raise docker.errors.ContainerError(
+                image_name, exit_code, '', image_name, 'See above ^')
