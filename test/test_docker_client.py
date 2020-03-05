@@ -25,6 +25,7 @@ IS_MAC = platform.system() == 'Darwin'
 
 
 class DockerClientTest(unittest.TestCase):
+
     def test_parse_docker_build_output(self):
         """Test the SysrootCreator constructor assuming valid path setup."""
         # Create mock directories and files
