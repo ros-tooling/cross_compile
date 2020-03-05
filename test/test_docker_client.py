@@ -93,5 +93,5 @@ class DockerClientTest(unittest.TestCase):
         client.run_container(
             'ubuntu:18.04', command='/bin/sh -c "echo hello"', container_name=name)
 
-        containers = client._client.containers.list(all=True, filters={'name': name})
+        containers = api_client.containers.list(all=True, filters={'name': name})
         assert len(containers) == 0
