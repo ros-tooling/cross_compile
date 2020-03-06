@@ -1,7 +1,6 @@
 {
     "build": {
         "aarch64-docker": {
-            "merge-install": true
         },
         "aarch64-linux": {
             "cmake-args": [
@@ -23,7 +22,6 @@
                 "-DTHREADS_PTHREAD_ARG=0",
                 "--no-warn-unused-cli"
             ],
-            "merge-install": true
         },
         "arm-linux": {
             "cmake-args": [
@@ -44,7 +42,6 @@
                 "-DTHREADS_PTHREAD_ARG=0",
                 "--no-warn-unused-cli"
             ],
-            "merge-install": true
         },
         "armhf-docker": {
             "cmake-args": [
@@ -52,7 +49,6 @@
                 "-DCMAKE_CXX_FLAGS=-Wno-psabi",
                 "--no-warn-unused-cli"
             ],
-            "merge-install": true,
         },
         "armhf-linux": {
             "cmake-args": [
@@ -75,7 +71,6 @@
                 "-DTHREADS_PTHREAD_ARG=0",
                 "--no-warn-unused-cli"
             ],
-            "merge-install": true
         }
     }
 }
