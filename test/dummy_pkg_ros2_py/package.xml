@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>dummy_pkg2_ros2</name>
+  <name>dummy_pkg_ros2_py</name>
   <version>0.0.0</version>
-  <description>end to end ROS2 test package for cross compiling</description>
+  <description>end to end ROS2 Python test package for cross compiling</description>
   <maintainer email="example@example.com">Nobody</maintainer>
   <license>Apache 2.0</license>
 

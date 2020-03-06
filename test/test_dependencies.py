@@ -164,8 +164,8 @@ def test_colcon_defaults(tmpdir):
     import shutil
     src = ws / 'src'
     src.mkdir()
-    shutil.copytree(str(this_dir / 'dummy_pkg_ros2'), str(src / 'dummy_pkg_ros2'))
-    shutil.copytree(str(this_dir / 'dummy_pkg2_ros2'), str(src / 'dummy_pkg2_ros2'))
+    shutil.copytree(str(this_dir / 'dummy_pkg_ros2_cpp'), str(src / 'dummy_pkg_ros2_cpp'))
+    shutil.copytree(str(this_dir / 'dummy_pkg_ros2_py'), str(src / 'dummy_pkg_ros2_py'))
 
     client = DockerClient()
     platform = Platform(arch='aarch64', os_name='ubuntu', ros_distro='dashing')

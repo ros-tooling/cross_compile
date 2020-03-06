@@ -73,9 +73,9 @@ setup(){
     # ROS2 + Debian info
     # Debian is a Tier 3 package for current ROS 2 distributions, so it doesn't have apt releases
     # Therefore we can't resolve the rclcpp dependency of the ros2 package, so we build the empty project
-    cp -r "$dir/dummy_pkg_ros2" "$test_sysroot_dir/src"
-    cp -r "$dir/dummy_pkg2_ros2" "$test_sysroot_dir/src"
-    target_package="dummy_pkg_ros2"
+    cp -r "$dir/dummy_pkg_ros2_cpp" "$test_sysroot_dir/src"
+    cp -r "$dir/dummy_pkg_ros2_py" "$test_sysroot_dir/src"
+    target_package="dummy_pkg_ros2_cpp"
   else
     cp -r "$dir/dummy_pkg" "$test_sysroot_dir/src"
     target_package="dummy_pkg"
@@ -124,6 +124,7 @@ if [[ "$CC_SCRIPT_STATUS" -ne 0 ]]; then
 fi
 
 install_dir=$test_sysroot_dir/install_$arch
+build_dir=$test_sysroot_dir/build_$arch
 
 log "Checking that install directory was output to the correct place..."
 if [ ! -d "$install_dir" ]; then
@@ -158,6 +159,25 @@ if [[ "$RUN_RESULT" -ne 0 ]]; then
 fi
 
 log "Rerunning build with package selection..."
+rm -rf "$install_dir"
+rm -rf "$build_dir"
+cat > "$test_sysroot_dir/defaults.yaml" <<EOF
+build:
+  packages-select: [dummy_pkg_ros2_cpp]
+EOF
+python3 -m ros_cross_compile "$test_sysroot_dir" \
+  --arch "$arch" --os "$os" --rosdistro "$distro"
+CC_SCRIPT_STATUS=$?
+if [[ "$CC_SCRIPT_STATUS" -ne 0 ]]; then
+  panic "Failed to run cross compile script."
+fi
+
+if [ ! -d "$install_dir/dummy_pkg_ros2_cpp" ]; then
+  panic "Didn't build the cpp package when selected"
+fi
+if [ -d "$install_dir/dummy_pkg_ros2_py" ]; then
+  panic "Built the python package when deselected"
+fi
 
 result=0
 exit 0
