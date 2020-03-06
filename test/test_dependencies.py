@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from pathlib import Path
-import platform
 
 import docker
 import pytest
@@ -22,11 +21,7 @@ from ros_cross_compile.dependencies import rosdep_install_script
 from ros_cross_compile.docker_client import DockerClient
 from ros_cross_compile.platform import Platform
 
-NO_MAC_REASON = 'CI environment cannot install Docker on Mac OS hosts.'
-
-
-def is_mac():
-    return platform.system() == 'Darwin'
+from .utilities import uses_docker
 
 
 def make_pkg_xml(contents):
@@ -51,7 +46,7 @@ CUSTOM_KEY_PKG_XML = make_pkg_xml("""
 """)
 
 
-@pytest.mark.skipif(is_mac(), reason=NO_MAC_REASON)
+@uses_docker
 def test_dummy_ros2_pkg(tmpdir):
     ws = Path(str(tmpdir))
     pkg_xml = ws / 'src' / 'dummy' / 'package.xml'
@@ -74,7 +69,7 @@ def test_dummy_ros2_pkg(tmpdir):
     assert result == expected, 'Rosdep output did not meet expectations.'
 
 
-@pytest.mark.skipif(is_mac(), reason=NO_MAC_REASON)
+@uses_docker
 def test_rosdep_bad_key(tmpdir):
     ws = Path(str(tmpdir))
     pkg_xml = Path(ws) / 'src' / 'dummy' / 'package.xml'
@@ -86,7 +81,7 @@ def test_rosdep_bad_key(tmpdir):
         gather_rosdeps(client, platform, workspace=ws)
 
 
-@pytest.mark.skipif(is_mac(), reason=NO_MAC_REASON)
+@uses_docker
 def test_custom_rosdep_no_data_dir(tmpdir):
     script_contents = """
 cat > /test_rules.yaml <<EOF
@@ -118,7 +113,7 @@ echo "yaml file:/test_rules.yaml" > /etc/ros/rosdep/sources.list.d/22-test-rules
     assert result == expected, 'Rosdep output did not meet expectations.'
 
 
-@pytest.mark.skipif(is_mac(), reason=NO_MAC_REASON)
+@uses_docker
 def test_custom_rosdep_with_data_dir(tmpdir):
 
     rule_contents = """
