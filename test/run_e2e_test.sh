@@ -163,6 +163,8 @@ rm -rf "$install_dir"
 rm -rf "$build_dir"
 cp -r "$dir/dummy_pkg_ros2_cpp" "$test_sysroot_dir/src"
 cat > "$test_sysroot_dir/defaults.yaml" <<EOF
+list:
+  packages-select: [dummy_pkg]
 build:
   packages-select: [dummy_pkg]
 EOF
