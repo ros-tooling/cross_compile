@@ -14,6 +14,7 @@
 
 import platform
 import unittest
+from unittest.mock import patch
 
 import docker
 import pytest
@@ -25,6 +26,13 @@ IS_MAC = platform.system() == 'Darwin'
 
 
 class DockerClientTest(unittest.TestCase):
+
+    def remove_container(self, client: docker.client.DockerClient, name: str) -> None:
+        try:
+            preexisting_container = client.containers.get(name)
+            preexisting_container.remove()
+        except docker.errors.NotFound:
+            pass
 
     def test_parse_docker_build_output(self):
         """Test the SysrootCreator constructor assuming valid path setup."""
@@ -84,14 +92,28 @@ class DockerClientTest(unittest.TestCase):
         client = DockerClient()
         api_client = client._client
         name = 'test_removing_run_container'
-        try:
-            preexisting_container = api_client.containers.get(name)
-            preexisting_container.remove()
-        except docker.errors.NotFound:
-            pass
+        self.remove_container(api_client, name)
 
         client.run_container(
             'ubuntu:18.04', command='/bin/sh -c "echo hello"', container_name=name)
 
         containers = api_client.containers.list(all=True, filters={'name': name})
+        assert len(containers) == 0
+
+    @pytest.mark.skipif(IS_MAC, reason=NO_MAC_REASON)
+    def test_removal_on_failure(self):
+        client = DockerClient()
+        api_client = client._client
+        name = 'test_removing_failed_container'
+        self.remove_container(api_client, name)
+
+        def mock_logs(*args, **kwargs):
+            raise docker.errors.APIError('Logs raises an exception in this test')
+
+        with patch('docker.models.containers.Container.logs', side_effect=mock_logs):
+            with pytest.raises(docker.errors.APIError):
+                client.run_container(
+                    'ubuntu:18.04', command='/bin/sh -c "echo hello"', container_name=name)
+
+        containers = client._client.containers.list(all=True, filters={'name': name})
         assert len(containers) == 0

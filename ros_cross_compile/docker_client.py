@@ -117,11 +117,15 @@ class DockerClient:
             detach=True,
             network_mode='host',
         )
-        logs = container.logs(stream=True)
-        for line in logs:
-            logger.info(line.decode('utf-8').rstrip())
-        exit_code = container.wait()
-        container.remove()
+        try:
+            logs = container.logs(stream=True)
+            for line in logs:
+                logger.info(line.decode('utf-8').rstrip())
+            exit_code = container.wait()
+        finally:
+            container.stop()
+            container.remove()
+
         if exit_code:
             raise docker.errors.ContainerError(
                 image_name, exit_code, '', image_name, 'See above ^')
