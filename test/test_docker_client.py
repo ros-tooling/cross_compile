@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import platform
 import unittest
 from unittest.mock import patch
 
@@ -21,8 +20,7 @@ import pytest
 
 from ros_cross_compile.docker_client import DockerClient
 
-NO_MAC_REASON = 'CI environment cannot install Docker on Mac OS hosts.'
-IS_MAC = platform.system() == 'Darwin'
+from .utilities import uses_docker
 
 
 class DockerClientTest(unittest.TestCase):
@@ -65,13 +63,13 @@ class DockerClientTest(unittest.TestCase):
         with pytest.raises(docker.errors.BuildError):
             client._process_build_log(log_generator_with_errors)
 
-    @pytest.mark.skipif(IS_MAC, reason=NO_MAC_REASON)
+    @uses_docker
     def test_fail_docker_run(self):
         client = DockerClient()
         with pytest.raises(docker.errors.ContainerError):
             client.run_container('ubuntu:18.04', command='/bin/sh -c "exit 1"')
 
-    @pytest.mark.skipif(IS_MAC, reason=NO_MAC_REASON)
+    @uses_docker
     def test_stream(self):
         client = DockerClient()
         test_command = 'echo message1 && sleep 2 && echo message2'
@@ -87,7 +85,7 @@ class DockerClientTest(unittest.TestCase):
         timediff = timestamps[1] - timestamps[0]
         assert timediff >= 1
 
-    @pytest.mark.skipif(IS_MAC, reason=NO_MAC_REASON)
+    @uses_docker
     def test_removal(self):
         client = DockerClient()
         api_client = client._client
@@ -100,7 +98,7 @@ class DockerClientTest(unittest.TestCase):
         containers = api_client.containers.list(all=True, filters={'name': name})
         assert len(containers) == 0
 
-    @pytest.mark.skipif(IS_MAC, reason=NO_MAC_REASON)
+    @uses_docker
     def test_removal_on_failure(self):
         client = DockerClient()
         api_client = client._client
