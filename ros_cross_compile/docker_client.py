@@ -105,6 +105,7 @@ class DockerClient:
             }
             for src, dest in volumes.items()
         }
+	environment['COLCON_DEFAULTS_FILE'] = './defaults.yaml'
         # Note that the `run` kwarg `stream` is not available
         # in the version of dockerpy that we are using, so we must detach to live-stream logs
         # Do not `remove` so that the container can be queried for its exit code after finishing

@@ -23,10 +23,13 @@ cat > "${OUT_PATH}" <<EOF
 set -euxo pipefail
 EOF
 
+# Create an array by splitting command output by spaces
+IFS=" " read -r -a package_paths <<< "$(colcon list -p)"
+
 rosdep install \
     --os "${TARGET_OS}" \
     --rosdistro "${ROSDISTRO}" \
-    --from-paths src/ \
+    --from-paths "${package_paths[@]}" \
     --ignore-src \
     --reinstall \
     --default-yes \
