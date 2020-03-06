@@ -186,7 +186,7 @@ def test_colcon_defaults(tmpdir):
     # write defaults file and expect selective dependency output
     (ws / 'defaults.yaml').write_text("""
 list:
-  packages-select: [dummy_pkg2_ros2]
+  packages-select: [dummy_pkg_ros2_py]
 """)
     gather_rosdeps(client, platform, workspace=ws)
     result = out_script.read_text().splitlines()
