@@ -76,10 +76,10 @@ setup(){
     cp -r "$dir/dummy_pkg_ros2_cpp" "$test_sysroot_dir/src"
     cp -r "$dir/dummy_pkg_ros2_py" "$test_sysroot_dir/src"
     target_package="dummy_pkg_ros2_cpp"
-  else
-    cp -r "$dir/dummy_pkg" "$test_sysroot_dir/src"
-    target_package="dummy_pkg"
   fi
+
+  cp -r "$dir/dummy_pkg" "$test_sysroot_dir/src"
+  target_package="dummy_pkg"
 }
 
 # Argparser
@@ -161,10 +161,12 @@ fi
 log "Rerunning build with package selection..."
 rm -rf "$install_dir"
 rm -rf "$build_dir"
+cp -r "$dir/dummy_pkg_ros2_cpp" "$test_sysroot_dir/src"
 cat > "$test_sysroot_dir/defaults.yaml" <<EOF
 build:
-  packages-select: [dummy_pkg_ros2_cpp]
+  packages-select: [dummy_pkg]
 EOF
+
 python3 -m ros_cross_compile "$test_sysroot_dir" \
   --arch "$arch" --os "$os" --rosdistro "$distro"
 CC_SCRIPT_STATUS=$?
@@ -172,10 +174,10 @@ if [[ "$CC_SCRIPT_STATUS" -ne 0 ]]; then
   panic "Failed to run cross compile script."
 fi
 
-if [ ! -d "$install_dir/dummy_pkg_ros2_cpp" ]; then
+if [ ! -d "$install_dir/dummy_pkg" ]; then
   panic "Didn't build the cpp package when selected"
 fi
-if [ -d "$install_dir/dummy_pkg_ros2_py" ]; then
+if [ -d "$install_dir/dummy_pkg_ros2_cpp" ]; then
   panic "Built the python package when deselected"
 fi
 
