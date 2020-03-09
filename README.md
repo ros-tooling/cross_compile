@@ -93,7 +93,7 @@ See the following sections for information on the more complex options.
 To choose which packages to install dependencies for, this tool runs `colcon list` on your workspace.
 To build, it runs `colcon build`.
 
-You can provide arbitrary arguments to these commands via the (colcon `defaults.yaml`)[https://colcon.readthedocs.io/en/released/user/configuration.html#defaults-yaml].
+You can provide arbitrary arguments to these commands via the [colcon `defaults.yaml`](https://colcon.readthedocs.io/en/released/user/configuration.html#defaults-yaml).
 
 The `ros_cross_compile` tool will automatically use a `defaults.yaml` file at the root of your workspace (same level as `src/`).
 You do not need to pass any arguments to enable this behavior, just provide the file.
@@ -101,7 +101,7 @@ You do not need to pass any arguments to enable this behavior, just provide the 
 For example, there are repositories checked out in your workspace that contain packages that are not needed for your application - some repos provide many packages and you may only want one!
 In this scenario there is a "bringup" package that acts as the entry point to your application:
 
-```
+```yaml
 # my_workspace/defaults.yaml
 list:
   # only install dependencies for source packages that my package depends on
