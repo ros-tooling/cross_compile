@@ -23,13 +23,12 @@ cat > "${OUT_PATH}" <<EOF
 set -euxo pipefail
 EOF
 
-package_paths=$(colcon list -p)
+mapfile -t package_paths < <(colcon list -p)
 
-# shellcheck disable=SC2086
 rosdep install \
     --os "${TARGET_OS}" \
     --rosdistro "${ROSDISTRO}" \
-    --from-paths ${package_paths} \
+    --from-paths "${package_paths[@]}" \
     --ignore-src \
     --reinstall \
     --default-yes \
