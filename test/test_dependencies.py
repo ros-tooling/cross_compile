@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from pathlib import Path
+import shutil
 
 import docker
 import pytest
@@ -161,7 +162,6 @@ echo "yaml file:/test_rules.yaml" > /etc/ros/rosdep/sources.list.d/22-test-rules
 def test_colcon_defaults(tmpdir):
     ws = Path(str(tmpdir))
     this_dir = Path(__file__).parent
-    import shutil
     src = ws / 'src'
     src.mkdir()
     shutil.copytree(str(this_dir / 'dummy_pkg_ros2_cpp'), str(src / 'dummy_pkg_ros2_cpp'))
@@ -173,15 +173,11 @@ def test_colcon_defaults(tmpdir):
 
     # no defaults file should get everything
     gather_rosdeps(client, platform, workspace=ws)
-    result = out_script.read_text().splitlines()
-    expected = [
-        '#!/bin/bash',
-        'set -euxo pipefail',
-        '#[apt] Installation commands:',
-        '  apt-get install -y ros-dashing-ament-cmake',
-        '  apt-get install -y ros-dashing-rclcpp',
-        '  apt-get install -y ros-dashing-rclpy',
-    ]
+
+    result = out_script.read_text()
+    assert 'ros-dashing-ament-cmake' in result
+    assert 'ros-dashing-rclcpp' in result
+    assert 'ros-dashing-rclpy' in result
 
     # write defaults file and expect selective dependency output
     (ws / 'defaults.yaml').write_text("""
@@ -189,11 +185,7 @@ list:
   packages-select: [dummy_pkg_ros2_py]
 """)
     gather_rosdeps(client, platform, workspace=ws)
-    result = out_script.read_text().splitlines()
-    expected = [
-        '#!/bin/bash',
-        'set -euxo pipefail',
-        '#[apt] Installation commands:',
-        '  apt-get install -y ros-dashing-rclpy',
-    ]
-    assert result == expected, 'Rosdep output did not meet expectations.'
+    result = out_script.read_text()
+    assert 'ros-dashing-ament-cmake' not in result
+    assert 'ros-dashing-rclcpp' not in result
+    assert 'ros-dashing-rclpy' in result
