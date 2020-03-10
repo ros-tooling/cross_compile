@@ -22,6 +22,7 @@ ArchNameMapping = NamedTuple('ArchNameMapping', [('docker', str), ('qemu', str)]
 ARCHITECTURE_NAME_MAP = {
     'armhf': ArchNameMapping(docker='arm32v7', qemu='arm'),
     'aarch64': ArchNameMapping(docker='arm64v8', qemu='aarch64'),
+    'x86_64': ArchNameMapping(docker='', qemu='x86_64'),
 }
 SUPPORTED_ARCHITECTURES = tuple(ARCHITECTURE_NAME_MAP.keys())
 
@@ -87,8 +88,11 @@ class Platform:
             self._docker_target_base = override_base_image
         else:
             self._os_distro = ROSDISTRO_OS_MAP[self.ros_distro][self.os_name]
-            self._docker_target_base = '{}/{}:{}'.format(docker_org, self.os_name, self.os_distro)
-            self._docker_native_base = '{}:{}'.format(self.os_name, self.os_distro)
+            native_base = '{}:{}'.format(self.os_name, self.os_distro)
+            if docker_org:
+                self._docker_target_base = '{}/{}'.format(docker_org, native_base)
+            else:
+                self._docker_target_base = native_base
 
     @property
     def arch(self):

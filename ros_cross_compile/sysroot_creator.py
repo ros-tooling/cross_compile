@@ -15,7 +15,7 @@
 from distutils.dir_util import copy_tree
 import logging
 from pathlib import Path
-from platform import system as host_system
+import platform as py_platform
 import shutil
 from typing import Optional
 
@@ -46,8 +46,8 @@ def setup_emulator(arch: str, output_dir: Path) -> None:
     emulator_name = 'qemu-{}-static'.format(arch)
     bin_dir = output_dir / 'bin'
     bin_dir.mkdir(parents=True, exist_ok=True)
-    # OSX performs emulation automatically
-    if host_system() != 'Darwin':
+    needs_emulator = (py_platform.system() != 'Darwin') and (py_platform.machine() != arch)
+    if needs_emulator:
         emulator_path = Path('/') / 'usr' / 'bin' / emulator_name
         if not emulator_path.is_file():
             raise RuntimeError('Could not find the expected QEmu emulator binary "{}"'.format(

@@ -13,7 +13,7 @@ using QEmu, #69 tracks progress toward enabling cross-compilation.
 
 This tool supports compiling a workspace for all combinations of the following:
 
-* Architecture: `armhf`, `aarch64`
+* Architecture: `armhf`, `aarch64`, `x86_64`
 * ROS Distro
   * ROS: `kinetic`, `melodic`
   * ROS 2: `dashing`, `eloquent`

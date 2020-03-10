@@ -48,6 +48,11 @@ def test_platform_argument_validation():
         p = Platform('armhf', 'rhel', 'dashing')
 
 
+def test_construct_x86():
+    p = Platform('x86_64', 'ubuntu', 'eloquent')
+    assert p
+
+
 def test_sysroot_image_tag(platform_config):
     """Make sure the image tag is created correctly."""
     image_tag = platform_config.sysroot_image_tag
