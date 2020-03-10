@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target_arch: [aarch64, armhf]
+        target_arch: [aarch64, armhf, x86_64]
         target_os: [ubuntu, debian]
         rosdistro: [dashing, eloquent, melodic]
     steps:
