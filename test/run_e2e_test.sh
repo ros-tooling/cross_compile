@@ -141,6 +141,8 @@ if [ "$arch" = 'armhf' ]; then
   expected_binary='ELF 32-bit LSB shared object, ARM'
 elif [ "$arch" = 'aarch64' ]; then
   expected_binary='ELF 64-bit LSB shared object, ARM aarch64'
+elif [ "$arch" = 'x86_64' ]; then
+  expected_binary='ELF 64-bit LSB shared object, x86-64'
 fi
 binary_file_info=$(file "$install_dir/$target_package/bin/dummy_binary")
 if [[ "$binary_file_info" != *"$expected_binary"* ]]; then
