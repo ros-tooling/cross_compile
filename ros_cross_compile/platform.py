@@ -88,11 +88,11 @@ class Platform:
             self._docker_target_base = override_base_image
         else:
             self._os_distro = ROSDISTRO_OS_MAP[self.ros_distro][self.os_name]
-            self._docker_native_base = '{}:{}'.format(self.os_name, self.os_distro)
+            native_base = '{}:{}'.format(self.os_name, self.os_distro)
             if docker_org:
-                self._docker_target_base = '{}/{}'.format(docker_org, self._docker_native_base)
+                self._docker_target_base = '{}/{}'.format(docker_org, native_base)
             else:
-                self._docker_target_base = self._docker_native_base
+                self._docker_target_base = native_base
 
     @property
     def arch(self):
