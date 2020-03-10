@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import getpass
-import platform
 from typing import NamedTuple
 from typing import Optional
 
