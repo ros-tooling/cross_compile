@@ -13,6 +13,7 @@ RUN apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E
 RUN echo "deb http://packages.ros.org/ros/ubuntu bionic main" > /etc/apt/sources.list.d/ros-latest.list
 RUN apt-get update && apt-get install --no-install-recommends -y \
       python-rosdep \
+      python3-colcon-common-extensions \
     && rm -rf /var/lib/apt/lists/*
 
 RUN rosdep init

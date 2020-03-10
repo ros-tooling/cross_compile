@@ -18,6 +18,8 @@ from typing import Optional
 
 import docker
 
+DEFAULT_COLCON_DEFAULTS_FILE = 'defaults.yaml'
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('Docker Client')
 
@@ -105,6 +107,7 @@ class DockerClient:
             }
             for src, dest in volumes.items()
         }
+        environment['COLCON_DEFAULTS_FILE'] = DEFAULT_COLCON_DEFAULTS_FILE
         # Note that the `run` kwarg `stream` is not available
         # in the version of dockerpy that we are using, so we must detach to live-stream logs
         # Do not `remove` so that the container can be queried for its exit code after finishing

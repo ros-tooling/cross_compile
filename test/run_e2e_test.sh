@@ -65,19 +65,21 @@ setup(){
 
   test_sysroot_dir=$(mktemp -d)
   mkdir -p "$test_sysroot_dir/src"
+  # Get full directory name of the script no matter where it is being called from
+  dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
   # Copy correct dummy test pkg for the current argument set
   if [ "$ros_version" == "ros2" ] && [ "$os" == "ubuntu" ]; then
     # ROS2 + Debian info
     # Debian is a Tier 3 package for current ROS 2 distributions, so it doesn't have apt releases
     # Therefore we can't resolve the rclcpp dependency of the ros2 package, so we build the empty project
-    test_package_name="dummy_pkg_ros2"
-  else
-    test_package_name="dummy_pkg"
+    cp -r "$dir/dummy_pkg_ros2_cpp" "$test_sysroot_dir/src"
+    cp -r "$dir/dummy_pkg_ros2_py" "$test_sysroot_dir/src"
+    target_package="dummy_pkg_ros2_cpp"
   fi
 
-  # Get full directory name of the script no matter where it is being called from
-  dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-  cp -r "$dir/$test_package_name" "$test_sysroot_dir/src"
+  cp -r "$dir/dummy_pkg" "$test_sysroot_dir/src"
+  target_package="dummy_pkg"
 }
 
 # Argparser
@@ -122,6 +124,7 @@ if [[ "$CC_SCRIPT_STATUS" -ne 0 ]]; then
 fi
 
 install_dir=$test_sysroot_dir/install_$arch
+build_dir=$test_sysroot_dir/build_$arch
 
 log "Checking that install directory was output to the correct place..."
 if [ ! -d "$install_dir" ]; then
@@ -139,7 +142,7 @@ if [ "$arch" = 'armhf' ]; then
 elif [ "$arch" = 'aarch64' ]; then
   expected_binary='ELF 64-bit LSB shared object, ARM aarch64'
 fi
-binary_file_info=$(file "$install_dir"/bin/dummy_binary)
+binary_file_info=$(file "$install_dir/$target_package/bin/dummy_binary")
 if [[ "$binary_file_info" != *"$expected_binary"* ]]; then
   panic "The binary output was not of the expected architecture"
 fi
@@ -153,6 +156,31 @@ docker run --rm \
 RUN_RESULT=$?
 if [[ "$RUN_RESULT" -ne 0 ]]; then
   panic "Failed to run the dummy binary in the Docker container."
+fi
+
+log "Rerunning build with package selection..."
+rm -rf "$install_dir"
+rm -rf "$build_dir"
+cp -r "$dir/dummy_pkg_ros2_cpp" "$test_sysroot_dir/src"
+cat > "$test_sysroot_dir/defaults.yaml" <<EOF
+list:
+  packages-select: [dummy_pkg]
+build:
+  packages-select: [dummy_pkg]
+EOF
+
+python3 -m ros_cross_compile "$test_sysroot_dir" \
+  --arch "$arch" --os "$os" --rosdistro "$distro"
+CC_SCRIPT_STATUS=$?
+if [[ "$CC_SCRIPT_STATUS" -ne 0 ]]; then
+  panic "Failed to run cross compile script."
+fi
+
+if [ ! -d "$install_dir/dummy_pkg" ]; then
+  panic "Didn't build the cpp package when selected"
+fi
+if [ -d "$install_dir/dummy_pkg_ros2_cpp" ]; then
+  panic "Built the python package when deselected"
 fi
 
 result=0

@@ -23,10 +23,12 @@ cat > "${OUT_PATH}" <<EOF
 set -euxo pipefail
 EOF
 
+mapfile -t package_paths < <(colcon list -p)
+
 rosdep install \
     --os "${TARGET_OS}" \
     --rosdistro "${ROSDISTRO}" \
-    --from-paths src/ \
+    --from-paths "${package_paths[@]}" \
     --ignore-src \
     --reinstall \
     --default-yes \
