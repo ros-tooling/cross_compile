@@ -31,13 +31,13 @@ from ros_cross_compile.sysroot_creator import setup_emulator
 THIS_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-@patch('ros_cross_compile.sysroot_creator.host_system', side_effect=lambda: 'Linux')
+@patch('ros_cross_compile.sysroot_creator.py_platform.system', side_effect=lambda: 'Linux')
 def test_emulator_not_installed(system_mock, tmpdir):
     with pytest.raises(RuntimeError):
         setup_emulator('not-an-arch', Path(str(tmpdir)))
 
 
-@patch('ros_cross_compile.sysroot_creator.host_system', side_effect=lambda: 'Darwin')
+@patch('ros_cross_compile.sysroot_creator.py_platform.system', side_effect=lambda: 'Darwin')
 def test_emulator_touch(system_mock, tmpdir):
     setup_emulator('aarch64', Path(str(tmpdir)))
 
