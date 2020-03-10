@@ -25,6 +25,7 @@ from typing import Optional
 
 from ros_cross_compile.builders import run_emulated_docker_build
 from ros_cross_compile.dependencies import gather_rosdeps
+from ros_cross_compile.docker_client import DEFAULT_COLCON_DEFAULTS_FILE
 from ros_cross_compile.docker_client import DockerClient
 from ros_cross_compile.platform import Platform
 from ros_cross_compile.platform import SUPPORTED_ARCHITECTURES
@@ -107,6 +108,13 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         help='Provide a path to a custom arbitrary directory to copy into the sysroot container. '
              'You may use this data in your --custom-setup-script, it will be available as '
              '"./custom_data/" in the current working directory when the script is run.')
+    parser.add_argument(
+        '--colcon-defaults',
+        required=False,
+        default=DEFAULT_COLCON_DEFAULTS_FILE,
+        type=str,
+        help='Relative path within the workspace to a file that provides colcon arguments. '
+             'See "Package Selection and Build Customization" in README.md for more details.')
 
     return parser.parse_args(args)
 
@@ -126,7 +134,10 @@ def cross_compile_pipeline(
         ros_workspace=ros_workspace_dir,
         custom_setup_script=custom_setup_script,
         custom_data_dir=custom_data_dir)
-    docker_client = DockerClient(args.sysroot_nocache, default_docker_dir=sysroot_build_context)
+    docker_client = DockerClient(
+        args.sysroot_nocache,
+        default_docker_dir=sysroot_build_context,
+        colcon_defaults_file=args.colcon_defaults)
 
     gather_rosdeps(
         docker_client=docker_client,
