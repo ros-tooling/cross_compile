@@ -13,9 +13,10 @@ if [ -f "${CUSTOM_SETUP}" ]; then
   popd
 fi
 
+echo "hello"
 out_dir=$(dirname "${OUT_PATH}")
 mkdir -p "${out_dir}"
-
+arst
 rosdep update
 
 cat > "${OUT_PATH}" <<EOF
