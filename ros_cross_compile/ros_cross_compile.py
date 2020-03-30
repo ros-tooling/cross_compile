@@ -24,6 +24,7 @@ from typing import List
 from typing import Optional
 
 from ros_cross_compile.builders import run_emulated_docker_build
+from ros_cross_compile.dependencies import assert_install_rosdep_script_exists
 from ros_cross_compile.dependencies import gather_rosdeps
 from ros_cross_compile.docker_client import DEFAULT_COLCON_DEFAULTS_FILE
 from ros_cross_compile.docker_client import DockerClient
@@ -116,6 +117,15 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         help='Relative path within the workspace to a file that provides colcon arguments. '
              'See "Package Selection and Build Customization" in README.md for more details.')
 
+    parser.add_argument(
+        '--skip-rosdep-collection',
+        action='store_true',
+        required=False,
+        help='Skip querying rosdep for dependencies. This is intended to save time'
+             'when running repeatedly during development, but has undefined behavior if'
+             "the workspace's dependencies have changed since the last time"
+             'collection was run.')
+
     return parser.parse_args(args)
 
 
@@ -139,12 +149,14 @@ def cross_compile_pipeline(
         default_docker_dir=sysroot_build_context,
         colcon_defaults_file=args.colcon_defaults)
 
-    gather_rosdeps(
-        docker_client=docker_client,
-        platform=platform,
-        workspace=ros_workspace_dir,
-        custom_script=custom_rosdep_script,
-        custom_data_dir=custom_data_dir)
+    if not args.skip_rosdep_collection:
+        gather_rosdeps(
+            docker_client=docker_client,
+            platform=platform,
+            workspace=ros_workspace_dir,
+            custom_script=custom_rosdep_script,
+            custom_data_dir=custom_data_dir)
+    assert_install_rosdep_script_exists(ros_workspace_dir, platform)
     create_workspace_sysroot_image(docker_client, platform)
     run_emulated_docker_build(docker_client, platform, ros_workspace_dir)
 

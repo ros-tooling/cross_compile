@@ -80,3 +80,15 @@ def gather_rosdeps(
         },
         volumes=volumes,
     )
+
+
+def assert_install_rosdep_script_exists(
+    ros_workspace_dir: Path,
+    platform: Platform
+) -> bool:
+    install_rosdep_script_path = ros_workspace_dir / rosdep_install_script(platform)
+    if not install_rosdep_script_path.is_file():
+        raise RuntimeError('Rosdep installation script has never been created,'
+                           'you need to run this without skipping rosdep collection'
+                           'at least once.')
+    return True
