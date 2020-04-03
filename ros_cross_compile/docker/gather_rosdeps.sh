@@ -32,6 +32,7 @@ rosdep install \
     --ignore-src \
     --reinstall \
     --default-yes \
+    --skip-keys "${SKIP_ROSDEP_KEYS}" \
     --simulate \
   >> "${OUT_PATH}"
 

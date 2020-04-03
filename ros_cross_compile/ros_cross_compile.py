@@ -116,7 +116,6 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         type=str,
         help='Relative path within the workspace to a file that provides colcon arguments. '
              'See "Package Selection and Build Customization" in README.md for more details.')
-
     parser.add_argument(
         '--skip-rosdep-collection',
         action='store_true',
@@ -125,6 +124,12 @@ def parse_args(args: List[str]) -> argparse.Namespace:
              'when running repeatedly during development, but has undefined behavior if'
              "the workspace's dependencies have changed since the last time"
              'collection was run.')
+    parser.add_argument(
+        '--skip-rosdep-keys',
+        default=[],
+        nargs='+',
+        help='Skips the rosdep keys. This helps user to skip the keys that are'
+             'not important for the compilation of package. ')
 
     return parser.parse_args(args)
 
@@ -135,6 +140,7 @@ def cross_compile_pipeline(
     platform = Platform(args.arch, args.os, args.rosdistro, args.sysroot_base_image)
 
     ros_workspace_dir = Path(args.ros_workspace)
+    skip_rosdep_keys = args.skip_rosdep_keys
     custom_data_dir = _path_if(args.custom_data_dir)
     custom_rosdep_script = _path_if(args.custom_rosdep_script)
     custom_setup_script = _path_if(args.custom_setup_script)
@@ -154,6 +160,7 @@ def cross_compile_pipeline(
             docker_client=docker_client,
             platform=platform,
             workspace=ros_workspace_dir,
+            skip_rosdep_keys=skip_rosdep_keys,
             custom_script=custom_rosdep_script,
             custom_data_dir=custom_data_dir)
     assert_install_rosdep_script_exists(ros_workspace_dir, platform)

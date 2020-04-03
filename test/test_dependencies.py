@@ -189,3 +189,35 @@ list:
     assert 'ros-dashing-ament-cmake' not in result
     assert 'ros-dashing-rclcpp' not in result
     assert 'ros-dashing-rclpy' in result
+
+
+@uses_docker
+def test_dummy_skip_rosdep_keys_doesnt_exist_pkg(tmpdir):
+    ws = Path(str(tmpdir))
+    pkg_xml = Path(ws) / 'src' / 'dummy' / 'package.xml'
+    pkg_xml.parent.mkdir(parents=True)
+    pkg_xml.write_text(CUSTOM_KEY_PKG_XML)
+    client = DockerClient()
+    platform = Platform(arch='aarch64', os_name='ubuntu', ros_distro='dashing')
+    skip_keys = ['definitely_does_not_exist']
+    try:
+        gather_rosdeps(client, platform, workspace=ws,  skip_rosdep_keys=skip_keys)
+    except docker.errors.ContainerError:
+        assert False
+
+
+@uses_docker
+def test_dummy_skip_rosdep_multiple_keys_pkg(tmpdir):
+    ws = Path(str(tmpdir))
+    pkg_xml = ws / 'src' / 'dummy' / 'package.xml'
+    pkg_xml.parent.mkdir(parents=True)
+    pkg_xml.write_text(RCLCPP_PKG_XML)
+    client = DockerClient()
+    platform = Platform(arch='aarch64', os_name='ubuntu', ros_distro='dashing')
+    out_script = ws / rosdep_install_script(platform)
+
+    skip_keys = ['ament_cmake', 'rclcpp']
+    gather_rosdeps(client, platform, workspace=ws, skip_rosdep_keys=skip_keys)
+    result = out_script.read_text()
+    assert 'ros-dashing-ament-cmake' not in result
+    assert 'ros-dashing-rclcpp' not in result
