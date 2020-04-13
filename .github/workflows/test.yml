@@ -42,7 +42,6 @@ jobs:
         flags: unittests
         name: codecov-umbrella
         yml: ./codecov.yml
-        fail_ci_if_error: true
     # Upload the package to the PyPI test repository.
     # This will silently fail if a package with this version number already
     # exists.
