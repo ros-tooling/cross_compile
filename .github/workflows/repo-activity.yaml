@@ -1,0 +1,95 @@
+name: "Report repository activity"
+on:
+  push:
+    branches:
+      - master
+  schedule:
+    - cron:  '0 * * * *'  # run every hour
+
+jobs:
+  repo_activity:
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:bionic
+    steps:
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - uses: ros-tooling/action-repository-activity@0.0.1
+      id: repo_activity
+      with:
+        repository: ${{ github.repository }}
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - uses: ros-tooling/action-cloudwatch-metrics@0.0.4
+      with:
+        metric-name: open_issues_count
+        metric-value: ${{ steps.repo_activity.outputs.open_issues_count }}
+    - uses: ros-tooling/action-cloudwatch-metrics@0.0.4
+      with:
+        metric-name: allow_merge_commit
+        metric-value: ${{ steps.repo_activity.outputs.allow_merge_commit }}
+    - uses: ros-tooling/action-cloudwatch-metrics@0.0.4
+      with:
+        metric-name: allow_rebase_merge
+        metric-value: ${{ steps.repo_activity.outputs.allow_rebase_merge }}
+    - uses: ros-tooling/action-cloudwatch-metrics@0.0.4
+      with:
+        metric-name: allow_squash_merge
+        metric-value: ${{ steps.repo_activity.outputs.allow_squash_merge }}
+    - uses: ros-tooling/action-cloudwatch-metrics@0.0.4
+      with:
+        metric-name: archived
+        metric-value: ${{ steps.repo_activity.outputs.archived }}
+    - uses: ros-tooling/action-cloudwatch-metrics@0.0.4
+      with:
+        metric-name: disabled
+        metric-value: ${{ steps.repo_activity.outputs.disabled }}
+    - uses: ros-tooling/action-cloudwatch-metrics@0.0.4
+      with:
+        metric-name: forks_count
+        metric-value: ${{ steps.repo_activity.outputs.forks_count }}
+    - uses: ros-tooling/action-cloudwatch-metrics@0.0.4
+      with:
+        metric-name: has_downloads
+        metric-value: ${{ steps.repo_activity.outputs.has_downloads }}
+    - uses: ros-tooling/action-cloudwatch-metrics@0.0.4
+      with:
+        metric-name: has_issues
+        metric-value: ${{ steps.repo_activity.outputs.has_issues }}
+    - uses: ros-tooling/action-cloudwatch-metrics@0.0.4
+      with:
+        metric-name: has_pages
+        metric-value: ${{ steps.repo_activity.outputs.has_pages }}
+    - uses: ros-tooling/action-cloudwatch-metrics@0.0.4
+      with:
+        metric-name: has_projects
+        metric-value: ${{ steps.repo_activity.outputs.has_projects }}
+    - uses: ros-tooling/action-cloudwatch-metrics@0.0.4
+      with:
+        metric-name: has_wiki
+        metric-value: ${{ steps.repo_activity.outputs.has_wiki }}
+    - uses: ros-tooling/action-cloudwatch-metrics@0.0.4
+      with:
+        metric-name: network_count
+        metric-value: ${{ steps.repo_activity.outputs.network_count }}
+    - uses: ros-tooling/action-cloudwatch-metrics@0.0.4
+      with:
+        metric-name: open_issues_count
+        metric-value: ${{ steps.repo_activity.outputs.open_issues_count }}
+    - uses: ros-tooling/action-cloudwatch-metrics@0.0.4
+      with:
+        metric-name: stargazers_count
+        metric-value: ${{ steps.repo_activity.outputs.stargazers_count }}
+    - uses: ros-tooling/action-cloudwatch-metrics@0.0.4
+      with:
+        metric-name: subscribers_count
+        metric-value: ${{ steps.repo_activity.outputs.subscribers_count }}
+    - uses: ros-tooling/action-cloudwatch-metrics@0.0.4
+      with:
+        metric-name: watchers_count
+        metric-value: ${{ steps.repo_activity.outputs.watchers_count }}
