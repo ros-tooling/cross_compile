@@ -10,13 +10,12 @@ on:
     - cron:  '0 * * * *'
 
 jobs:
-  build_and_test:
-    runs-on: ${{ matrix.os }}
+  test_macOS:
+    runs-on: macOS-latest
     strategy:
       fail-fast: false
       matrix:
-          os: [macOS-latest, ubuntu-18.04]
-          python-version: [3.5, 3.6, 3.7]
+        python-version: [3.5, 3.6, 3.7]
     steps:
     - name: Checkout sources
       uses: actions/checkout@v2
@@ -24,18 +23,32 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
         architecture: x64
-    - name: Install dependencies
-      run: |
-        sudo apt update && sudo apt install -y qemu-user-static
-      if: matrix.os == 'ubuntu-18.04'
     - name: Install Tox for testing
       run: pip install tox
     - name: Run tests
       run: tox -e py
+
+  test_ubuntu:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.5, 3.6, 3.7]
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v2
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y git qemu-user-static python3 python3-pip
+    - uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
+        architecture: x64
+    - name: Install Tox for testing
+      run: pip3 install tox
+    - name: Run tests
+      run: tox -e py
     - uses: codecov/codecov-action@v1
-      # Prevent being rate limited by only reporting coverage from the Ubuntu
-      # build.
-      if: matrix.os == 'ubuntu-18.04'
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         file: coverage.xml
@@ -52,18 +65,31 @@ jobs:
       # to upload the package in its initial state, before review.
       # The final state of the pull request would then never be uploaded, as
       # we cannot overwrite packages.
-      if: matrix.os == 'ubuntu-18.04' && github.event_name == 'push'
+      if: github.event_name == 'push'
       with:
         username: ${{ secrets.PYPI_USERNAME }}
         password: ${{ secrets.PYPI_PASSWORD }}
         repository-url: https://test.pypi.org/legacy/
 
+  log_workflow_status_to_cloudwatch:
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:bionic
+    needs: [test_macOS, test_ubuntu]
+    if: always()  # run even if the dependent jobs have failed to log failures
+    # Allow build reports to fail on pull requests.
+    # When a contribution is made on a fork, the secrets will not be available,
+    # and this step will be failing. This is acceptable.
+    # On the other end, we want to be notified if this happens on merge, or
+    # on schedule.
+    continue-on-error: ${{ github.event_name == 'pull_request'}}
+    steps:
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
-      if: always()
     - uses: ros-tooling/action-cloudwatch-metrics@0.0.4
-      if: always()
+      with:
+        metric-value: ${{needs.test_macOS.result == 'success' && needs.test_ubuntu.result == 'success' }}
