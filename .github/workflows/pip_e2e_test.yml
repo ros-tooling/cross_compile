@@ -39,3 +39,27 @@ jobs:
     - name: Run end-to-end test
       run: |
         ./test/run_e2e_test.sh -a "${{ matrix.target_arch }}" -o "${{ matrix.target_os }}" -d "${{ matrix.rosdistro }}"
+
+  log_workflow_status_to_cloudwatch:
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:bionic
+    needs:
+    - build_and_test
+    if: always()  # run even if the dependent jobs have failed to log failures
+    # Allow build reports to fail on pull requests.
+    # When a contribution is made on a fork, the secrets will not be available,
+    # and this step will be failing. This is acceptable.
+    # On the other end, we want to be notified if this happens on merge, or
+    # on schedule.
+    continue-on-error: ${{ github.event_name == 'pull_request'}}
+    steps:
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+    - uses: ros-tooling/action-cloudwatch-metrics@0.0.4
+      with:
+        metric-value: ${{needs.test_macOS.result == 'success' && needs.test_ubuntu.result == 'success' }}
