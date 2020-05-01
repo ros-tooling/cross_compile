@@ -92,5 +92,4 @@ jobs:
         aws-region: ${{ secrets.AWS_REGION }}
     - uses: ros-tooling/action-cloudwatch-metrics@0.0.4
       with:
-        metric-name: 'BuildsCanary'
         metric-value: ${{needs.test_macOS.result == 'success' && needs.test_ubuntu.result == 'success' }}
