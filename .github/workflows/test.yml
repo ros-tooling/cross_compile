@@ -36,8 +36,8 @@ jobs:
         python-version: [3.5, 3.6, 3.7]
     container:
       image: ubuntu:bionic
-      options: -v /var/run/docker.sock:/var/run/docker.sock
       volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
         - /__w/cross_compile/cross_compile:/__w/cross_compile/cross_compile
     steps:
     - name: Checkout sources
