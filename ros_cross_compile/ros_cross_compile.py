@@ -128,6 +128,11 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         default=[],
         nargs='+',
         help='Skip specified rosdep keys when collecting dependencies for the workspace.')
+    parser.add_argument(
+        '--ros-testing',
+        action='store_true',
+        help='Use the testing APT repositories for installing dependencies, instead of the '
+             'released ones (ros-testing, ros2-testing)')
 
     return parser.parse_args(args)
 
@@ -135,7 +140,9 @@ def parse_args(args: List[str]) -> argparse.Namespace:
 def cross_compile_pipeline(
     args: argparse.Namespace,
 ):
-    platform = Platform(args.arch, args.os, args.rosdistro, args.sysroot_base_image)
+    platform = Platform(
+        args.arch, args.os, args.rosdistro,
+        args.sysroot_base_image, args.ros_testing)
 
     ros_workspace_dir = Path(args.ros_workspace)
     skip_rosdep_keys = args.skip_rosdep_keys

@@ -61,7 +61,10 @@ class Platform:
     """
 
     def __init__(
-        self, arch: str, os_name: str, ros_distro: str, override_base_image: Optional[str] = None,
+        self,
+        arch: str, os_name: str, ros_distro: str,
+        override_base_image: Optional[str] = None,
+        testing_version: bool = False,
     ):
         """Initialize platform parameters."""
         self._arch = arch
@@ -79,6 +82,8 @@ class Platform:
             self._ros_version = 'ros'
         else:
             raise ValueError('Unknown ROS distribution "{}" specified'.format(ros_distro))
+        if testing_version:
+            self._ros_version = '{}-testing'.format(self._ros_version)
 
         if self.os_name not in ROSDISTRO_OS_MAP[self.ros_distro]:
             raise ValueError(

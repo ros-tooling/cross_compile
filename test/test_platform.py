@@ -112,3 +112,11 @@ def test_override_base():
     override = 'arm128v12/ubuntu:quintessential'
     platform = Platform('aarch64', 'ubuntu', 'dashing', override)
     assert platform.target_base_image == override
+
+
+def test_testing_version():
+    platform = Platform('aarch64', 'ubuntu', 'eloquent', testing_version=True)
+    assert platform.ros_version == 'ros2-testing'
+
+    platform = Platform('x86_64', 'debian', 'melodic', testing_version=True)
+    assert platform.ros_version == 'ros-testing'

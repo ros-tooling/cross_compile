@@ -52,7 +52,7 @@ RUN python3 -m pip install -U \
     setuptools
 
 # Install some pip packages needed for testing ROS 2
-RUN if [[ "${ROS_VERSION}" == "ros2" ]]; then \
+RUN if [[ "${ROS_VERSION}" == "ros2"* ]]; then \
     python3 -m pip install -U \
     flake8 \
     flake8-blind-except \
@@ -71,7 +71,7 @@ RUN if [[ "${ROS_VERSION}" == "ros2" ]]; then \
   ; fi
 
 # Install Fast-RTPS dependencies for ROS 2
-RUN if [[ "${ROS_VERSION}" == "ros2" ]]; then \
+RUN if [[ "${ROS_VERSION}" == "ros2"* ]]; then \
     apt-get update && apt-get install --no-install-recommends -y \
         libasio-dev \
         libtinyxml2-dev \
