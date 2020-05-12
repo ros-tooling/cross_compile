@@ -38,7 +38,7 @@ jobs:
       image: ubuntu:bionic
       options: -v /var/run/docker.sock:/var/run/docker.sock
       volumes:
-        - /__w/cross_compile/cross_compile:/__w/cross_compile/cross_compile
+        - ${{ github.workspace }}/cross_compile:${{ github.workspace }}/cross_compile
     steps:
     - name: Checkout sources
       uses: actions/checkout@v2
