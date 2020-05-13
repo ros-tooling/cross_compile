@@ -62,7 +62,10 @@ class Platform:
 
     def __init__(
         self,
-        arch: str, os_name: str, ros_distro: str,
+        arch: str,
+        os_name: str,
+        ros_distro: str,
+        *,
         override_base_image: Optional[str] = None,
         testing_version: bool = False,
     ):

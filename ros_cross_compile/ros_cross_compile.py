@@ -142,7 +142,7 @@ def cross_compile_pipeline(
 ):
     platform = Platform(
         args.arch, args.os, args.rosdistro,
-        args.sysroot_base_image, args.ros_testing)
+        override_base_image=args.sysroot_base_image, testing_version=args.ros_testing)
 
     ros_workspace_dir = Path(args.ros_workspace)
     skip_rosdep_keys = args.skip_rosdep_keys

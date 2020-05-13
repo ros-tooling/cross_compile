@@ -110,7 +110,7 @@ def test_ros_version_map():
 
 def test_override_base():
     override = 'arm128v12/ubuntu:quintessential'
-    platform = Platform('aarch64', 'ubuntu', 'dashing', override)
+    platform = Platform('aarch64', 'ubuntu', 'dashing', override_base_image=override)
     assert platform.target_base_image == override
 
 
