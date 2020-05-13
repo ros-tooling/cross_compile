@@ -44,8 +44,8 @@ grep -v "apt-get install -y" /tmp/all-deps.sh >> "${OUT_PATH}" || true
 grep "apt-get install -y" /tmp/all-deps.sh > /tmp/apt-deps.sh || true
 # awk notes:
 #  "apt-get", "install", "-y", package_name is the fourth column
-#  OSR=' ' makes the output space-separated instead of newline-separated output
-echo "apt-get install -y $(awk '{print $4}' OSR=' ' < /tmp/apt-deps.sh)" >> "${OUT_PATH}"
+#  ORS=' ' makes the output space-separated instead of newline-separated output
+echo "apt-get install -y $(awk '{print $4}' ORS=' ' < /tmp/apt-deps.sh)" >> "${OUT_PATH}"
 
 chmod +x "${OUT_PATH}"
 chown -R "${OWNER_USER}" "${out_dir}"
