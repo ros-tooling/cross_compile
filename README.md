@@ -73,6 +73,8 @@ pip3 install --index-url https://test.pypi.org/simple/ ros_cross_compile
 1. Build
     1. Runs the "sysroot image" using QEmu emulation
     1. `colcon build`
+1. (Optional) Create runtime image
+    1. Creates a docker image that can be used on the target platform to run the build. See "Runtime Image" section.
 
 ## Usage
 
@@ -196,6 +198,35 @@ ros_cross_compile /path/to/my/workspace --arch aarch64 --os ubuntu \
 Now, during the sysroot creation process, you should see the contents of `something.txt` printed during the execution of the custom script.
 
 NOTE: for trivial text files, as in the preceding example, you could have created those files fully within the `--custom-setup-script`. But for large or binary data such as precompiled libraries, this feature comes to the rescue.
+
+
+### Runtime Image
+
+`ros_cross_compile` can optionally create and tag a Docker image that contains all runtime dependencies and the created build of the workspace.
+
+The argument `--runtime-image` takes a single value, which is the tag used for the output image.
+
+```
+OUTPUT_IMAGE=my_registry/image_name:image_tag
+ros_cross_compile $workspace --runtime-image $OUTPUT_IMAGE
+```
+
+Now, you can deploy this to any registry to be pulled onto a target platform
+
+```
+docker push $OUTPUT_IMAGE
+```
+
+The image contains the necessary emulation binaries - or in a native build you do not need them.
+Either way, you can interactively try out the image locally.
+
+```
+docker run -it $OUTPUT_IMAGE
+# In the shell inside the running container, the setup is already sourced for the default entrypoint
+ros2 launch my_package my.launch.py
+```
+
+Note: Currently this feature is a thin layer on top of the image used for building, so it is not a fully minimal image - it contains build tools, build dependencies, and test dependencies in addition to the necessary runtime dependencies.
 
 
 ## Tutorial

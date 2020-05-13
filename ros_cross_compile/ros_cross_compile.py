@@ -32,6 +32,7 @@ from ros_cross_compile.platform import Platform
 from ros_cross_compile.platform import SUPPORTED_ARCHITECTURES
 from ros_cross_compile.platform import SUPPORTED_ROS2_DISTROS
 from ros_cross_compile.platform import SUPPORTED_ROS_DISTROS
+from ros_cross_compile.runtime import create_runtime_image
 from ros_cross_compile.sysroot_creator import create_workspace_sysroot_image
 from ros_cross_compile.sysroot_creator import prepare_docker_build_environment
 
@@ -128,6 +129,10 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         default=[],
         nargs='+',
         help='Skip specified rosdep keys when collecting dependencies for the workspace.')
+    parser.add_argument(
+        '--create-runtime-image',
+        help='Create a Docker image with the specified name that contains all '
+             'runtime dependencies and the created "install" directory for the workspace.')
 
     return parser.parse_args(args)
 
@@ -164,6 +169,9 @@ def cross_compile_pipeline(
     assert_install_rosdep_script_exists(ros_workspace_dir, platform)
     create_workspace_sysroot_image(docker_client, platform)
     run_emulated_docker_build(docker_client, platform, ros_workspace_dir)
+    if args.create_runtime_image is not None:
+        create_runtime_image(
+            docker_client, platform, ros_workspace_dir, args.create_runtime_image)
 
 
 def main():
