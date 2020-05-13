@@ -84,6 +84,10 @@ setup(){
   custom_setup_script=${test_sysroot_dir}/custom-setup.bash
   echo "#!/bin/bash" > "$custom_setup_script"
   if [ "$distro" == "foxy" ]; then
+    if [ "$arch" == "armhf" ]; then
+      error "Foxy does not yet have armhf binaries available"
+      exit 0
+    fi
     # foxy is currently in prerelease and therefore is only available in the testing repo
     # this must be removed once foxy is released
     echo "echo \"deb http://packages.ros.org/ros2-testing/ubuntu focal main\" >> /etc/apt/sources.list.d/ros2-latest.list" >> "$custom_setup_script"
