@@ -36,6 +36,8 @@ rosdep install \
     --simulate \
   >> /tmp/all-deps.sh
 
+# Grep returns nonzero when there are no matches and we exit on error in this script,
+# but it's ok if there are no matches, so use "|| true" to always return 0
 # Find the non-apt lines and move them as-is to the final script
 grep -v "apt-get install -y" /tmp/all-deps.sh >> "${OUT_PATH}" || true
 
