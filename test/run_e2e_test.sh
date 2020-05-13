@@ -80,6 +80,18 @@ setup(){
 
   cp -r "$dir/dummy_pkg" "$test_sysroot_dir/src"
   target_package="dummy_pkg"
+
+  custom_setup_script=${test_sysroot_dir}/custom-setup.bash
+  echo "#!/bin/bash" > "$custom_setup_script"
+  if [ "$distro" == "foxy" ]; then
+    if [ "$arch" == "armhf" ]; then
+      error "Foxy does not yet have armhf binaries available"
+      exit 0
+    fi
+    # foxy is currently in prerelease and therefore is only available in the testing repo
+    # this must be removed once foxy is released
+    echo "echo \"deb http://packages.ros.org/ros2-testing/ubuntu focal main\" >> /etc/apt/sources.list.d/ros2-latest.list" >> "$custom_setup_script"
+  fi
 }
 
 # Argparser
@@ -117,7 +129,7 @@ setup
 # Run the cross compilation script
 log "Executing cross compilation script..."
 python3 -m ros_cross_compile "$test_sysroot_dir" \
-  --arch "$arch" --os "$os" --rosdistro "$distro"
+  --arch "$arch" --os "$os" --rosdistro "$distro" --custom-setup-script "$custom_setup_script"
 CC_SCRIPT_STATUS=$?
 if [[ "$CC_SCRIPT_STATUS" -ne 0 ]]; then
   panic "Failed to run cross compile script."

@@ -45,6 +45,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
       cmake \
       python3-colcon-common-extensions \
       python3-colcon-mixin \
+      python3-dev \
       python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
