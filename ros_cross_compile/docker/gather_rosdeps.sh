@@ -34,7 +34,18 @@ rosdep install \
     --default-yes \
     --skip-keys "${SKIP_ROSDEP_KEYS}" \
     --simulate \
-  >> "${OUT_PATH}"
+  >> /tmp/all-deps.sh
+
+# Find the non-apt lines and move them as-is to the final script
+grep -v "apt-get install -y" /tmp/all-deps.sh >> ${OUT_PATH}
+
+# Find all apt-get lines from the rosdep output
+# As an optimization, we will combine all such commands into a single command, which saves time
+grep "apt-get install -y" /tmp/all-deps.sh > /tmp/apt-deps.sh
+# awk notes:
+#  "apt-get", "install", "-y", package_name is the fourth column
+#  ORS=' ' makes the output space-separated instead of newline-separated output
+echo "apt-get install -y $(cat /tmp/apt-deps.sh | awk '{print $4}' OSR=' ')" >> ${OUT_PATH}
 
 chmod +x "${OUT_PATH}"
 chown -R "${OWNER_USER}" "${out_dir}"
