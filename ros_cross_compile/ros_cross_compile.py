@@ -120,16 +120,14 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         '--skip-rosdep-collection',
         action='store_true',
         required=False,
-        help='Skip querying rosdep for dependencies. This is intended to save time'
-             'when running repeatedly during development, but has undefined behavior if'
-             "the workspace's dependencies have changed since the last time"
-             'collection was run.')
+        help='Skip querying rosdep for dependencies. This is intended to save time when running '
+             'repeatedly during development, but has undefined behavior if the dependencies of '
+             'the workspace have changed since the last time they were collected.')
     parser.add_argument(
         '--skip-rosdep-keys',
         default=[],
         nargs='+',
-        help='Skips the rosdep keys. This helps user to skip the keys that are'
-             'not important for the compilation of package. ')
+        help='Skip specified rosdep keys when collecting dependencies for the workspace.')
 
     return parser.parse_args(args)
 
