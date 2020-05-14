@@ -59,15 +59,9 @@ def test_dummy_ros2_pkg(tmpdir):
     out_script = ws / rosdep_install_script(platform)
 
     gather_rosdeps(client, platform, workspace=ws)
-    result = out_script.read_text().splitlines()
-    expected = [
-        '#!/bin/bash',
-        'set -euxo pipefail',
-        '#[apt] Installation commands:',
-        '  apt-get install -y ros-dashing-ament-cmake',
-        '  apt-get install -y ros-dashing-rclcpp',
-    ]
-    assert result == expected, 'Rosdep output did not meet expectations.'
+    result = out_script.read_text()
+    assert 'ros-dashing-ament-cmake' in result
+    assert 'ros-dashing-rclcpp' in result
 
 
 @uses_docker
@@ -104,19 +98,12 @@ echo "yaml file:/test_rules.yaml" > /etc/ros/rosdep/sources.list.d/22-test-rules
 
     gather_rosdeps(client, platform, workspace=ws, custom_script=rosdep_setup)
     out_script = ws / rosdep_install_script(platform)
-    result = out_script.read_text().splitlines()
-    expected = [
-        '#!/bin/bash',
-        'set -euxo pipefail',
-        '#[apt] Installation commands:',
-        '  apt-get install -y successful_test',
-    ]
-    assert result == expected, 'Rosdep output did not meet expectations.'
+    result = out_script.read_text()
+    assert 'successful_test' in result
 
 
 @uses_docker
 def test_custom_rosdep_with_data_dir(tmpdir):
-
     rule_contents = """
 definitely_does_not_exist:
   ubuntu:
@@ -148,14 +135,8 @@ echo "yaml file:/test_rules.yaml" > /etc/ros/rosdep/sources.list.d/22-test-rules
         client, platform, workspace=ws, custom_script=rosdep_setup, custom_data_dir=data_dir)
 
     out_script = ws / rosdep_install_script(platform)
-    result = out_script.read_text().splitlines()
-    expected = [
-        '#!/bin/bash',
-        'set -euxo pipefail',
-        '#[apt] Installation commands:',
-        '  apt-get install -y successful_test',
-    ]
-    assert result == expected, 'Rosdep output did not meet expectations.'
+    result = out_script.read_text()
+    assert 'successful_test' in result
 
 
 @uses_docker
