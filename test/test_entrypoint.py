@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import contextlib
+import os
 from pathlib import Path
 from unittest.mock import Mock
 from unittest.mock import patch
@@ -26,12 +28,47 @@ from ros_cross_compile.ros_cross_compile import cross_compile_pipeline
 from ros_cross_compile.ros_cross_compile import parse_args
 
 
+@contextlib.contextmanager
+def chdir(dirname: str):
+    """Provide a "with" statement for changing the working directory."""
+    curdir = os.getcwd()
+    try:
+        os.chdir(dirname)
+        yield
+    finally:
+        os.chdir(curdir)
+
+
 def test_trivial_argparse():
     args = parse_args(['somepath', '-a', 'aarch64', '-o', 'ubuntu'])
     assert args
 
 
+def test_bad_workspace(tmpdir):
+    args = parse_args([str(tmpdir), '-a', 'aarch64', '-o', 'ubuntu', '-d', 'foxy'])
+    with pytest.raises(ValueError):
+        cross_compile_pipeline(args)
+
+
+def test_relative_workspace(tmpdir):
+    # Change directory to the tmp dir and invoke using '.' as the
+    # workspace to check if relative paths work
+    tmp = Path(str(tmpdir))
+    (tmp / 'src').mkdir()
+    relative_dir = '.'
+    args = parse_args([relative_dir, '-a', 'aarch64', '-o', 'ubuntu', '-d', 'foxy'])
+    with chdir(str(tmp)), patch(
+        'ros_cross_compile.ros_cross_compile.DockerClient', Mock()
+    ), patch(
+        'ros_cross_compile.ros_cross_compile.assert_install_rosdep_script_exists'
+    ):
+        # should not raise an exception
+        cross_compile_pipeline(args)
+
+
 def test_mocked_cc_pipeline(tmpdir):
+    tmp = Path(str(tmpdir))
+    (tmp / 'src').mkdir()
     args = parse_args([str(tmpdir), '-a', 'aarch64', '-o', 'ubuntu'])
     with patch(
         'ros_cross_compile.ros_cross_compile.DockerClient', Mock()
