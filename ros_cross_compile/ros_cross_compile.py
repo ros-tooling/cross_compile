@@ -137,7 +137,12 @@ def cross_compile_pipeline(
 ):
     platform = Platform(args.arch, args.os, args.rosdistro, args.sysroot_base_image)
 
-    ros_workspace_dir = Path(args.ros_workspace)
+    ros_workspace_dir = Path(args.ros_workspace).resolve()
+    if not (ros_workspace_dir / 'src').is_dir():
+        raise ValueError(
+            'Specified workspace "{}" does not look like a colcon workspace '
+            '(there is no "src/" directory). Cannot continue'.format(ros_workspace_dir))
+
     skip_rosdep_keys = args.skip_rosdep_keys
     custom_data_dir = _path_if(args.custom_data_dir)
     custom_rosdep_script = _path_if(args.custom_rosdep_script)
