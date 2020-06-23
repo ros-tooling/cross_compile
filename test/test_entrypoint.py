@@ -57,7 +57,7 @@ def test_relative_workspace(tmpdir):
     (tmp / 'src').mkdir()
     relative_dir = '.'
     args = parse_args([relative_dir, '-a', 'aarch64', '-o', 'ubuntu', '-d', 'foxy'])
-    with chdir(tmp), patch(
+    with chdir(str(tmp)), patch(
         'ros_cross_compile.ros_cross_compile.DockerClient', Mock()
     ), patch(
         'ros_cross_compile.ros_cross_compile.assert_install_rosdep_script_exists'
