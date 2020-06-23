@@ -16,40 +16,27 @@
 
 """Unit tests for data collector."""
 
-from ros_cross_compile.data_collector import data_collector
-from ros_cross_compile.data_collector import data_measurement
+from ros_cross_compile.data_collector import DataCollector
+from ros_cross_compile.data_collector import DataMeasurement
 
 
 def test_data_measurement_construction():
-    dm = data_measurement('plane_mile_time', 5, 'seconds', '3:04')
+    dm = DataMeasurement('plane_mile_time', 5, 'seconds', '3:04')
     assert dm
 
 
 def test_data_measurement_functions():
-    dm = data_measurement('plane_mile_time', 5, 'seconds', '3:02')
-
-    n = dm.get_name()
-    assert n == 'plane_mile_time'
-
-    v = dm.get_value()
-    assert v == 5
-
-    u = dm.get_unit()
-    assert u == 'seconds'
-
+    dm = DataMeasurement('plane_mile_time', 5, 'seconds', '3:02')
     assert repr(dm) == '[3:02] plane_mile_time: 5 seconds'
 
 
 def test_data_collector_construction():
-    dc = data_collector()
+    dc = DataCollector()
     assert dc
 
 
 def test_data_collector_functions():
-    dc = data_collector()
-
-    dc.add_data_type('velocity', 'm/s')
-    assert dc.datum_types == [('filesize', 'KB'), ('time', 'seconds'), ('velocity', 'm/s')]
+    dc = DataCollector()
 
     dc.add_datum('plane_speed', '20', 'm/s', '14:05')
     dc.add_datum('plane_os_size', '2000', 'kb', '12:30')

@@ -16,10 +16,8 @@
 
 """Wrapper classes for each pipeline stage."""
 
-import time
 from datetime import datetime
-
-from ros_cross_compile.data_collector import data_collector
+import time
 
 
 class pipeline_stage():
@@ -50,4 +48,4 @@ class pipeline_stage():
         total = time.time() - start
         today = datetime.now()
 
-        data_collector.add_datum(self.get_name() + '-time', total, "seconds", str(today))
+        data_collector.add_datum(self.get_name() + '-time', total, 'seconds', str(today))

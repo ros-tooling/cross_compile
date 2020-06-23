@@ -18,7 +18,6 @@
 
 import argparse
 from datetime import datetime
-import docker
 import logging
 from pathlib import Path
 import sys
@@ -26,8 +25,10 @@ import time
 from typing import List
 from typing import Optional
 
+import docker
+
 from ros_cross_compile.builders import run_emulated_docker_build
-from ros_cross_compile.data_collector import data_collector
+from ros_cross_compile.data_collector import DataCollector
 from ros_cross_compile.dependencies import assert_install_rosdep_script_exists
 from ros_cross_compile.dependencies import gather_rosdeps
 from ros_cross_compile.docker_client import DEFAULT_COLCON_DEFAULTS_FILE
@@ -137,9 +138,9 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         '--print-metrics',
         action='store_true',
         required=False,
-        help='Print the collected metrics to its own logging level, METRIC. This option is provided'
-              'to give the user flexibility when working with automated solutions and may not want'
-              'stdout output.')
+        help='Print the collected metrics to its own logging level, METRIC. This option'
+             'is provided to give the user flexibility when working with automated solutions'
+             'and may not want stdout output.')
     parser.add_argument(
         '--metric-file-path',
         required=False,
@@ -150,31 +151,29 @@ def parse_args(args: List[str]) -> argparse.Namespace:
 
 
 def cross_compile_pipeline(
-    args: argparse.Namespace,
+    args: argparse.Namespace
 ):
     platform = Platform(args.arch, args.os, args.rosdistro, args.sysroot_base_image)
-    dc = data_collector()
+    dc = DataCollector()
 
     # define paths for reading/writing
     ros_workspace_dir = Path(args.ros_workspace)
-    metrics_dir = Path(str(ros_workspace_dir) + '/cc_internals/metrics_data/')
+    default_metrics_dir = Path(str(ros_workspace_dir) + '/cc_internals/metrics_data/')
     skip_rosdep_keys = args.skip_rosdep_keys
     custom_data_dir = _path_if(args.custom_data_dir)
     custom_rosdep_script = _path_if(args.custom_rosdep_script)
     custom_setup_script = _path_if(args.custom_setup_script)
 
     # set up class wrappers for functions
-    gather_rosdeps_wrapper = pipeline_stage("gather_rosdeps", gather_rosdeps)
-    rosdep_script_wrapper = pipeline_stage("assert_install_rosdep_script_exists",
+    gather_rosdeps_wrapper = pipeline_stage('gather_rosdeps', gather_rosdeps)
+    rosdep_script_wrapper = pipeline_stage('assert_install_rosdep_script_exists',
                                            assert_install_rosdep_script_exists)
-    create_workspace_sysroot_wrapper = pipeline_stage("create_workspace_sysroot_image",
+    create_workspace_sysroot_wrapper = pipeline_stage('create_workspace_sysroot_image',
                                                       create_workspace_sysroot_image)
-    run_docker_build_wrapper = pipeline_stage("run_emulated_docker_build",
+    run_docker_build_wrapper = pipeline_stage('run_emulated_docker_build',
                                               run_emulated_docker_build)
 
-
-    # start timing of entire pipeline, and finalize metrics collection setup
-    metrics_dir.mkdir(parents=True, exist_ok=True)
+    # start timing of entire pipeline
     start = time.time()
     today = datetime.now()
 
@@ -200,7 +199,7 @@ def cross_compile_pipeline(
 
     # get the size of the docker image generated in this stage
     rosdep_img_size = docker.from_env().images.get('ros_cross_compile:rosdep').attrs['Size']
-    dc.add_datum("gather_rosdeps-img_size", rosdep_img_size / 1000000, "MB", str(today))
+    dc.add_datum('gather_rosdeps-img_size', rosdep_img_size / 1000000, 'MB', str(today))
 
     # stage 2
     rosdep_script_wrapper((ros_workspace_dir, platform), dc)
@@ -209,21 +208,24 @@ def cross_compile_pipeline(
     create_workspace_sysroot_wrapper((docker_client, platform), dc)
 
     # get the size of the docker image generated in this stage
-    sysroot_img_size = docker.from_env().images.get('ubuntu/aarch64-ubuntu-foxy:latest').attrs['Size']
-    dc.add_datum("sysroot_img-size", sysroot_img_size / 1000000, "MB", str(today))
+    sysroot_img_size = docker.from_env().images.get(
+        'ubuntu/aarch64-ubuntu-foxy:latest').attrs['Size']
+    dc.add_datum('sysroot_img-size', sysroot_img_size / 1000000, 'MB', str(today))
 
     # stage 4
     run_docker_build_wrapper((docker_client, platform, ros_workspace_dir), dc)
 
     # stop timing
     total = time.time() - start
-    dc.add_datum("total_pipeline-time", total, "seconds", str(today))
+    dc.add_datum('total_pipeline-time', total, 'seconds', str(today))
 
     # write metrics to file.
     if args.metric_file_path is not None:
+        Path(args.metric_file_path).mkdir(parents=True, exist_ok=True)
         dc.write_JSON(args.metric_file_path)
     else:
-        dc.write_JSON(str(metrics_dir) + '/' + today.strftime('%s') + '.json')
+        default_metrics_dir.mkdir(parents=True, exist_ok=True)
+        dc.write_JSON(str(default_metrics_dir) + '/' + today.strftime('%s') + '.json')
 
 
 def main():

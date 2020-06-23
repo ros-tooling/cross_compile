@@ -17,9 +17,10 @@
 """Classes to aid in the collection of benchmarking information."""
 
 import json
+from typing import Any
 
 
-class data_measurement:
+class DataMeasurement:
     """
     Represents a measurement that has been collected.
 
@@ -35,50 +36,30 @@ class data_measurement:
         self.unit = unit
         self.timestamp = timestamp
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return '[{}] {}: {} {}'.format(self.timestamp, self.name, self.value, self.unit)
 
-    def get_name(self):
-        return self.name
 
-    def get_unit(self):
-        return self.unit
-
-    def get_value(self):
-        return self.value
-
-    def get_timestamp(self):
-        return self.timestamp
-
-
-class data_collector:
+class DataCollector:
     """
-    Represents the tool that will store and write data to a given file.
+    Collects time series metrics for output to a file.
 
     Includes:
     * A cleanup function in event of early exits
     * Functions to add both new data types and collected metrics
-    * A functioon to write collected data to a JSON file
+    * A function to write collected data to a JSON file
     """
 
     def __init__(self):
-        self.datums = {'data': []}
-        self.datum_types = [('filesize', 'KB'), ('time', 'seconds')]
+        # setup directory for saving metrics
+        self._data = {'data': []}
 
-    def cleanup(self, status_code):  # for now just a placeholder
-        pass
-
-    # this isn't strictly necessary, could be deleted
-    def add_data_type(self, data_type, unit):
-        add = (data_type, unit)
-        self.datum_types.append(add)
-
-    def add_datum(self, name, value, unit, timestamp):  # add new collected metric
-        new_measure = data_measurement(name, value, unit, timestamp)
+    def add_datum(self, name: str, value: Any, unit, timestamp):  # add new collected metric
+        new_measure = DataMeasurement(name, value, unit, timestamp)
 
         # for convenient JSON serializing, we use the __dict__ class
-        self.datums['data'].append(new_measure.__dict__)
+        self._data['data'].append(new_measure.__dict__)
 
-    def write_JSON(self, fname):  # at the end, we write our results to a file
-        with open(fname, 'w') as f:
-            json.dump(self.datums, f, sort_keys=True, indent=4)
+    def write_JSON(self, write_path: str):  # at the end, we write our results to a file
+        with open(write_path, 'w') as f:
+            json.dump(self._data, f, sort_keys=True, indent=4)
