@@ -21,13 +21,10 @@ import time
 from typing import NamedTuple, Union
 
 
-class Datum(NamedTuple):
-    """Represents a collected piece of data."""
-
-    name: str
-    value: Union[int, float]
-    unit: str
-    timestamp: str
+Datum = NamedTuple('Datum', [('name', str),
+                             ('value', Union[int, float]),
+                             ('unit', str),
+                             ('timestamp', str)])
 
 
 class DataCollector:
