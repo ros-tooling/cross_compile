@@ -1,6 +1,4 @@
 build:
-  x86_64-docker: {}
-  x86_64-linux: {}
   aarch64-docker: {}
   aarch64-linux:
     cmake-args:
@@ -64,3 +62,5 @@ build:
       - "-DPYTHON_SOABI=cpython-36m-arm-linux-gnueabihf"
       - "-DTHREADS_PTHREAD_ARG=0"
       - "--no-warn-unused-cli"
+  x86_64-docker: {}
+  x86_64-linux: {}
