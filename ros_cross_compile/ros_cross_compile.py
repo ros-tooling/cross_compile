@@ -25,7 +25,6 @@ from typing import Optional
 
 from ros_cross_compile.builders import run_emulated_docker_build
 from ros_cross_compile.data_collector import DataCollector
-from ros_cross_compile.data_collector import DataTimer
 from ros_cross_compile.data_collector import DataWriter
 from ros_cross_compile.dependencies import assert_install_rosdep_script_exists
 from ros_cross_compile.dependencies import gather_rosdeps
@@ -186,10 +185,11 @@ def main():
     data_collector = DataCollector()
     data_writer = DataWriter(ros_workspace_dir)
 
-    with DataTimer('e2e', data_collector):
-        cross_compile_pipeline(args)
-
-    data_writer.wrap_up(data_collector)
+    try:
+        with data_collector.data_timer('e2e'):
+            cross_compile_pipeline(args)
+    finally:
+        data_writer.write(data_collector)
 
 
 if __name__ == '__main__':

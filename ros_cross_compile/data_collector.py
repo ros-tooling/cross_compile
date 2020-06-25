@@ -14,6 +14,7 @@
 
 """Classes for time series data collection and writing said data to a file."""
 
+from contextlib import contextmanager
 from datetime import datetime
 import json
 from pathlib import Path
@@ -26,7 +27,8 @@ from ros_cross_compile.sysroot_creator import INTERNALS_DIR
 Datum = NamedTuple('Datum', [('name', str),
                              ('value', Union[int, float]),
                              ('unit', str),
-                             ('timestamp', str)])
+                             ('timestamp', float),
+                             ('complete', bool)])
 
 
 class DataCollector:
@@ -34,6 +36,7 @@ class DataCollector:
 
     def __init__(self):
         self.data = {}
+        self.elapsed = 0
 
     def add_datum(self, new_datum: Datum, new_datum_name: str):
         if new_datum_name not in self.data:
@@ -41,28 +44,21 @@ class DataCollector:
         else:
             self.data[new_datum_name].append(new_datum._asdict())
 
-
-class DataTimer:
-    """
-    Represents a stopwatch-style timer.
-
-    This class is designed to wrap a function call using a with
-    statement.
-    """
-
-    def __init__(self, name: str, data_collector: DataCollector):
-        self.name = name
-        self.data_collector = data_collector
-
-    def __enter__(self):
-        self._start = time.monotonic()
-        return self
-
-    def __exit__(self, *exc):
-        self.elapsed = time.monotonic() - self._start
-        time_metric = Datum(self.name + '-time', self.elapsed,
-                            'seconds', str(datetime.now()))
-        self.data_collector.add_datum(time_metric, self.name)
+    @contextmanager
+    def data_timer(self, name: str) -> int:
+        start = time.monotonic()
+        try:
+            yield
+        except:
+            elapsed = time.monotonic() - start
+            time_metric = Datum(name + '-time', elapsed,
+                                'seconds', time.monotonic(), False)
+            self.add_datum(time_metric, name)
+        else:
+            elapsed = time.monotonic() - start
+            time_metric = Datum(name + '-time', elapsed,
+                                'seconds', time.monotonic(), True)
+            self.add_datum(time_metric, name)
 
 
 class DataWriter:
@@ -76,6 +72,6 @@ class DataWriter:
 
         self.write_file = self.write_path / output_file
 
-    def wrap_up(self, data_collector: DataCollector):
+    def write(self, data_collector: DataCollector):
         with self.write_file.open('w') as f:
             json.dump(data_collector.data, f, sort_keys=True, indent=4)
