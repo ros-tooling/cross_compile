@@ -71,7 +71,7 @@ class DataWriter:
     def __init__(self, ros_workspace_dir: Path,
                  output_file: Path = Path(datetime.now().strftime('%s') + '.json')):
         """Configure path for writing data."""
-        self.write_path = ros_workspace_dir / Path(INTERNALS_DIR) / Path('metrics')
+        self.write_path = Path(str(ros_workspace_dir)) / Path(INTERNALS_DIR) / Path('metrics')
         self.write_path.mkdir(parents=True, exist_ok=True)
 
         self.write_file = self.write_path / output_file
