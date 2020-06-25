@@ -20,6 +20,8 @@ from pathlib import Path
 import time
 from typing import NamedTuple, Union
 
+from ros_cross_compile.sysroot_creator import INTERNALS_DIR
+
 
 Datum = NamedTuple('Datum', [('name', str),
                              ('value', Union[int, float]),
@@ -30,20 +32,14 @@ Datum = NamedTuple('Datum', [('name', str),
 class DataCollector:
     """Provides an interface to collect time series data."""
 
-    default_file = Path(datetime.now().strftime('%s') + '.json')
-
     def __init__(self):
-        self._data = []
+        self.data = {}
 
-    def add_datum(self, new_datum: Datum):
-        self._data.append(new_datum._asdict())
-
-    def set_write_path(self, write_path: Path):
-        self.write_path = write_path
-
-    def write_file(self):
-        with open(self.write_path / DataCollector.default_file, 'w') as f:
-            json.dump(self._data, f, sort_keys=True, indent=4)
+    def add_datum(self, new_datum: Datum, new_datum_name: str):
+        if new_datum_name not in self.data:
+            self.data[new_datum_name] = [new_datum._asdict()]
+        else:
+            self.data[new_datum_name].append(new_datum._asdict())
 
 
 class DataTimer:
@@ -54,9 +50,32 @@ class DataTimer:
     statement.
     """
 
+    def __init__(self, name: str, data_collector: DataCollector):
+        self.name = name
+        self.data_collector = data_collector
+
     def __enter__(self):
         self._start = time.monotonic()
         return self
 
     def __exit__(self, *exc):
         self.elapsed = time.monotonic() - self._start
+        time_metric = Datum(self.name + '-time', self.elapsed,
+                            'seconds', str(datetime.now()))
+        self.data_collector.add_datum(time_metric, self.name)
+
+
+class DataWriter:
+    """Provides an interface to write collected data to a file."""
+
+    def __init__(self, ros_workspace_dir: Path,
+                 output_file: Path = Path(datetime.now().strftime('%s') + '.json')):
+        """Configure path for writing data."""
+        self.write_path = ros_workspace_dir / Path(INTERNALS_DIR) / Path('metrics')
+        self.write_path.mkdir(parents=True, exist_ok=True)
+
+        self.write_file = self.write_path / output_file
+
+    def wrap_up(self, data_collector: DataCollector):
+        with self.write_file.open('w') as f:
+            json.dump(data_collector.data, f, sort_keys=True, indent=4)

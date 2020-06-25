@@ -17,7 +17,6 @@
 """Executable for cross-compiling ROS and ROS 2 packages."""
 
 import argparse
-from datetime import datetime
 import logging
 from pathlib import Path
 import sys
@@ -27,7 +26,7 @@ from typing import Optional
 from ros_cross_compile.builders import run_emulated_docker_build
 from ros_cross_compile.data_collector import DataCollector
 from ros_cross_compile.data_collector import DataTimer
-from ros_cross_compile.data_collector import Datum
+from ros_cross_compile.data_collector import DataWriter
 from ros_cross_compile.dependencies import assert_install_rosdep_script_exists
 from ros_cross_compile.dependencies import gather_rosdeps
 from ros_cross_compile.docker_client import DEFAULT_COLCON_DEFAULTS_FILE
@@ -136,23 +135,22 @@ def parse_args(args: List[str]) -> argparse.Namespace:
     return parser.parse_args(args)
 
 
-def cross_compile_pipeline(
-    args: argparse.Namespace,
-    data_collector: DataCollector = None,
-):
-    platform = Platform(args.arch, args.os, args.rosdistro, args.sysroot_base_image)
-
-    ros_workspace_dir = Path(args.ros_workspace).resolve()
+def resolve_ros_workspace(ros_dir: str) -> Path:
+    ros_workspace_dir = Path(ros_dir).resolve()
     if not (ros_workspace_dir / 'src').is_dir():
         raise ValueError(
             'Specified workspace "{}" does not look like a colcon workspace '
             '(there is no "src/" directory). Cannot continue'.format(ros_workspace_dir))
 
-    metrics_dir = ros_workspace_dir / Path('cc_internals/metrics_data')
-    if data_collector:
-        metrics_dir.mkdir(parents=True, exist_ok=True)
-        data_collector.set_write_path(metrics_dir)
+    return ros_workspace_dir
 
+
+def cross_compile_pipeline(
+    args: argparse.Namespace,
+):
+    platform = Platform(args.arch, args.os, args.rosdistro, args.sysroot_base_image)
+
+    ros_workspace_dir = resolve_ros_workspace(args.ros_workspace)
     skip_rosdep_keys = args.skip_rosdep_keys
     custom_data_dir = _path_if(args.custom_data_dir)
     custom_rosdep_script = _path_if(args.custom_rosdep_script)
@@ -184,15 +182,14 @@ def cross_compile_pipeline(
 def main():
     """Start the cross-compilation workflow."""
     args = parse_args(sys.argv[1:])
+    ros_workspace_dir = resolve_ros_workspace(args.ros_workspace)
     data_collector = DataCollector()
+    data_writer = DataWriter(ros_workspace_dir)
 
-    with DataTimer() as end_end_timer:
-        cross_compile_pipeline(args, data_collector)
+    with DataTimer('e2e', data_collector):
+        cross_compile_pipeline(args)
 
-    end_end_time = Datum('End_To_End-time', end_end_timer.elapsed,
-                         'seconds', str(datetime.now()))
-    data_collector.add_datum(end_end_time)
-    data_collector.write_file()
+    data_writer.wrap_up(data_collector)
 
 
 if __name__ == '__main__':
