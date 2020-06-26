@@ -20,7 +20,7 @@ from enum import Enum
 import json
 from pathlib import Path
 import time
-from typing import NamedTuple, Union
+from typing import Dict, List, NamedTuple, Union
 
 from ros_cross_compile.sysroot_creator import INTERNALS_DIR
 
@@ -41,10 +41,13 @@ class DataCollector:
     """Provides an interface to collect time series data."""
 
     def __init__(self):
-        self.data = []
+        self._data = []
 
     def add_datum(self, new_datum: Datum):
-        self.data.append(new_datum)
+        self._data.append(new_datum)
+
+    def serialize_data(self) -> List[Dict]:
+        return list(map(lambda d: d._asdict(), self._data))
 
     @contextmanager
     def data_timer(self, name: str):
@@ -79,6 +82,6 @@ class DataWriter:
         Before writing, however, we convert each datum to a dictionary,
         so that they are conveniently 'dumpable' into a JSON file.
         """
-        data_to_dump = map(lambda d: d._asdict(), data_collector.data)
+        data_to_dump = data_collector.serialize_data()
         with self.write_file.open('w') as f:
             json.dump(list(data_to_dump), f, sort_keys=True, indent=4)

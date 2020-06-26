@@ -45,7 +45,8 @@ def _path_if(path: Optional[str] = None) -> Optional[Path]:
     return Path(path) if path else None
 
 
-def resolve_ros_workspace(ros_workspace_input: str) -> Path:
+def _resolve_ros_workspace(ros_workspace_input: str) -> Path:
+    """Allow for relative paths to be passed in as a ros workspace dir."""
     ros_workspace_dir = Path(ros_workspace_input).resolve()
     if not (ros_workspace_dir / 'src').is_dir():
         raise ValueError(
@@ -149,7 +150,7 @@ def cross_compile_pipeline(
 ):
     platform = Platform(args.arch, args.os, args.rosdistro, args.sysroot_base_image)
 
-    ros_workspace_dir = resolve_ros_workspace(args.ros_workspace)
+    ros_workspace_dir = _resolve_ros_workspace(args.ros_workspace)
     skip_rosdep_keys = args.skip_rosdep_keys
     custom_data_dir = _path_if(args.custom_data_dir)
     custom_rosdep_script = _path_if(args.custom_rosdep_script)
@@ -181,7 +182,7 @@ def cross_compile_pipeline(
 def main():
     """Start the cross-compilation workflow."""
     args = parse_args(sys.argv[1:])
-    ros_workspace_dir = resolve_ros_workspace(args.ros_workspace)
+    ros_workspace_dir = _resolve_ros_workspace(args.ros_workspace)
     data_collector = DataCollector()
     data_writer = DataWriter(ros_workspace_dir)
 

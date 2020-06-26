@@ -36,7 +36,7 @@ def test_data_collection():
     test_collector.add_datum(test_datum_a)
     test_collector.add_datum(test_datum_b)
 
-    to_test_data = test_collector.data
+    to_test_data = test_collector._data
 
     assert to_test_data[0].name == 'test_stat_1'
     assert to_test_data[1].name == 'test_stat_2'
@@ -51,8 +51,8 @@ def test_data_timer_can_time():
     with test_collector.data_timer('test_time'):
         pass
 
-    assert test_collector.data[0].complete
-    assert test_collector.data[0].value > 0
+    assert test_collector._data[0].complete
+    assert test_collector._data[0].value > 0
 
 
 def test_data_timer_error_handling():
@@ -60,7 +60,7 @@ def test_data_timer_error_handling():
     with test_collector.data_timer('test_time_fail'):
         raise Exception
 
-    assert test_collector.data[0].complete is False
+    assert test_collector._data[0].complete is False
 
 
 def test_data_writing(tmp_path):
