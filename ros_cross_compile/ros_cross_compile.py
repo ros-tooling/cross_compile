@@ -45,6 +45,16 @@ def _path_if(path: Optional[str] = None) -> Optional[Path]:
     return Path(path) if path else None
 
 
+def resolve_ros_workspace(ros_workspace_input: str) -> Path:
+    ros_workspace_dir = Path(ros_workspace_input).resolve()
+    if not (ros_workspace_dir / 'src').is_dir():
+        raise ValueError(
+            'specified workspace "{}" does not look like a colcon workspace '
+            '(there is no "src/" directory). cannot continue'.format(ros_workspace_dir))
+
+    return ros_workspace_dir
+
+
 def parse_args(args: List[str]) -> argparse.Namespace:
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
@@ -132,16 +142,6 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         help='Skip specified rosdep keys when collecting dependencies for the workspace.')
 
     return parser.parse_args(args)
-
-
-def resolve_ros_workspace(ros_dir: str) -> Path:
-    ros_workspace_dir = Path(ros_dir).resolve()
-    if not (ros_workspace_dir / 'src').is_dir():
-        raise ValueError(
-            'Specified workspace "{}" does not look like a colcon workspace '
-            '(there is no "src/" directory). Cannot continue'.format(ros_workspace_dir))
-
-    return ros_workspace_dir
 
 
 def cross_compile_pipeline(

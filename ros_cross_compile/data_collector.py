@@ -16,6 +16,7 @@
 
 from contextlib import contextmanager
 from datetime import datetime
+from enum import Enum
 import json
 from pathlib import Path
 import time
@@ -31,6 +32,11 @@ Datum = NamedTuple('Datum', [('name', str),
                              ('complete', bool)])
 
 
+class Units(Enum):
+    time = 'seconds'
+    size = 'megabytes'
+
+
 class DataCollector:
     """Provides an interface to collect time series data."""
 
@@ -39,25 +45,29 @@ class DataCollector:
         self.elapsed = 0
 
     def add_datum(self, new_datum: Datum, new_datum_name: str):
+        datum_dict = {'name': new_datum[0], 'value': new_datum[1],
+                      'unit': new_datum[2], 'timestamp': new_datum[3],
+                      'complete': new_datum[4]}
+
         if new_datum_name not in self.data:
-            self.data[new_datum_name] = [new_datum._asdict()]
+            self.data[new_datum_name] = [datum_dict]
         else:
-            self.data[new_datum_name].append(new_datum._asdict())
+            self.data[new_datum_name].append(datum_dict)
 
     @contextmanager
-    def data_timer(self, name: str) -> int:
+    def data_timer(self, name: str):
         start = time.monotonic()
         try:
             yield
-        except:
+        except Exception:
             elapsed = time.monotonic() - start
             time_metric = Datum(name + '-time', elapsed,
-                                'seconds', time.monotonic(), False)
+                                Units.time.value, time.monotonic(), False)
             self.add_datum(time_metric, name)
         else:
             elapsed = time.monotonic() - start
             time_metric = Datum(name + '-time', elapsed,
-                                'seconds', time.monotonic(), True)
+                                Units.time.value, time.monotonic(), True)
             self.add_datum(time_metric, name)
 
 
@@ -67,10 +77,10 @@ class DataWriter:
     def __init__(self, ros_workspace_dir: Path,
                  output_file: Path = Path(datetime.now().strftime('%s') + '.json')):
         """Configure path for writing data."""
-        self.write_path = Path(str(ros_workspace_dir)) / Path(INTERNALS_DIR) / Path('metrics')
-        self.write_path.mkdir(parents=True, exist_ok=True)
+        self._write_path = Path(str(ros_workspace_dir)) / Path(INTERNALS_DIR) / Path('metrics')
+        self._write_path.mkdir(parents=True, exist_ok=True)
 
-        self.write_file = self.write_path / output_file
+        self.write_file = self._write_path / output_file
 
     def write(self, data_collector: DataCollector):
         with self.write_file.open('w') as f:
