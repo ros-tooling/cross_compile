@@ -34,41 +34,32 @@ Datum = NamedTuple('Datum', [('name', str),
 
 class Units(Enum):
     time = 'seconds'
-    size = 'megabytes'
+    size = 'bytes'
 
 
 class DataCollector:
     """Provides an interface to collect time series data."""
 
     def __init__(self):
-        self.data = {}
-        self.elapsed = 0
+        self.data = []
 
-    def add_datum(self, new_datum: Datum, new_datum_name: str):
-        datum_dict = {'name': new_datum[0], 'value': new_datum[1],
-                      'unit': new_datum[2], 'timestamp': new_datum[3],
-                      'complete': new_datum[4]}
-
-        if new_datum_name not in self.data:
-            self.data[new_datum_name] = [datum_dict]
-        else:
-            self.data[new_datum_name].append(datum_dict)
+    def add_datum(self, new_datum: Datum):
+        self.data.append(new_datum)
 
     @contextmanager
     def data_timer(self, name: str):
+        """Provide an interface to time a statement's duration with a 'with'."""
         start = time.monotonic()
+        complete = True
         try:
             yield
         except Exception:
+            complete = False
+        finally:
             elapsed = time.monotonic() - start
             time_metric = Datum(name + '-time', elapsed,
-                                Units.time.value, time.monotonic(), False)
-            self.add_datum(time_metric, name)
-        else:
-            elapsed = time.monotonic() - start
-            time_metric = Datum(name + '-time', elapsed,
-                                Units.time.value, time.monotonic(), True)
-            self.add_datum(time_metric, name)
+                                Units.time.value, time.monotonic(), complete)
+            self.add_datum(time_metric)
 
 
 class DataWriter:
@@ -79,9 +70,15 @@ class DataWriter:
         """Configure path for writing data."""
         self._write_path = Path(str(ros_workspace_dir)) / Path(INTERNALS_DIR) / Path('metrics')
         self._write_path.mkdir(parents=True, exist_ok=True)
-
         self.write_file = self._write_path / output_file
 
     def write(self, data_collector: DataCollector):
+        """
+        Write collected datums to a file.
+
+        Before writing, however, we convert each datum to a dictionary,
+        so that they are conveniently 'dumpable' into a JSON file.
+        """
+        data_to_dump = map(lambda d: d._asdict(), data_collector.data)
         with self.write_file.open('w') as f:
-            json.dump(data_collector.data, f, sort_keys=True, indent=4)
+            json.dump(list(data_to_dump), f, sort_keys=True, indent=4)
