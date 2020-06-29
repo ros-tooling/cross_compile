@@ -24,6 +24,8 @@ from typing import List
 from typing import Optional
 
 from ros_cross_compile.builders import run_emulated_docker_build
+from ros_cross_compile.data_collector import DataCollector
+from ros_cross_compile.data_collector import DataWriter
 from ros_cross_compile.dependencies import assert_install_rosdep_script_exists
 from ros_cross_compile.dependencies import gather_rosdeps
 from ros_cross_compile.docker_client import DEFAULT_COLCON_DEFAULTS_FILE
@@ -41,6 +43,17 @@ logger = logging.getLogger(__name__)
 
 def _path_if(path: Optional[str] = None) -> Optional[Path]:
     return Path(path) if path else None
+
+
+def _resolve_ros_workspace(ros_workspace_input: str) -> Path:
+    """Allow for relative paths to be passed in as a ros workspace dir."""
+    ros_workspace_dir = Path(ros_workspace_input).resolve()
+    if not (ros_workspace_dir / 'src').is_dir():
+        raise ValueError(
+            'specified workspace "{}" does not look like a colcon workspace '
+            '(there is no "src/" directory). cannot continue'.format(ros_workspace_dir))
+
+    return ros_workspace_dir
 
 
 def parse_args(args: List[str]) -> argparse.Namespace:
@@ -137,12 +150,7 @@ def cross_compile_pipeline(
 ):
     platform = Platform(args.arch, args.os, args.rosdistro, args.sysroot_base_image)
 
-    ros_workspace_dir = Path(args.ros_workspace).resolve()
-    if not (ros_workspace_dir / 'src').is_dir():
-        raise ValueError(
-            'Specified workspace "{}" does not look like a colcon workspace '
-            '(there is no "src/" directory). Cannot continue'.format(ros_workspace_dir))
-
+    ros_workspace_dir = _resolve_ros_workspace(args.ros_workspace)
     skip_rosdep_keys = args.skip_rosdep_keys
     custom_data_dir = _path_if(args.custom_data_dir)
     custom_rosdep_script = _path_if(args.custom_rosdep_script)
@@ -174,7 +182,15 @@ def cross_compile_pipeline(
 def main():
     """Start the cross-compilation workflow."""
     args = parse_args(sys.argv[1:])
-    cross_compile_pipeline(args)
+    ros_workspace_dir = _resolve_ros_workspace(args.ros_workspace)
+    data_collector = DataCollector()
+    data_writer = DataWriter(ros_workspace_dir)
+
+    try:
+        with data_collector.data_timer('cross_compile_end_to_end'):
+            cross_compile_pipeline(args)
+    finally:
+        data_writer.write(data_collector)
 
 
 if __name__ == '__main__':

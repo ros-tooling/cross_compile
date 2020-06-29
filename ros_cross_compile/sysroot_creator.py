@@ -25,10 +25,12 @@ from ros_cross_compile.platform import Platform
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+INTERNALS_DIR = 'cc_internals'
+
 
 def build_internals_dir(platform: Platform) -> Path:
     """Construct a relative path for this build, for storing intermediate artifacts."""
-    return Path('cc_internals') / str(platform)
+    return Path(INTERNALS_DIR) / str(platform)
 
 
 def _copytree(src: Path, dest: Path) -> None:
