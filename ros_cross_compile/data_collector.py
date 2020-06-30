@@ -33,8 +33,8 @@ Datum = NamedTuple('Datum', [('name', str),
 
 
 class Units(Enum):
-    time = 'seconds'
-    size = 'bytes'
+    seconds = 'seconds'
+    bytes = 'bytes'
 
 
 class DataCollector:
@@ -61,7 +61,7 @@ class DataCollector:
         finally:
             elapsed = time.monotonic() - start
             time_metric = Datum(name + '-time', elapsed,
-                                Units.time.value, time.monotonic(), complete)
+                                Units.seconds.value, time.monotonic(), complete)
             self.add_datum(time_metric)
 
 
