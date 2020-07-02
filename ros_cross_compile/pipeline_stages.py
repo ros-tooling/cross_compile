@@ -23,6 +23,12 @@ from pathlib import Path
 from typing import List, NamedTuple, Optional
 
 
+"""
+A NamedTuple that collects the customizations for each stage passed in by the user.
+
+As such, the documentation for each customization can be found by looking at the
+argparse options in ros_cross_compile.py.
+"""
 PipelineStageConfigOptions = NamedTuple('PipelineStageConfigOptions',
                                         [('skip_rosdep_collection', bool),
                                          ('skip_rosdep_keys', List[str]),
