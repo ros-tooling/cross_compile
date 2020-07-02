@@ -18,12 +18,5 @@ from ros_cross_compile.pipeline_stages import ConfigOptions
 
 
 def test_config_tuple_creation():
-    test_options = ConfigOptions(True, False, Path('./'), Path('./'), Path('./'))
-
+    test_options = ConfigOptions(True, ['abc', 'def'], Path('./'), Path('./'), Path('./'))
     assert test_options
-
-    assert test_options.skip_rosdep_collection is True
-    assert test_options.skip_rosdep_keys is False
-    assert test_options.custom_script == Path('./')
-    assert test_options.custom_data_dir == Path('./')
-    assert test_options.custom_setup_script == Path('./')

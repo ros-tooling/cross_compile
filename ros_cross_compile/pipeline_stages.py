@@ -23,8 +23,9 @@ from pathlib import Path
 from typing import List, NamedTuple, Optional
 
 
-ConfigOptions = NamedTuple('ConfigOptions', [('skip_rosdep_collection', Optional[bool]),
-                                             ('skip_rosdep_keys', List[str]),
-                                             ('custom_script', Optional[Path]),
-                                             ('custom_data_dir', Optional[Path]),
-                                             ('custom_setup_script', Optional[Path])])
+PipelineStageConfigOptions = NamedTuple('PipelineStageConfigOptions',
+                                        [('skip_rosdep_collection', bool),
+                                         ('skip_rosdep_keys', List[str]),
+                                         ('custom_script', Optional[Path]),
+                                         ('custom_data_dir', Optional[Path]),
+                                         ('custom_setup_script', Optional[Path])])
