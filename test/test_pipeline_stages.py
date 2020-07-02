@@ -14,9 +14,9 @@
 
 from pathlib import Path
 
-from ros_cross_compile.pipeline_stages import ConfigOptions
+from ros_cross_compile.pipeline_stages import PipelineStageConfigOptions
 
 
 def test_config_tuple_creation():
-    test_options = ConfigOptions(True, ['abc', 'def'], Path('./'), Path('./'), Path('./'))
+    test_options = PipelineStageConfigOptions(True, ['abc', 'def'], Path('./'), Path('./'), Path('./'))
     assert test_options
