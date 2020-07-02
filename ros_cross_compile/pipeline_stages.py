@@ -12,13 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Wrapper abstractions for each pipeline stage.
-
-The abstractions allows for streamlining the pipeline into a unified
-'pipeline runner' and collecting of time series data from each stage.
-"""
-
 from pathlib import Path
 from typing import List, NamedTuple, Optional
 
