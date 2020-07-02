@@ -197,5 +197,9 @@ if [ -d "$install_dir/dummy_pkg_ros2_cpp" ]; then
   panic "Built the python package when deselected"
 fi
 
+if [ ! -n "$(ls -A $test_sysroot_dir/cc_internals/metrics/)" ]; then
+  panic "Failed to write time series data to file"
+fi
+
 result=0
 exit 0
