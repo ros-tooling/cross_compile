@@ -12,8 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from abc import ABCMeta
 from pathlib import Path
 from typing import List, NamedTuple, Optional
+
+from ros_cross_compile.docker_client import DockerClient
+from ros_cross_compile.platform import Platform
 
 
 """
@@ -28,3 +32,14 @@ PipelineStageConfigOptions = NamedTuple('PipelineStageConfigOptions',
                                          ('custom_script', Optional[Path]),
                                          ('custom_data_dir', Optional[Path]),
                                          ('custom_setup_script', Optional[Path])])
+
+
+class PipelineStage(metaclass=ABCMeta):
+    """Interface to represent a stage of the cross compile pipeline."""
+
+    def __init__(self):
+        self.name = ''
+
+    def __call__(self, platform: Platform, docker_client: DockerClient, ros_workspace_dir: Path,
+                 customizations: PipelineStageConfigOptions):
+        pass

@@ -17,6 +17,7 @@ import shutil
 import docker
 import pytest
 
+from ros_cross_compile.dependencies import DependenciesStage
 from ros_cross_compile.dependencies import gather_rosdeps
 from ros_cross_compile.dependencies import rosdep_install_script
 from ros_cross_compile.docker_client import DockerClient
@@ -202,3 +203,13 @@ def test_dummy_skip_rosdep_multiple_keys_pkg(tmpdir):
     result = out_script.read_text()
     assert 'ros-dashing-ament-cmake' not in result
     assert 'ros-dashing-rclcpp' not in result
+
+
+def test_dependencies_stage_creation():
+    temp_stage = DependenciesStage()
+    assert temp_stage
+
+
+def test_dependencies_stage_name():
+    temp_stage = DependenciesStage()
+    assert temp_stage.name == gather_rosdeps.__name__

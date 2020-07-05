@@ -19,6 +19,8 @@ from typing import List
 from typing import Optional
 
 from ros_cross_compile.docker_client import DockerClient
+from ros_cross_compile.pipeline_stages import PipelineStage
+from ros_cross_compile.pipeline_stages import PipelineStageConfigOptions
 from ros_cross_compile.platform import Platform
 from ros_cross_compile.sysroot_creator import build_internals_dir
 
@@ -95,3 +97,22 @@ def assert_install_rosdep_script_exists(
             'Rosdep installation script has never been created, you need to run this without '
             'skipping rosdep collection at least once.')
     return True
+
+
+class DependenciesStage(PipelineStage):
+    """Wrapper class for running the dependencies stage of the pipeline."""
+
+    def __init__(self):
+        self.name = gather_rosdeps.__name__
+
+    def __call__(self, platform: Platform, docker_client: DockerClient, ros_workspace_dir: Path,
+                 customizations: PipelineStageConfigOptions):
+        if not customizations.skip_rosdep_collection:
+            gather_rosdeps(
+                docker_client=docker_client,
+                platform=platform,
+                workspace=ros_workspace_dir,
+                skip_rosdep_keys=customizations.skip_rosdep_keys,
+                custom_script=customizations.custom_script,
+                custom_data_dir=customizations.custom_data_dir)
+        assert_install_rosdep_script_exists(ros_workspace_dir, platform)
