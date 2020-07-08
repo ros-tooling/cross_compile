@@ -48,20 +48,20 @@ def test_data_collection():
     assert to_test_data[0].complete
 
 
-def test_data_timer_can_time():
+def test_timer_can_time():
     test_collector = DataCollector()
-    with test_collector.data_timer('test_time'):
+    with test_collector.timer('test_time'):
         pass
 
     assert test_collector._data[0].complete
     assert test_collector._data[0].value > 0
 
 
-def test_data_timer_error_handling():
+def test_timer_error_handling():
     test_collector = DataCollector()
     # The timer should not hide the exception, we expect it to add the datum value
     with pytest.raises(Exception):
-        with test_collector.data_timer('test_time_fail'):
+        with test_collector.timer('test_time_fail'):
             raise Exception
 
     assert len(test_collector._data) > 0

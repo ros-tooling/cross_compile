@@ -187,7 +187,7 @@ def main():
     data_writer = DataWriter(ros_workspace_dir)
 
     try:
-        with data_collector.data_timer('cross_compile_end_to_end'):
+        with data_collector.timer('cross_compile_end_to_end'):
             cross_compile_pipeline(args)
     finally:
         data_writer.write(data_collector)

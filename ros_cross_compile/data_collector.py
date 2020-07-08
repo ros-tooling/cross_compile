@@ -50,7 +50,7 @@ class DataCollector:
         return list(map(lambda d: d._asdict(), self._data))
 
     @contextmanager
-    def data_timer(self, name: str):
+    def timer(self, name: str):
         """Provide an interface to time a statement's duration with a 'with'."""
         start = time.monotonic()
         complete = False
