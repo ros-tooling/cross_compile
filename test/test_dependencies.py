@@ -60,7 +60,11 @@ def test_dummy_ros2_pkg(tmpdir):
     platform = Platform(arch='aarch64', os_name='ubuntu', ros_distro='dashing')
     out_script = ws / rosdep_install_script(platform)
 
-    gather_rosdeps(client, platform, workspace=ws)
+    customizations = PipelineStageConfigOptions(False, [], None, None, None)
+    temp_stage = DependenciesStage()
+
+    temp_stage(platform, client, ws, customizations)
+
     result = out_script.read_text()
     assert 'ros-dashing-ament-cmake' in result
     assert 'ros-dashing-rclcpp' in result
@@ -204,27 +208,6 @@ def test_dummy_skip_rosdep_multiple_keys_pkg(tmpdir):
     result = out_script.read_text()
     assert 'ros-dashing-ament-cmake' not in result
     assert 'ros-dashing-rclcpp' not in result
-
-
-@uses_docker
-def test_dependencies_stage_call(tmpdir):
-    ws = Path(str(tmpdir))
-    pkg_xml = ws / 'src' / 'dummy' / 'package.xml'
-    pkg_xml.parent.mkdir(parents=True)
-    pkg_xml.write_text(RCLCPP_PKG_XML)
-
-    client = DockerClient()
-    platform = Platform(arch='aarch64', os_name='ubuntu', ros_distro='dashing')
-    out_script = ws / rosdep_install_script(platform)
-
-    customizations = PipelineStageConfigOptions(False, [], None, None, None)
-    temp_stage = DependenciesStage()
-
-    temp_stage(platform, client, ws, customizations)
-
-    result = out_script.read_text()
-    assert 'ros-dashing-ament-cmake' in result
-    assert 'ros-dashing-rclcpp' in result
 
 
 def test_dependencies_stage_creation():
