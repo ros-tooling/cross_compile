@@ -73,7 +73,7 @@ def test_timer_error_handling():
 
 def test_data_writing(tmp_path):
     def validate_json(filename: Path) -> bool:
-        with open(filename) as f:
+        with filename.open() as f:
             return json.load(f)
 
     test_collector = DataCollector()
