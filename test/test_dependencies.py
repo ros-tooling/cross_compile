@@ -60,6 +60,7 @@ def test_dummy_ros2_pkg(tmpdir):
     platform = Platform(arch='aarch64', os_name='ubuntu', ros_distro='dashing')
     out_script = ws / rosdep_install_script(platform)
 
+    # a default set of customizations for the dependencies stage
     customizations = PipelineStageConfigOptions(False, [], None, None, None)
     temp_stage = DependenciesStage()
 
