@@ -100,13 +100,21 @@ def assert_install_rosdep_script_exists(
 
 
 class DependenciesStage(PipelineStage):
-    """Wrapper class for running the dependencies stage of the pipeline."""
+    """
+    This stage determines what external dependencies are needed for building.
+
+    It outputs a script into the internals directory that will install those
+    dependencies for the target platform.
+    """
 
     def __init__(self):
-        self.name = gather_rosdeps.__name__
+        super().__init__('gather_rosdeps')
 
     def __call__(self, platform: Platform, docker_client: DockerClient, ros_workspace_dir: Path,
                  customizations: PipelineStageConfigOptions):
+        """In the event of a failure, a RuntimeError can be raised."""
+        # NOTE: Stage skipping will be handled more generically in the future;
+        # for now we handle this specific case internally to maintain the original API.
         if not customizations.skip_rosdep_collection:
             gather_rosdeps(
                 docker_client=docker_client,

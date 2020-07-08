@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from abc import ABCMeta
+from abc import ABCMeta, abstractmethod
 from pathlib import Path
 from typing import List, NamedTuple, Optional
 
@@ -37,9 +37,11 @@ PipelineStageConfigOptions = NamedTuple('PipelineStageConfigOptions',
 class PipelineStage(metaclass=ABCMeta):
     """Interface to represent a stage of the cross compile pipeline."""
 
-    def __init__(self):
-        self.name = ''
+    @abstractmethod
+    def __init__(self, name):
+        self._name = name
 
+    @abstractmethod
     def __call__(self, platform: Platform, docker_client: DockerClient, ros_workspace_dir: Path,
                  customizations: PipelineStageConfigOptions):
         pass
