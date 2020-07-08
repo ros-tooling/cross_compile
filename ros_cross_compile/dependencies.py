@@ -111,16 +111,16 @@ class DependenciesStage(PipelineStage):
         super().__init__('gather_rosdeps')
 
     def __call__(self, platform: Platform, docker_client: DockerClient, ros_workspace_dir: Path,
-                 customizations: PipelineStageConfigOptions):
+                 pipeline_stage_config_options: PipelineStageConfigOptions):
         """In the event of a failure, a RuntimeError can be raised."""
         # NOTE: Stage skipping will be handled more generically in the future;
         # for now we handle this specific case internally to maintain the original API.
-        if not customizations.skip_rosdep_collection:
+        if not pipeline_stage_config_options.skip_rosdep_collection:
             gather_rosdeps(
                 docker_client=docker_client,
                 platform=platform,
                 workspace=ros_workspace_dir,
-                skip_rosdep_keys=customizations.skip_rosdep_keys,
-                custom_script=customizations.custom_script,
-                custom_data_dir=customizations.custom_data_dir)
+                skip_rosdep_keys=pipeline_stage_config_options.skip_rosdep_keys,
+                custom_script=pipeline_stage_config_options.custom_script,
+                custom_data_dir=pipeline_stage_config_options.custom_data_dir)
         assert_install_rosdep_script_exists(ros_workspace_dir, platform)
