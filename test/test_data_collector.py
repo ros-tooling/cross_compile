@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
+
 from ros_cross_compile.data_collector import DataCollector
 from ros_cross_compile.data_collector import DataWriter
 from ros_cross_compile.data_collector import Datum
@@ -57,9 +59,12 @@ def test_data_timer_can_time():
 
 def test_data_timer_error_handling():
     test_collector = DataCollector()
-    with test_collector.data_timer('test_time_fail'):
-        raise Exception
+    # The timer should not hide the exception, we expect it to add the datum value
+    with pytest.raises(Exception):
+        with test_collector.data_timer('test_time_fail'):
+            raise Exception
 
+    assert len(test_collector._data) > 0
     assert test_collector._data[0].complete is False
 
 

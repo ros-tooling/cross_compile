@@ -53,11 +53,10 @@ class DataCollector:
     def data_timer(self, name: str):
         """Provide an interface to time a statement's duration with a 'with'."""
         start = time.monotonic()
-        complete = True
+        complete = False
         try:
             yield
-        except Exception:
-            complete = False
+            complete = True
         finally:
             elapsed = time.monotonic() - start
             time_metric = Datum(name + '-time', elapsed,
