@@ -87,7 +87,8 @@ class Platform:
         os_map = ROSDISTRO_OS_MAP[self.ros_distro]
         if self.os_name not in os_map:
             raise ValueError(
-                'OS "{}" not supported for ROS distro "{}". Supported values: {}'.format(
+                'OS "{}" not supported for ROS distro "{}". Supported values: {} '
+                '(note that these are case sensitive)'.format(
                     os_name, ros_distro, list(os_map.keys())))
 
         if override_base_image:
