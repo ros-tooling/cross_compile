@@ -112,7 +112,12 @@ class DependenciesStage(PipelineStage):
 
     def __call__(self, platform: Platform, docker_client: DockerClient, ros_workspace_dir: Path,
                  pipeline_stage_config_options: PipelineStageConfigOptions):
-        """In the event of a failure, a RuntimeError can be raised."""
+        """
+        Run the inspection and output the dependency installation script.
+
+        :raises RuntimeError if the step was skipped when no dependency script has been
+        previously generated
+        """
         # NOTE: Stage skipping will be handled more generically in the future;
         # for now we handle this specific case internally to maintain the original API.
         if not pipeline_stage_config_options.skip_rosdep_collection:
