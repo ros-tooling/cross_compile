@@ -23,8 +23,10 @@ from unittest.mock import patch
 
 import pytest
 
+from ros_cross_compile.pipeline_stages import PipelineStageConfigOptions
 from ros_cross_compile.platform import Platform
 from ros_cross_compile.sysroot_creator import create_workspace_sysroot_image
+from ros_cross_compile.sysroot_creator import CreateSysrootStage
 from ros_cross_compile.sysroot_creator import prepare_docker_build_environment
 from ros_cross_compile.sysroot_creator import setup_emulator
 
@@ -84,5 +86,20 @@ def test_basic_sysroot_creation(tmpdir):
 
     mock_docker_client = Mock()
     platform = Platform('aarch64', 'ubuntu', 'eloquent')
-    create_workspace_sysroot_image(mock_docker_client, platform)
+
+    # a default set of customizations for the docker build stage
+    customizations = PipelineStageConfigOptions(False, [], None, None, None)
+    temp_stage = CreateSysrootStage()
+
+    temp_stage(platform, mock_docker_client, Path('dummy_path'), customizations)
     assert mock_docker_client.build_image.call_count == 1
+
+
+def test_create_sysroot_stage_creation():
+    temp_stage = CreateSysrootStage()
+    assert temp_stage
+
+
+def test_create_sysroot_stage_name():
+    temp_stage = CreateSysrootStage()
+    assert temp_stage._name == create_workspace_sysroot_image.__name__

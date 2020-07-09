@@ -20,6 +20,8 @@ import shutil
 from typing import Optional
 
 from ros_cross_compile.docker_client import DockerClient
+from ros_cross_compile.pipeline_stages import PipelineStage
+from ros_cross_compile.pipeline_stages import PipelineStageConfigOptions
 from ros_cross_compile.platform import Platform
 
 logging.basicConfig(level=logging.INFO)
@@ -120,3 +122,18 @@ def create_workspace_sysroot_image(
         }
     )
     logger.info('Successfully created sysroot docker image: %s', image_tag)
+
+
+class CreateSysrootStage(PipelineStage):
+    """
+    This stage creates the target platform Docker sysroot image.
+
+    It will output the sysroot image.
+    """
+
+    def __init__(self):
+        super().__init__('create_workspace_sysroot_image')
+
+    def __call__(self, platform: Platform, docker_client: DockerClient, ros_workspace_dir: Path,
+                 pipeline_stage_config_options: PipelineStageConfigOptions):
+        create_workspace_sysroot_image(docker_client, platform)
