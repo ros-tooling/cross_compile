@@ -14,7 +14,9 @@
 from pathlib import Path
 from unittest.mock import Mock
 
+from ros_cross_compile.builders import DockerBuildStage
 from ros_cross_compile.builders import run_emulated_docker_build
+from ros_cross_compile.pipeline_stages import PipelineStageConfigOptions
 from ros_cross_compile.platform import Platform
 
 
@@ -22,5 +24,21 @@ def test_emulated_docker_build():
     # Very simple smoke test to validate that all internal syntax is correct
     mock_docker_client = Mock()
     platform = Platform('aarch64', 'ubuntu', 'eloquent')
-    run_emulated_docker_build(mock_docker_client, platform, Path('dummy_path'))
+
+    # a default set of customizations for the docker build stage
+    customizations = PipelineStageConfigOptions(False, [], None, None, None)
+    temp_stage = DockerBuildStage()
+
+    temp_stage(platform, mock_docker_client, Path('dummy_path'), customizations)
+
     assert mock_docker_client.run_container.call_count == 1
+
+
+def test_docker_build_stage_creation():
+    temp_stage = DockerBuildStage()
+    assert temp_stage
+
+
+def test_docker_build_stage_name():
+    temp_stage = DockerBuildStage()
+    assert temp_stage._name == run_emulated_docker_build.__name__

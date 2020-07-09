@@ -16,6 +16,8 @@ import os
 from pathlib import Path
 
 from ros_cross_compile.docker_client import DockerClient
+from ros_cross_compile.pipeline_stages import PipelineStage
+from ros_cross_compile.pipeline_stages import PipelineStageConfigOptions
 from ros_cross_compile.platform import Platform
 
 logging.basicConfig(level=logging.INFO)
@@ -45,3 +47,18 @@ def run_emulated_docker_build(
             workspace_path: '/ros_ws',
         },
     )
+
+
+class DockerBuildStage(PipelineStage):
+    """
+    This stage spins up a docker container and runs the emulated build with it.
+
+    Uses the sysroot image from the previous stage.
+    """
+
+    def __init__(self):
+        super().__init__('run_emulated_docker_build')
+
+    def __call__(self, platform: Platform, docker_client: DockerClient, ros_workspace_dir: Path,
+                 pipeline_stage_config_options: PipelineStageConfigOptions):
+        run_emulated_docker_build(docker_client, platform, ros_workspace_dir)
