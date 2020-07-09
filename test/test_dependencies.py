@@ -17,9 +17,11 @@ import shutil
 import docker
 import pytest
 
+from ros_cross_compile.dependencies import DependenciesStage
 from ros_cross_compile.dependencies import gather_rosdeps
 from ros_cross_compile.dependencies import rosdep_install_script
 from ros_cross_compile.docker_client import DockerClient
+from ros_cross_compile.pipeline_stages import PipelineStageConfigOptions
 from ros_cross_compile.platform import Platform
 
 from .utilities import uses_docker
@@ -58,7 +60,12 @@ def test_dummy_ros2_pkg(tmpdir):
     platform = Platform(arch='aarch64', os_name='ubuntu', ros_distro='dashing')
     out_script = ws / rosdep_install_script(platform)
 
-    gather_rosdeps(client, platform, workspace=ws)
+    # a default set of customizations for the dependencies stage
+    customizations = PipelineStageConfigOptions(False, [], None, None, None)
+    temp_stage = DependenciesStage()
+
+    temp_stage(platform, client, ws, customizations)
+
     result = out_script.read_text()
     assert 'ros-dashing-ament-cmake' in result
     assert 'ros-dashing-rclcpp' in result
@@ -202,3 +209,13 @@ def test_dummy_skip_rosdep_multiple_keys_pkg(tmpdir):
     result = out_script.read_text()
     assert 'ros-dashing-ament-cmake' not in result
     assert 'ros-dashing-rclcpp' not in result
+
+
+def test_dependencies_stage_creation():
+    temp_stage = DependenciesStage()
+    assert temp_stage
+
+
+def test_dependencies_stage_name():
+    temp_stage = DependenciesStage()
+    assert temp_stage._name == gather_rosdeps.__name__
