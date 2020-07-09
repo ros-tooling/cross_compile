@@ -172,7 +172,7 @@ def cross_compile_pipeline(
                                                 custom_rosdep_script, custom_data_dir,
                                                 custom_setup_script)
     for stage in stages:
-        with data_collector.data_timer('cross_compile_{}'.format(stage.name)):
+        with data_collector.timer('cross_compile_{}'.format(stage.name)):
             stage(platform, docker_client, ros_workspace_dir, customizations)
 
     create_workspace_sysroot_image(docker_client, platform)
