@@ -168,9 +168,13 @@ def cross_compile_pipeline(
         colcon_defaults_file=args.colcon_defaults)
 
     stages = [DependenciesStage()]
-    customizations = PipelineStageConfigOptions(args.skip_rosdep_collection, skip_rosdep_keys,
-                                                custom_rosdep_script, custom_data_dir,
-                                                custom_setup_script)
+    customizations = PipelineStageConfigOptions(
+        args.skip_rosdep_collection,
+        skip_rosdep_keys,
+        custom_rosdep_script,
+        custom_data_dir,
+        custom_setup_script)
+
     for stage in stages:
         with data_collector.timer('cross_compile_{}'.format(stage.name)):
             stage(platform, docker_client, ros_workspace_dir, customizations)
