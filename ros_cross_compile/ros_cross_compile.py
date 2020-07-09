@@ -26,10 +26,10 @@ from typing import Optional
 from ros_cross_compile.builders import run_emulated_docker_build
 from ros_cross_compile.data_collector import DataCollector
 from ros_cross_compile.data_collector import DataWriter
-from ros_cross_compile.dependencies import assert_install_rosdep_script_exists
-from ros_cross_compile.dependencies import gather_rosdeps
+from ros_cross_compile.dependencies import DependenciesStage
 from ros_cross_compile.docker_client import DEFAULT_COLCON_DEFAULTS_FILE
 from ros_cross_compile.docker_client import DockerClient
+from ros_cross_compile.pipeline_stages import PipelineStageConfigOptions
 from ros_cross_compile.platform import Platform
 from ros_cross_compile.platform import SUPPORTED_ARCHITECTURES
 from ros_cross_compile.platform import SUPPORTED_ROS2_DISTROS
@@ -147,6 +147,7 @@ def parse_args(args: List[str]) -> argparse.Namespace:
 
 def cross_compile_pipeline(
     args: argparse.Namespace,
+    data_collector: DataCollector,
 ):
     platform = Platform(args.arch, args.os, args.rosdistro, args.sysroot_base_image)
 
@@ -166,15 +167,18 @@ def cross_compile_pipeline(
         default_docker_dir=sysroot_build_context,
         colcon_defaults_file=args.colcon_defaults)
 
-    if not args.skip_rosdep_collection:
-        gather_rosdeps(
-            docker_client=docker_client,
-            platform=platform,
-            workspace=ros_workspace_dir,
-            skip_rosdep_keys=skip_rosdep_keys,
-            custom_script=custom_rosdep_script,
-            custom_data_dir=custom_data_dir)
-    assert_install_rosdep_script_exists(ros_workspace_dir, platform)
+    stages = [DependenciesStage()]
+    customizations = PipelineStageConfigOptions(
+        args.skip_rosdep_collection,
+        skip_rosdep_keys,
+        custom_rosdep_script,
+        custom_data_dir,
+        custom_setup_script)
+
+    for stage in stages:
+        with data_collector.timer('cross_compile_{}'.format(stage.name)):
+            stage(platform, docker_client, ros_workspace_dir, customizations)
+
     create_workspace_sysroot_image(docker_client, platform)
     run_emulated_docker_build(docker_client, platform, ros_workspace_dir)
 
@@ -188,7 +192,7 @@ def main():
 
     try:
         with data_collector.timer('cross_compile_end_to_end'):
-            cross_compile_pipeline(args)
+            cross_compile_pipeline(args, data_collector)
     finally:
         data_writer.write(data_collector)
 

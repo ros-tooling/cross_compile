@@ -110,6 +110,10 @@ class DependenciesStage(PipelineStage):
     def __init__(self):
         super().__init__('gather_rosdeps')
 
+    @property
+    def name(self):
+        return self._name
+
     def __call__(self, platform: Platform, docker_client: DockerClient, ros_workspace_dir: Path,
                  pipeline_stage_config_options: PipelineStageConfigOptions):
         """

@@ -21,6 +21,7 @@ from unittest.mock import patch
 import pytest
 
 # from ros_cross_compile.docker_client import DockerClient
+from ros_cross_compile.data_collector import DataCollector
 from ros_cross_compile.dependencies import assert_install_rosdep_script_exists
 from ros_cross_compile.dependencies import rosdep_install_script
 from ros_cross_compile.platform import Platform
@@ -46,36 +47,39 @@ def test_trivial_argparse():
 
 def test_bad_workspace(tmpdir):
     args = parse_args([str(tmpdir), '-a', 'aarch64', '-o', 'ubuntu', '-d', 'foxy'])
+    test_collector = DataCollector()
     with pytest.raises(ValueError):
-        cross_compile_pipeline(args)
+        cross_compile_pipeline(args, test_collector)
 
 
 def test_relative_workspace(tmpdir):
     # Change directory to the tmp dir and invoke using '.' as the
     # workspace to check if relative paths work
     tmp = Path(str(tmpdir))
+    test_collector = DataCollector()
     (tmp / 'src').mkdir()
     relative_dir = '.'
     args = parse_args([relative_dir, '-a', 'aarch64', '-o', 'ubuntu', '-d', 'foxy'])
     with chdir(str(tmp)), patch(
         'ros_cross_compile.ros_cross_compile.DockerClient', Mock()
     ), patch(
-        'ros_cross_compile.ros_cross_compile.assert_install_rosdep_script_exists'
+        'ros_cross_compile.dependencies.assert_install_rosdep_script_exists'
     ):
         # should not raise an exception
-        cross_compile_pipeline(args)
+        cross_compile_pipeline(args, test_collector)
 
 
 def test_mocked_cc_pipeline(tmpdir):
     tmp = Path(str(tmpdir))
+    test_collector = DataCollector()
     (tmp / 'src').mkdir()
     args = parse_args([str(tmpdir), '-a', 'aarch64', '-o', 'ubuntu'])
     with patch(
         'ros_cross_compile.ros_cross_compile.DockerClient', Mock()
     ) as docker_mock, patch(
-        'ros_cross_compile.ros_cross_compile.assert_install_rosdep_script_exists'
+        'ros_cross_compile.dependencies.assert_install_rosdep_script_exists'
     ) as script_mock:
-        cross_compile_pipeline(args)
+        cross_compile_pipeline(args, test_collector)
         assert script_mock.called
         assert docker_mock.called
         assert docker_mock().build_image.call_count == 2
