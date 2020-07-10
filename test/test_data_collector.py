@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import json
+from json import JSONDecodeError
 from pathlib import Path
 
 import pytest
@@ -72,9 +73,13 @@ def test_timer_error_handling():
 
 
 def test_data_writing(tmp_path):
-    def validate_json(filename: Path) -> bool:
-        with filename.open() as f:
-            return json.load(f)
+    def load_json_validation(filename: Path) -> bool:
+        try:
+            with filename.open() as f:
+                json.load(f)
+                return True
+        except JSONDecodeError:
+            return False
 
     test_collector = DataCollector()
 
@@ -89,4 +94,4 @@ def test_data_writing(tmp_path):
     test_writer.write(test_collector)
 
     assert test_writer.write_file.exists()
-    assert validate_json(test_writer.write_file)
+    assert load_json_validation(test_writer.write_file)
