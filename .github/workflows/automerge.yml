@@ -1,0 +1,29 @@
+name: Auto merge
+
+on:
+  pull_request:
+    branches:
+      master
+  pull_request_review:
+    types:
+      - submitted
+  check_suite:
+    types:
+      - completed
+  status: {}
+jobs:
+    # Automatically merge approved and green dependabot PRs.
+    auto-merge-dependabot:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: pascalgn/automerge-action@v0.8.4
+          if: github.actor == 'dependabot[bot]' || github.actor == 'dependabot-preview[bot]'
+          env:
+            GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+            MERGE_LABELS: "dependencies"
+            MERGE_METHOD: "squash" # Sqush and merge
+            MERGE_COMMIT_MESSAGE: "pull-request-title-and-description"
+            MERGE_RETRY_SLEEP: "1200000" # Retry after 20m, enough time for check suites to run
+            UPDATE_RETRIES: "6"
+            UPDATE_METHOD: "rebase" # Rebase PR on base branch
+            UPDATE_RETRY_SLEEP: "300000"
