@@ -17,6 +17,7 @@
 """Executable for cross-compiling ROS and ROS 2 packages."""
 
 import argparse
+from datetime import datetime
 import logging
 from pathlib import Path
 import sys
@@ -141,6 +142,15 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         default=[],
         nargs='+',
         help='Skip specified rosdep keys when collecting dependencies for the workspace.')
+    parser.add_argument(
+        '--custom-metric-file',
+        required=False,
+        default='{}.json'.format(datetime.now().strftime('%s')),
+        type=str,
+        help='Provide a filename to store the collected metrics. If no name is provided, '
+             'then the filename will be the current time in UNIX Epoch format. In addition, '
+             'the filename must include the JSON file extension. '
+    )
 
     return parser.parse_args(args)
 
@@ -185,7 +195,7 @@ def main():
     args = parse_args(sys.argv[1:])
     ros_workspace_dir = _resolve_ros_workspace(args.ros_workspace)
     data_collector = DataCollector()
-    data_writer = DataWriter(ros_workspace_dir)
+    data_writer = DataWriter(ros_workspace_dir, args.custom_metric_file)
 
     try:
         with data_collector.timer('cross_compile_end_to_end'):

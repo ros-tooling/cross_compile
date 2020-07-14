@@ -15,7 +15,6 @@
 """Classes for time series data collection and writing said data to a file."""
 
 from contextlib import contextmanager
-from datetime import datetime
 from enum import Enum
 import json
 from pathlib import Path
@@ -68,7 +67,7 @@ class DataWriter:
     """Provides an interface to write collected data to a file."""
 
     def __init__(self, ros_workspace_dir: Path,
-                 output_file: Path = Path(datetime.now().strftime('%s') + '.json')):
+                 output_file):
         """Configure path for writing data."""
         self._write_path = Path(str(ros_workspace_dir)) / Path(INTERNALS_DIR) / Path('metrics')
         self._write_path.mkdir(parents=True, exist_ok=True)
