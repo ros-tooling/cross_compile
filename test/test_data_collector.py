@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
+from json import JSONDecodeError
+from pathlib import Path
+
 import pytest
 
 from ros_cross_compile.data_collector import DataCollector
@@ -69,6 +73,14 @@ def test_timer_error_handling():
 
 
 def test_data_writing(tmp_path):
+    def load_json_validation(filename: Path) -> bool:
+        try:
+            with filename.open() as f:
+                json.load(f)
+                return True
+        except JSONDecodeError:
+            return False
+
     test_collector = DataCollector()
 
     test_datum_a = Datum('test_stat_1', 3, 'tests', 130.243, True)
@@ -82,3 +94,4 @@ def test_data_writing(tmp_path):
     test_writer.write(test_collector)
 
     assert test_writer.write_file.exists()
+    assert load_json_validation(test_writer.write_file)
