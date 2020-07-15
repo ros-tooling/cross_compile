@@ -23,7 +23,7 @@ import sys
 from typing import List
 from typing import Optional
 
-from ros_cross_compile.builders import run_emulated_docker_build
+from ros_cross_compile.builders import DockerBuildStage
 from ros_cross_compile.data_collector import DataCollector
 from ros_cross_compile.data_collector import DataWriter
 from ros_cross_compile.dependencies import DependenciesStage
@@ -34,7 +34,7 @@ from ros_cross_compile.platform import Platform
 from ros_cross_compile.platform import SUPPORTED_ARCHITECTURES
 from ros_cross_compile.platform import SUPPORTED_ROS2_DISTROS
 from ros_cross_compile.platform import SUPPORTED_ROS_DISTROS
-from ros_cross_compile.sysroot_creator import create_workspace_sysroot_image
+from ros_cross_compile.sysroot_creator import CreateSysrootStage
 from ros_cross_compile.sysroot_creator import prepare_docker_build_environment
 
 logging.basicConfig(level=logging.INFO)
@@ -167,7 +167,7 @@ def cross_compile_pipeline(
         default_docker_dir=sysroot_build_context,
         colcon_defaults_file=args.colcon_defaults)
 
-    stages = [DependenciesStage()]
+    stages = [DependenciesStage(), CreateSysrootStage(), DockerBuildStage()]
     customizations = PipelineStageConfigOptions(
         args.skip_rosdep_collection,
         skip_rosdep_keys,
@@ -178,9 +178,6 @@ def cross_compile_pipeline(
     for stage in stages:
         with data_collector.timer('cross_compile_{}'.format(stage.name)):
             stage(platform, docker_client, ros_workspace_dir, customizations)
-
-    create_workspace_sysroot_image(docker_client, platform)
-    run_emulated_docker_build(docker_client, platform, ros_workspace_dir)
 
 
 def main():

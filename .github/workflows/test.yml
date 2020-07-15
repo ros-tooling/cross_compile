@@ -19,7 +19,7 @@ jobs:
     steps:
     - name: Checkout sources
       uses: actions/checkout@v2
-    - uses: actions/setup-python@v1
+    - uses: actions/setup-python@v2.0.1
       with:
         python-version: ${{ matrix.python-version }}
         architecture: x64
@@ -53,7 +53,7 @@ jobs:
       run: |
         apt-get update
         apt-get install -y git qemu-user-static python3 python3-pip
-    - uses: actions/setup-python@v1
+    - uses: actions/setup-python@v2.0.1
       with:
         python-version: ${{ matrix.python-version }}
         architecture: x64
@@ -61,7 +61,7 @@ jobs:
       run: pip3 install tox
     - name: Run tests
       run: tox -e py
-    - uses: codecov/codecov-action@v1
+    - uses: codecov/codecov-action@v1.0.10
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         file: coverage.xml
@@ -71,7 +71,7 @@ jobs:
     # Upload the package to the PyPI test repository.
     # This will silently fail if a package with this version number already
     # exists.
-    - uses: ros-tooling/action-pypi@0.0.2
+    - uses: ros-tooling/action-pypi@0.0.3
       # As the package is platform-independent, only trigger this step on Linux
       # and only on push.
       # This action should never happen on pull-request, as it would lead us
