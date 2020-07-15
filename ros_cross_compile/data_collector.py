@@ -22,7 +22,8 @@ from pathlib import Path
 import time
 from typing import Dict, List, NamedTuple, Union
 
-from ros_cross_compile.sysroot_creator import INTERNALS_DIR
+
+INTERNALS_DIR = 'cc_internals'
 
 
 Datum = NamedTuple('Datum', [('name', str),
@@ -59,7 +60,7 @@ class DataCollector:
             complete = True
         finally:
             elapsed = time.monotonic() - start
-            time_metric = Datum(name + '-time', elapsed,
+            time_metric = Datum('{}-time'.format(name), elapsed,
                                 Units.Seconds.value, time.monotonic(), complete)
             self.add_datum(time_metric)
 

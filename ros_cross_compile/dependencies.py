@@ -15,9 +15,11 @@
 import logging
 import os
 from pathlib import Path
+import time
 from typing import List
 from typing import Optional
 
+from ros_cross_compile.data_collector import DataCollector, Datum, Units
 from ros_cross_compile.docker_client import DockerClient
 from ros_cross_compile.pipeline_stages import PipelineStage
 from ros_cross_compile.pipeline_stages import PipelineStageConfigOptions
@@ -30,6 +32,7 @@ logger = logging.getLogger('Rosdep Gatherer')
 
 CUSTOM_SETUP = '/usercustom/rosdep_setup'
 CUSTOM_DATA = '/usercustom/custom-data'
+IMG_NAME = 'ros_cross_compile:rosdep'
 
 
 def rosdep_install_script(platform: Platform) -> Path:
@@ -57,11 +60,10 @@ def gather_rosdeps(
     """
     out_path = rosdep_install_script(platform)
 
-    image_name = 'ros_cross_compile:rosdep'
-    logger.info('Building rosdep collector image: %s', image_name)
+    logger.info('Building rosdep collector image: %s', IMG_NAME)
     docker_client.build_image(
         dockerfile_name='rosdep.Dockerfile',
-        tag=image_name,
+        tag=IMG_NAME,
     )
 
     logger.info('Running rosdep collector image on workspace {}'.format(workspace))
@@ -74,7 +76,7 @@ def gather_rosdeps(
         volumes[custom_data_dir] = CUSTOM_DATA
 
     docker_client.run_container(
-        image_name=image_name,
+        image_name=IMG_NAME,
         environment={
             'CUSTOM_SETUP': CUSTOM_SETUP,
             'OUT_PATH': str(out_path),
@@ -111,9 +113,12 @@ class DependenciesStage(PipelineStage):
         super().__init__('gather_rosdeps')
 
     def __call__(self, platform: Platform, docker_client: DockerClient, ros_workspace_dir: Path,
-                 pipeline_stage_config_options: PipelineStageConfigOptions):
+                 pipeline_stage_config_options: PipelineStageConfigOptions,
+                 data_collector: DataCollector):
         """
         Run the inspection and output the dependency installation script.
+
+        Also recovers the size of the docker image generated.
 
         :raises RuntimeError if the step was skipped when no dependency script has been
         previously generated
@@ -129,3 +134,8 @@ class DependenciesStage(PipelineStage):
                 custom_script=pipeline_stage_config_options.custom_script,
                 custom_data_dir=pipeline_stage_config_options.custom_data_dir)
         assert_install_rosdep_script_exists(ros_workspace_dir, platform)
+
+        img_size = docker_client.get_image_size(IMG_NAME)
+        size_metric = Datum('{}-size'.format(self.name), img_size,
+                            Units.Bytes.value, time.monotonic(), True)
+        data_collector.add_datum(size_metric)

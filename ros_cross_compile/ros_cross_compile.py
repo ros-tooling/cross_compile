@@ -177,7 +177,7 @@ def cross_compile_pipeline(
 
     for stage in stages:
         with data_collector.timer('cross_compile_{}'.format(stage.name)):
-            stage(platform, docker_client, ros_workspace_dir, customizations)
+            stage(platform, docker_client, ros_workspace_dir, customizations, data_collector)
 
 
 def main():

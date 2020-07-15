@@ -17,6 +17,7 @@ import shutil
 import docker
 import pytest
 
+from ros_cross_compile.data_collector import DataCollector
 from ros_cross_compile.dependencies import DependenciesStage
 from ros_cross_compile.dependencies import gather_rosdeps
 from ros_cross_compile.dependencies import rosdep_install_script
@@ -59,12 +60,13 @@ def test_dummy_ros2_pkg(tmpdir):
     client = DockerClient()
     platform = Platform(arch='aarch64', os_name='ubuntu', ros_distro='dashing')
     out_script = ws / rosdep_install_script(platform)
+    test_collector = DataCollector()
 
     # a default set of customizations for the dependencies stage
     customizations = PipelineStageConfigOptions(False, [], None, None, None)
     temp_stage = DependenciesStage()
 
-    temp_stage(platform, client, ws, customizations)
+    temp_stage(platform, client, ws, customizations, test_collector)
 
     result = out_script.read_text()
     assert 'ros-dashing-ament-cmake' in result
