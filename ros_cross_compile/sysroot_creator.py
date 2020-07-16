@@ -17,13 +17,10 @@ import logging
 from pathlib import Path
 import platform as py_platform
 import shutil
-import time
 from typing import Optional
 
 from ros_cross_compile.data_collector import DataCollector
-from ros_cross_compile.data_collector import Datum
 from ros_cross_compile.data_collector import INTERNALS_DIR
-from ros_cross_compile.data_collector import Units
 from ros_cross_compile.docker_client import DockerClient
 from ros_cross_compile.pipeline_stages import PipelineStage
 from ros_cross_compile.pipeline_stages import PipelineStageConfigOptions
@@ -143,6 +140,4 @@ class CreateSysrootStage(PipelineStage):
         create_workspace_sysroot_image(docker_client, platform)
 
         img_size = docker_client.get_image_size(platform.sysroot_image_tag)
-        size_metric = Datum('{}-size'.format(self.name), img_size,
-                            Units.Bytes.value, time.monotonic(), True)
-        data_collector.add_datum(size_metric)
+        data_collector.add_size(self.name, img_size)

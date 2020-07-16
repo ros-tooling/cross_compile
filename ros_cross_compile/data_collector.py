@@ -64,6 +64,12 @@ class DataCollector:
                                 Units.Seconds.value, time.monotonic(), complete)
             self.add_datum(time_metric)
 
+    def add_size(self, name: str, size: int):
+        """Provide an interface to add collected Docker image sizes."""
+        size_metric = Datum('{}-size'.format(name), size,
+                            Units.Bytes.value, time.monotonic(), True)
+        self.add_datum(size_metric)
+
 
 class DataWriter:
     """Provides an interface to write collected data to a file."""
