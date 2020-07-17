@@ -17,12 +17,16 @@
 from contextlib import contextmanager
 from enum import Enum
 import json
+import logging
 from pathlib import Path
 import time
 from typing import Dict, List, NamedTuple, Union
 
 
 INTERNALS_DIR = 'cc_internals'
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 Datum = NamedTuple('Datum', [('name', str),
@@ -62,6 +66,7 @@ class DataCollector:
             time_metric = Datum('{}-time'.format(name), elapsed,
                                 Units.Seconds.value, time.monotonic(), complete)
             self.add_datum(time_metric)
+            logger.info('collected time data: {}'.format(time_metric))
 
     def add_size(self, name: str, size: int):
         """Provide an interface to add collected Docker image sizes."""

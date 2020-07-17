@@ -148,10 +148,12 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         default='{}.json'.format(datetime.now().strftime('%s')),
         type=str,
         help='Provide a filename to store the collected metrics. If no name is provided, '
-             'then the filename will be the current time in UNIX Epoch format. '
-    )
-
-    return parser.parse_args(args)
+             'then the filename will be the current time in UNIX Epoch format. ')
+    parser.add_argument(
+        '--print-metrics',
+        action='store_true',
+        required=False,
+        help='All collected metrics will be printed to stdout via the logging framework.')
 
 
 def cross_compile_pipeline(
