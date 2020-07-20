@@ -148,8 +148,7 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         default='{}.json'.format(datetime.now().strftime('%s')),
         type=str,
         help='Provide a filename to store the collected metrics. If no name is provided, '
-             'then the filename will be the current time in UNIX Epoch format. In addition, '
-             'the filename must include the JSON file extension. '
+             'then the filename will be the current time in UNIX Epoch format. '
     )
 
     return parser.parse_args(args)
