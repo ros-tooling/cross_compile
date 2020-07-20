@@ -89,7 +89,7 @@ def test_data_writing(tmp_path):
     test_collector.add_datum(test_datum_a)
     test_collector.add_datum(test_datum_b)
 
-    test_writer = DataWriter(tmp_path)
+    test_writer = DataWriter(tmp_path, 'test.json')
 
     test_writer.write(test_collector)
 
