@@ -85,13 +85,15 @@ def test_basic_sysroot_creation(tmpdir):
     # Very simple smoke test to validate that all internal syntax is correct
 
     mock_docker_client = Mock()
+    mock_data_collector = Mock()
     platform = Platform('aarch64', 'ubuntu', 'eloquent')
 
     # a default set of customizations for the docker build stage
     customizations = PipelineStageConfigOptions(False, [], None, None, None)
     temp_stage = CreateSysrootStage()
 
-    temp_stage(platform, mock_docker_client, Path('dummy_path'), customizations)
+    temp_stage(platform, mock_docker_client,
+               Path('dummy_path'), customizations, mock_data_collector)
     assert mock_docker_client.build_image.call_count == 1
 
 

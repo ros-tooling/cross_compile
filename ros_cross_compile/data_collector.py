@@ -21,7 +21,8 @@ from pathlib import Path
 import time
 from typing import Dict, List, NamedTuple, Union
 
-from ros_cross_compile.sysroot_creator import INTERNALS_DIR
+
+INTERNALS_DIR = 'cc_internals'
 
 
 Datum = NamedTuple('Datum', [('name', str),
@@ -58,9 +59,15 @@ class DataCollector:
             complete = True
         finally:
             elapsed = time.monotonic() - start
-            time_metric = Datum(name + '-time', elapsed,
+            time_metric = Datum('{}-time'.format(name), elapsed,
                                 Units.Seconds.value, time.monotonic(), complete)
             self.add_datum(time_metric)
+
+    def add_size(self, name: str, size: int):
+        """Provide an interface to add collected Docker image sizes."""
+        size_metric = Datum('{}-size'.format(name), size,
+                            Units.Bytes.value, time.monotonic(), True)
+        self.add_datum(size_metric)
 
 
 class DataWriter:

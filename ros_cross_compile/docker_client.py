@@ -142,3 +142,6 @@ class DockerClient:
         if exit_code:
             raise docker.errors.ContainerError(
                 image_name, exit_code, '', image_name, 'See above ^')
+
+    def get_image_size(self, img_name: str) -> int:
+        return self._client.images.get(img_name).attrs['Size']

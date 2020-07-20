@@ -16,6 +16,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import List, NamedTuple, Optional
 
+from ros_cross_compile.data_collector import DataCollector
 from ros_cross_compile.docker_client import DockerClient
 from ros_cross_compile.platform import Platform
 
@@ -47,5 +48,6 @@ class PipelineStage(ABC):
 
     @abstractmethod
     def __call__(self, platform: Platform, docker_client: DockerClient, ros_workspace_dir: Path,
-                 customizations: PipelineStageConfigOptions):
+                 pipeline_stage_config_options: PipelineStageConfigOptions,
+                 data_collector: DataCollector):
         raise NotImplementedError

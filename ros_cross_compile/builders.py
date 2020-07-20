@@ -15,6 +15,7 @@ import logging
 import os
 from pathlib import Path
 
+from ros_cross_compile.data_collector import DataCollector
 from ros_cross_compile.docker_client import DockerClient
 from ros_cross_compile.pipeline_stages import PipelineStage
 from ros_cross_compile.pipeline_stages import PipelineStageConfigOptions
@@ -60,5 +61,6 @@ class DockerBuildStage(PipelineStage):
         super().__init__('run_emulated_docker_build')
 
     def __call__(self, platform: Platform, docker_client: DockerClient, ros_workspace_dir: Path,
-                 pipeline_stage_config_options: PipelineStageConfigOptions):
+                 pipeline_stage_config_options: PipelineStageConfigOptions,
+                 data_collector: DataCollector):
         run_emulated_docker_build(docker_client, platform, ros_workspace_dir)
