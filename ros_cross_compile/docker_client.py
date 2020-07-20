@@ -136,6 +136,9 @@ class DockerClient:
             container.stop()
             container.remove()
 
+        if docker.version_info[0] >= 3:
+            exit_code = exit_code['StatusCode']
+
         if exit_code:
             raise docker.errors.ContainerError(
                 image_name, exit_code, '', image_name, 'See above ^')
