@@ -155,6 +155,8 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         required=False,
         help='All collected metrics will be printed to stdout via the logging framework.')
 
+    return parser.parse_args(args)
+
 
 def cross_compile_pipeline(
     args: argparse.Namespace,

@@ -73,6 +73,7 @@ class DataCollector:
         size_metric = Datum('{}-size'.format(name), size,
                             Units.Bytes.value, time.monotonic(), True)
         self.add_datum(size_metric)
+        logger.info('collected size data: {}'.format(size_metric))
 
 
 class DataWriter:
