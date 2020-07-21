@@ -17,6 +17,7 @@ from typing import Dict
 from typing import Optional
 
 import docker
+from docker.utils import kwargs_from_env as docker_kwargs_from_env
 
 
 logging.basicConfig(level=logging.INFO)
@@ -63,7 +64,7 @@ class DockerClient:
         :raises docker.errors.BuildError: on build error
         """
         # Use low-level API to expose logs for image building
-        docker_api = docker.APIClient(base_url='unix://var/run/docker.sock')
+        docker_api = docker.APIClient(**docker_kwargs_from_env())
         log_generator = docker_api.build(
             path=str(dockerfile_dir) if dockerfile_dir else self._default_docker_dir,
             dockerfile=dockerfile_name,
