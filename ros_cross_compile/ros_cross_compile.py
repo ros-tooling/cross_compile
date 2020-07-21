@@ -197,7 +197,7 @@ def main():
     """Start the cross-compilation workflow."""
     args = parse_args(sys.argv[1:])
     ros_workspace_dir = _resolve_ros_workspace(args.ros_workspace)
-    data_collector = DataCollector()
+    data_collector = DataCollector(args.print_metrics)
     data_writer = DataWriter(ros_workspace_dir, args.custom_metric_file)
 
     try:

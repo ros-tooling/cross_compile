@@ -49,6 +49,8 @@ CUSTOM_KEY_PKG_XML = make_pkg_xml("""
   <depend>definitely_does_not_exist</depend>
 """)
 
+TEST_PRINT_FALSE = False
+
 
 @uses_docker
 def test_dummy_ros2_pkg(tmpdir):
@@ -60,7 +62,7 @@ def test_dummy_ros2_pkg(tmpdir):
     client = DockerClient()
     platform = Platform(arch='aarch64', os_name='ubuntu', ros_distro='dashing')
     out_script = ws / rosdep_install_script(platform)
-    test_collector = DataCollector()
+    test_collector = DataCollector(TEST_PRINT_FALSE)
 
     # a default set of customizations for the dependencies stage
     customizations = PipelineStageConfigOptions(False, [], None, None, None)

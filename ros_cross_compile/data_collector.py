@@ -44,14 +44,19 @@ class Units(Enum):
 class DataCollector:
     """Provides an interface to collect time series data."""
 
-    def __init__(self):
+    def __init__(self, print_metrics):
         self._data = []
+        self._print_metrics = print_metrics
 
     def add_datum(self, new_datum: Datum):
         self._data.append(new_datum)
 
     def serialize_data(self) -> List[Dict]:
         return list(map(lambda d: d._asdict(), self._data))
+
+    def print_data(self, units: str, metric: Datum):
+        if self._print_metrics:
+            logger.info('{} data: {}'.format(units, metric))
 
     @contextmanager
     def timer(self, name: str):
@@ -66,14 +71,14 @@ class DataCollector:
             time_metric = Datum('{}-time'.format(name), elapsed,
                                 Units.Seconds.value, time.monotonic(), complete)
             self.add_datum(time_metric)
-            logger.info('collected time data: {}'.format(time_metric))
+            self.print_data(time_metric.unit, time_metric)
 
     def add_size(self, name: str, size: int):
         """Provide an interface to add collected Docker image sizes."""
         size_metric = Datum('{}-size'.format(name), size,
                             Units.Bytes.value, time.monotonic(), True)
         self.add_datum(size_metric)
-        logger.info('collected size data: {}'.format(size_metric))
+        self.print_data(size_metric.unit, size_metric)
 
 
 class DataWriter:
