@@ -17,16 +17,12 @@
 from contextlib import contextmanager
 from enum import Enum
 import json
-import logging
 from pathlib import Path
 import time
 from typing import Dict, List, NamedTuple, Union
 
 
 INTERNALS_DIR = 'cc_internals'
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 
 Datum = NamedTuple('Datum', [('name', str),
@@ -44,19 +40,14 @@ class Units(Enum):
 class DataCollector:
     """Provides an interface to collect time series data."""
 
-    def __init__(self, print_metrics):
+    def __init__(self):
         self._data = []
-        self._print_metrics = print_metrics
 
     def add_datum(self, new_datum: Datum):
         self._data.append(new_datum)
 
     def serialize_data(self) -> List[Dict]:
         return list(map(lambda d: d._asdict(), self._data))
-
-    def print_data(self, units: str, metric: Datum):
-        if self._print_metrics:
-            logger.info('{} data: {}'.format(units, metric))
 
     @contextmanager
     def timer(self, name: str):
@@ -71,14 +62,12 @@ class DataCollector:
             time_metric = Datum('{}-time'.format(name), elapsed,
                                 Units.Seconds.value, time.monotonic(), complete)
             self.add_datum(time_metric)
-            self.print_data(time_metric.unit, time_metric)
 
     def add_size(self, name: str, size: int):
         """Provide an interface to add collected Docker image sizes."""
         size_metric = Datum('{}-size'.format(name), size,
                             Units.Bytes.value, time.monotonic(), True)
         self.add_datum(size_metric)
-        self.print_data(size_metric.unit, size_metric)
 
 
 class DataWriter:
@@ -91,7 +80,17 @@ class DataWriter:
         self._write_path.mkdir(parents=True, exist_ok=True)
         self.write_file = self._write_path / output_file
 
-    def write(self, data_collector: DataCollector):
+    def print_helper(self, data_to_print: List[Dict]):
+        print('Collected Data -------------------')
+        print('==================================')
+        for datum in data_to_print:
+            print('datum name: {}'.format(datum['name']))
+            print('\t - datum value: {}'.format(datum['value']))
+            print('\t - datum units: {}'.format(datum['unit']))
+            print('\t - datum timestamp: {}'.format(datum['timestamp']))
+            print('\t - datum complete: {}'.format(datum['complete']))
+
+    def write(self, data_collector: DataCollector, print_data: bool):
         """
         Write collected datums to a file.
 
@@ -99,5 +98,7 @@ class DataWriter:
         so that they are conveniently 'dumpable' into a JSON file.
         """
         data_to_dump = data_collector.serialize_data()
+        if print_data:
+            self.print_helper(data_to_dump)
         with self.write_file.open('w') as f:
             json.dump(list(data_to_dump), f, sort_keys=True, indent=4)

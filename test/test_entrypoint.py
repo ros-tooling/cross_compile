@@ -28,8 +28,6 @@ from ros_cross_compile.platform import Platform
 from ros_cross_compile.ros_cross_compile import cross_compile_pipeline
 from ros_cross_compile.ros_cross_compile import parse_args
 
-TEST_PRINT_FALSE = False
-
 
 @contextlib.contextmanager
 def chdir(dirname: str):
@@ -49,7 +47,7 @@ def test_trivial_argparse():
 
 def test_bad_workspace(tmpdir):
     args = parse_args([str(tmpdir), '-a', 'aarch64', '-o', 'ubuntu', '-d', 'foxy'])
-    test_collector = DataCollector(TEST_PRINT_FALSE)
+    test_collector = DataCollector()
     with pytest.raises(ValueError):
         cross_compile_pipeline(args, test_collector)
 
@@ -58,7 +56,7 @@ def test_relative_workspace(tmpdir):
     # Change directory to the tmp dir and invoke using '.' as the
     # workspace to check if relative paths work
     tmp = Path(str(tmpdir))
-    test_collector = DataCollector(TEST_PRINT_FALSE)
+    test_collector = DataCollector()
     (tmp / 'src').mkdir()
     relative_dir = '.'
     args = parse_args([relative_dir, '-a', 'aarch64', '-o', 'ubuntu', '-d', 'foxy'])
@@ -73,7 +71,7 @@ def test_relative_workspace(tmpdir):
 
 def test_mocked_cc_pipeline(tmpdir):
     tmp = Path(str(tmpdir))
-    test_collector = DataCollector(TEST_PRINT_FALSE)
+    test_collector = DataCollector()
     (tmp / 'src').mkdir()
     args = parse_args([str(tmpdir), '-a', 'aarch64', '-o', 'ubuntu'])
     with patch(

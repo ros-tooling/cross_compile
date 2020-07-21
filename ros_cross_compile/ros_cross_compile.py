@@ -197,14 +197,14 @@ def main():
     """Start the cross-compilation workflow."""
     args = parse_args(sys.argv[1:])
     ros_workspace_dir = _resolve_ros_workspace(args.ros_workspace)
-    data_collector = DataCollector(args.print_metrics)
+    data_collector = DataCollector()
     data_writer = DataWriter(ros_workspace_dir, args.custom_metric_file)
 
     try:
         with data_collector.timer('cross_compile_end_to_end'):
             cross_compile_pipeline(args, data_collector)
     finally:
-        data_writer.write(data_collector)
+        data_writer.write(data_collector, args.print_metrics)
 
 
 if __name__ == '__main__':

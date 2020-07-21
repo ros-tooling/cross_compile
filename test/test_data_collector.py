@@ -22,8 +22,6 @@ from ros_cross_compile.data_collector import DataCollector
 from ros_cross_compile.data_collector import DataWriter
 from ros_cross_compile.data_collector import Datum
 
-TEST_PRINT_FALSE = False
-
 
 def test_datum_construction():
     test_datum = Datum('test_stat', 3, 'tests', 130.222, True)
@@ -31,12 +29,12 @@ def test_datum_construction():
 
 
 def test_collector_construction():
-    test_collector = DataCollector(TEST_PRINT_FALSE)
+    test_collector = DataCollector()
     assert test_collector
 
 
 def test_data_collection():
-    test_collector = DataCollector(TEST_PRINT_FALSE)
+    test_collector = DataCollector()
 
     test_datum_a = Datum('test_stat_1', 3, 'tests', 130.452, True)
     test_datum_b = Datum('test_stat_2', 4, 'tests', 130.455, True)
@@ -55,7 +53,7 @@ def test_data_collection():
 
 
 def test_timer_can_time():
-    test_collector = DataCollector(TEST_PRINT_FALSE)
+    test_collector = DataCollector()
     with test_collector.timer('test_time'):
         pass
 
@@ -64,7 +62,7 @@ def test_timer_can_time():
 
 
 def test_timer_error_handling():
-    test_collector = DataCollector(TEST_PRINT_FALSE)
+    test_collector = DataCollector()
     # The timer should not hide the exception, we expect it to add the datum value
     with pytest.raises(Exception):
         with test_collector.timer('test_time_fail'):
@@ -83,7 +81,7 @@ def test_data_writing(tmp_path):
         except JSONDecodeError:
             return False
 
-    test_collector = DataCollector(TEST_PRINT_FALSE)
+    test_collector = DataCollector()
 
     test_datum_a = Datum('test_stat_1', 3, 'tests', 130.243, True)
     test_datum_b = Datum('test_stat_2', 4, 'tests', 130.244, True)
@@ -93,7 +91,21 @@ def test_data_writing(tmp_path):
 
     test_writer = DataWriter(tmp_path, 'test.json')
 
-    test_writer.write(test_collector)
+    test_writer.write(test_collector, False)
 
     assert test_writer.write_file.exists()
     assert load_json_validation(test_writer.write_file)
+
+
+def test_data_printing(tmp_path, capfd):
+    test_collector = DataCollector()
+    test_datum_a = Datum('test_stat_1', 3, 'tests', 130.243, True)
+    test_collector.add_datum(test_datum_a)
+
+    test_writer = DataWriter(tmp_path, 'test.json')
+    test_writer.write(test_collector, True)
+
+    out, err = capfd.readouterr()
+    test_name = 'datum name: test_stat_1'
+
+    assert test_name in out
