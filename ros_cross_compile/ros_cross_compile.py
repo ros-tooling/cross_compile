@@ -189,7 +189,7 @@ def cross_compile_pipeline(
         custom_setup_script)
 
     for stage in stages:
-        with data_collector.timer('cross_compile_{}'.format(stage.name)):
+        with data_collector.timer('{}'.format(stage.name)):
             stage(platform, docker_client, ros_workspace_dir, customizations, data_collector)
 
 
@@ -201,7 +201,7 @@ def main():
     data_writer = DataWriter(ros_workspace_dir, args.custom_metric_file)
 
     try:
-        with data_collector.timer('cross_compile_end_to_end'):
+        with data_collector.timer('end_to_end'):
             cross_compile_pipeline(args, data_collector)
     finally:
         data_writer.write(data_collector, args.print_metrics)

@@ -15,6 +15,7 @@
 """Classes for time series data collection and writing said data to a file."""
 
 from contextlib import contextmanager
+from datetime import datetime
 from enum import Enum
 import json
 from pathlib import Path
@@ -60,13 +61,13 @@ class DataCollector:
         finally:
             elapsed = time.monotonic() - start
             time_metric = Datum('{}-time'.format(name), elapsed,
-                                Units.Seconds.value, time.monotonic(), complete)
+                                Units.Seconds.value, time.time(), complete)
             self.add_datum(time_metric)
 
     def add_size(self, name: str, size: int):
         """Provide an interface to add collected Docker image sizes."""
         size_metric = Datum('{}-size'.format(name), size,
-                            Units.Bytes.value, time.monotonic(), True)
+                            Units.Bytes.value, time.time(), True)
         self.add_datum(size_metric)
 
 
@@ -81,14 +82,23 @@ class DataWriter:
         self.write_file = self._write_path / output_file
 
     def print_helper(self, data_to_print: List[Dict]):
-        print('Collected Data -------------------')
-        print('==================================')
+        print('--------------------------------- Collected Data ---------------------------------')
+        print('=================================================================================')
         for datum in data_to_print:
-            print('datum name: {}'.format(datum['name']))
-            print('\t - datum value: {}'.format(datum['value']))
-            print('\t - datum units: {}'.format(datum['unit']))
-            print('\t - datum timestamp: {}'.format(datum['timestamp']))
-            print('\t - datum complete: {}'.format(datum['complete']))
+            # readable_time = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(datum['timestamp']))
+            readable_time = datetime.utcfromtimestamp(datum['timestamp']).isoformat()
+            if datum['unit'] == Units.Seconds.value:
+                print('{:>12} | {:>35}: {:.2f} {}'.format(readable_time, datum['name'],
+                                                       datum['value'], datum['unit']),
+                      end='')
+            else:
+                print('{:>12} | {:>35}: {} {}'.format(readable_time, datum['name'],
+                                                       datum['value'], datum['unit']),
+                      end='')
+            if datum['complete']:
+                print('\n')
+            else:
+                print(' {}'.format('incomplete'))
 
     def write(self, data_collector: DataCollector, print_data: bool):
         """
