@@ -106,6 +106,6 @@ def test_data_printing(tmp_path, capfd):
     test_writer.write(test_collector, True)
 
     out, err = capfd.readouterr()
-    test_name = 'datum name: test_stat_1'
+    test_name = '------------'
 
     assert test_name in out
