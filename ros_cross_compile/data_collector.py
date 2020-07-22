@@ -89,11 +89,11 @@ class DataWriter:
             readable_time = datetime.utcfromtimestamp(datum['timestamp']).isoformat()
             if datum['unit'] == Units.Seconds.value:
                 print('{:>12} | {:>35}: {:.2f} {}'.format(readable_time, datum['name'],
-                                                       datum['value'], datum['unit']),
+                                                          datum['value'], datum['unit']),
                       end='')
             else:
                 print('{:>12} | {:>35}: {} {}'.format(readable_time, datum['name'],
-                                                       datum['value'], datum['unit']),
+                                                      datum['value'], datum['unit']),
                       end='')
             if datum['complete']:
                 print('\n')
