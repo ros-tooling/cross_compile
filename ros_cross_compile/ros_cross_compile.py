@@ -148,8 +148,12 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         default='{}.json'.format(datetime.now().strftime('%s')),
         type=str,
         help='Provide a filename to store the collected metrics. If no name is provided, '
-             'then the filename will be the current time in UNIX Epoch format. '
-    )
+             'then the filename will be the current time in UNIX Epoch format. ')
+    parser.add_argument(
+        '--print-metrics',
+        action='store_true',
+        required=False,
+        help='All collected metrics will be printed to stdout via the logging framework.')
 
     return parser.parse_args(args)
 
@@ -185,7 +189,7 @@ def cross_compile_pipeline(
         custom_setup_script)
 
     for stage in stages:
-        with data_collector.timer('cross_compile_{}'.format(stage.name)):
+        with data_collector.timer('{}'.format(stage.name)):
             stage(platform, docker_client, ros_workspace_dir, customizations, data_collector)
 
 
@@ -197,10 +201,10 @@ def main():
     data_writer = DataWriter(ros_workspace_dir, args.custom_metric_file)
 
     try:
-        with data_collector.timer('cross_compile_end_to_end'):
+        with data_collector.timer('end_to_end'):
             cross_compile_pipeline(args, data_collector)
     finally:
-        data_writer.write(data_collector)
+        data_writer.write(data_collector, args.print_metrics)
 
 
 if __name__ == '__main__':

@@ -91,7 +91,21 @@ def test_data_writing(tmp_path):
 
     test_writer = DataWriter(tmp_path, 'test.json')
 
-    test_writer.write(test_collector)
+    test_writer.write(test_collector, False)
 
     assert test_writer.write_file.exists()
     assert load_json_validation(test_writer.write_file)
+
+
+def test_data_printing(tmp_path, capfd):
+    test_collector = DataCollector()
+    test_datum_a = Datum('test_stat_1', 3, 'tests', 130.243, True)
+    test_collector.add_datum(test_datum_a)
+
+    test_writer = DataWriter(tmp_path, 'test.json')
+    test_writer.write(test_collector, True)
+
+    out, err = capfd.readouterr()
+    test_name = '------------'
+
+    assert test_name in out
