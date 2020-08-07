@@ -37,7 +37,7 @@ jobs:
     - name: Run end-to-end test
       run: |
         ./test/run_e2e_test.sh -a "${{ matrix.target_arch }}" -o "${{ matrix.target_os }}" -d "${{ matrix.rosdistro }}"
-    - uses: upload-artifact
+    - uses: actions/upload-artifact@v2
       with:
         path: /tmp/collected_metrics/
 
