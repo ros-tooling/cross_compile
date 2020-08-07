@@ -129,7 +129,8 @@ setup
 # Run the cross compilation script
 log "Executing cross compilation script..."
 python3 -m ros_cross_compile "$test_sysroot_dir" \
-  --arch "$arch" --os "$os" --rosdistro "$distro" --custom-setup-script "$custom_setup_script"
+  --arch "$arch" --os "$os" --rosdistro "$distro" \
+  --custom-setup-script "$custom_setup_script" --custom-metric-file "$arch_$os_$distro"
 CC_SCRIPT_STATUS=$?
 if [[ "$CC_SCRIPT_STATUS" -ne 0 ]]; then
   panic "Failed to run cross compile script."
@@ -199,6 +200,12 @@ fi
 
 if [ -z "$(ls -A "$test_sysroot_dir"/cc_internals/metrics/)" ]; then
   panic "Failed to write time series data to file"
+fi
+
+if [ -z "${METRICS_OUT_DIR-}" ]; then
+  :
+else
+  \cp -rf "$test_sysroot_dir/cc_internals/metrics"/* "$METRICS_OUT_DIR"
 fi
 
 result=0

@@ -32,9 +32,14 @@ jobs:
         sudo apt update && sudo apt install -y qemu-user-static
     - name: Install cross-compile
       run: pip install -e .
+    - run: mkdir -p /tmp/collected_metrics
+    - run: METRICS_OUT_DIR=/tmp/collected_metrics
     - name: Run end-to-end test
       run: |
         ./test/run_e2e_test.sh -a "${{ matrix.target_arch }}" -o "${{ matrix.target_os }}" -d "${{ matrix.rosdistro }}"
+    - uses: upload-artifact
+      with:
+        path: /tmp/collected_metrics/
 
   log_workflow_status_to_cloudwatch:
     runs-on: ubuntu-latest
