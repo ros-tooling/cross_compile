@@ -26,16 +26,16 @@ from typing import Dict, List, NamedTuple, Union
 INTERNALS_DIR = 'cc_internals'
 
 
-Datum = NamedTuple('Datum', [('name', str),
-                             ('value', Union[int, float]),
-                             ('unit', str),
-                             ('timestamp', float),
-                             ('complete', bool)])
+Datum = NamedTuple('Datum', [('MetricName', str),
+                             ('Value', Union[int, float]),
+                             ('Unit', str),
+                             ('Timestamp', float),
+                             ('Dimensions', Union[List[Dict], bool])])
 
 
 class Units(Enum):
-    Seconds = 'seconds'
-    Bytes = 'bytes'
+    Seconds = 'Seconds'
+    Bytes = 'Bytes'
 
 
 class DataCollector:
@@ -47,8 +47,15 @@ class DataCollector:
     def add_datum(self, new_datum: Datum):
         self._data.append(new_datum)
 
+    def _serialize_helper(self, datum: Dict) -> Dict:
+        serialized_dimension = [{'Name': 'Complete', 'Value': str(datum['Dimensions'])}]
+        datum['Dimensions'] = serialized_dimension
+        return datum
+
     def serialize_data(self) -> List[Dict]:
-        return list(map(lambda d: d._asdict(), self._data))
+        serialized_data = list(map(lambda d: d._asdict(), self._data))
+        serialized_data = list(map(self._serialize_helper, serialized_data))
+        return serialized_data
 
     @contextmanager
     def timer(self, name: str):
@@ -86,16 +93,16 @@ class DataWriter:
         print('=================================================================================')
         for datum in data_to_print:
             # readable_time = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(datum['timestamp']))
-            readable_time = datetime.utcfromtimestamp(datum['timestamp']).isoformat()
-            if datum['unit'] == Units.Seconds.value:
-                print('{:>12} | {:>35}: {:.2f} {}'.format(readable_time, datum['name'],
-                                                          datum['value'], datum['unit']),
+            readable_time = datetime.utcfromtimestamp(datum['Timestamp']).isoformat()
+            if datum['Unit'] == Units.Seconds.value:
+                print('{:>12} | {:>35}: {:.2f} {}'.format(readable_time, datum['MetricName'],
+                                                          datum['Value'], datum['Unit']),
                       end='')
             else:
-                print('{:>12} | {:>35}: {} {}'.format(readable_time, datum['name'],
-                                                      datum['value'], datum['unit']),
+                print('{:>12} | {:>35}: {} {}'.format(readable_time, datum['MetricName'],
+                                                      datum['Value'], datum['Unit']),
                       end='')
-            if datum['complete']:
+            if datum['Dimensions']:
                 print('\n')
             else:
                 print(' {}'.format('incomplete'))
