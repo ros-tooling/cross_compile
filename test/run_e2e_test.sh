@@ -130,7 +130,7 @@ setup
 log "Executing cross compilation script..."
 python3 -m ros_cross_compile "$test_sysroot_dir" \
   --arch "$arch" --os "$os" --rosdistro "$distro" \
-  --custom-setup-script "$custom_setup_script" --custom-metric-file "$arch_$os_$distro"
+  --custom-setup-script "$custom_setup_script" --custom-metric-file "${arch}_${os}_${distro}_a"
 CC_SCRIPT_STATUS=$?
 if [[ "$CC_SCRIPT_STATUS" -ne 0 ]]; then
   panic "Failed to run cross compile script."
@@ -185,7 +185,8 @@ build:
 EOF
 
 python3 -m ros_cross_compile "$test_sysroot_dir" \
-  --arch "$arch" --os "$os" --rosdistro "$distro"
+  --arch "$arch" --os "$os" --rosdistro "$distro" \
+  --custom-metric-file "${arch}_${os}_${distro}_b"
 CC_SCRIPT_STATUS=$?
 if [[ "$CC_SCRIPT_STATUS" -ne 0 ]]; then
   panic "Failed to run cross compile script."
