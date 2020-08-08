@@ -21,6 +21,7 @@ import pytest
 from ros_cross_compile.data_collector import DataCollector
 from ros_cross_compile.data_collector import DataWriter
 from ros_cross_compile.data_collector import Datum
+from ros_cross_compile.ros_cross_compile import parse_args
 
 
 def test_datum_construction():
@@ -81,6 +82,8 @@ def test_data_writing(tmp_path):
         except JSONDecodeError:
             return False
 
+    args = parse_args([str(tmp_path), '-a', 'aarch64', '-o', 'ubuntu',
+                       '-d', 'foxy', '--print-metrics'])
     test_collector = DataCollector()
 
     test_datum_a = Datum('test_stat_1', 3, 'tests', 130.243, True)
@@ -91,19 +94,21 @@ def test_data_writing(tmp_path):
 
     test_writer = DataWriter(tmp_path, 'test.json')
 
-    test_writer.write(test_collector, False)
+    test_writer.write(test_collector, args)
 
     assert test_writer.write_file.exists()
     assert load_json_validation(test_writer.write_file)
 
 
 def test_data_printing(tmp_path, capfd):
+    args = parse_args([str(tmp_path), '-a', 'aarch64', '-o', 'ubuntu',
+                       '-d', 'foxy', '--print-metrics'])
     test_collector = DataCollector()
     test_datum_a = Datum('test_stat_1', 3, 'tests', 130.243, True)
     test_collector.add_datum(test_datum_a)
 
     test_writer = DataWriter(tmp_path, 'test.json')
-    test_writer.write(test_collector, True)
+    test_writer.write(test_collector, args)
 
     out, err = capfd.readouterr()
     test_name = '------------'

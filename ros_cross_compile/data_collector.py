@@ -14,6 +14,7 @@
 
 """Classes for time series data collection and writing said data to a file."""
 
+from argparse import Namespace
 from contextlib import contextmanager
 from datetime import datetime
 from enum import Enum
@@ -47,14 +48,17 @@ class DataCollector:
     def add_datum(self, new_datum: Datum):
         self._data.append(new_datum)
 
-    def _serialize_helper(self, datum: Dict) -> Dict:
-        serialized_dimension = [{'Name': 'Complete', 'Value': str(datum['Dimensions'])}]
-        datum['Dimensions'] = serialized_dimension
-        return datum
+    def serialize_data(self, args: Namespace) -> List[Dict]:
+        def _serialize_helper(datum: Dict) -> Dict:
+            serialized_dimension = [{'Name': 'Complete', 'Value': str(datum['Dimensions'])},
+                                    {'Name': 'Architecture', 'Value': args.arch},
+                                    {'Name': 'OS', 'Value': args.os},
+                                    {'Name': 'ROS Distro', 'Value': args.rosdistro}]
+            datum['Dimensions'] = serialized_dimension
+            return datum
 
-    def serialize_data(self) -> List[Dict]:
         serialized_data = list(map(lambda d: d._asdict(), self._data))
-        serialized_data = list(map(self._serialize_helper, serialized_data))
+        serialized_data = list(map(_serialize_helper, serialized_data))
         return serialized_data
 
     @contextmanager
@@ -107,15 +111,15 @@ class DataWriter:
             else:
                 print(' {}'.format('incomplete'))
 
-    def write(self, data_collector: DataCollector, print_data: bool):
+    def write(self, data_collector: DataCollector, args: Namespace):
         """
         Write collected datums to a file.
 
         Before writing, however, we convert each datum to a dictionary,
         so that they are conveniently 'dumpable' into a JSON file.
         """
-        data_to_dump = data_collector.serialize_data()
-        if print_data:
+        data_to_dump = data_collector.serialize_data(args)
+        if args.print_metrics:
             self.print_helper(data_to_dump)
         with self.write_file.open('w') as f:
             json.dump(list(data_to_dump), f, sort_keys=True, indent=4)
