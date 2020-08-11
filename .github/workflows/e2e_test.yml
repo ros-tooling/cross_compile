@@ -44,10 +44,10 @@ jobs:
         path: /tmp/collected_metrics/
     - uses: ros-tooling/action-cloudwatch-metrics@0.0.5
       with:
-        metric-data: "${{ matrix.target_arch }}_${{ matrix.target_os }}_${{ matrix.rosdistro }}_a"
+        metric-data: "/tmp/collected_metrics/${{ matrix.target_arch }}_${{ matrix.target_os }}_${{ matrix.rosdistro }}_a"
     - uses: ros-tooling/action-cloudwatch-metrics@0.0.5
       with:
-        metric-data: "${{ matrix.target_arch }}_${{ matrix.target_os }}_${{ matrix.rosdistro }}_b"
+        metric-data: "/tmp/collected_metrics/${{ matrix.target_arch }}_${{ matrix.target_os }}_${{ matrix.rosdistro }}_b"
 
   log_workflow_status_to_cloudwatch:
     runs-on: ubuntu-latest
