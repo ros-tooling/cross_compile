@@ -42,9 +42,8 @@ jobs:
       with:
         name: performance_metrics
         path: /tmp/collected_metrics/
-        if-no-files-found: error
     - uses: ros-tooling/action-cloudwatch-metrics@0.0.5
-      if: success()
+      run: 'test -f /tmp/collected_metrics/${{ matrix.target_arch }}_${{ matrix.target_os }}_${{ matrix.rosdistro }}_a' || echo 'File not found, skipping step'
       with:
         metric-data: "/tmp/collected_metrics/${{ matrix.target_arch }}_${{ matrix.target_os }}_${{ matrix.rosdistro }}_a"
     - uses: ros-tooling/action-cloudwatch-metrics@0.0.5
