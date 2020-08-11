@@ -43,14 +43,14 @@ def test_data_collection():
     test_collector.add_datum(test_datum_a)
     test_collector.add_datum(test_datum_b)
 
-    to_test_data = test_collector._data
+    to_test_data = test_collector.data
 
-    assert to_test_data[0].MetricName == 'test_stat_1'
-    assert to_test_data[1].MetricName == 'test_stat_2'
-    assert to_test_data[0].Value == 3
-    assert to_test_data[0].Unit == 'tests'
-    assert abs(to_test_data[0].Timestamp - 130.452) < 0.1
-    assert to_test_data[0].Dimensions
+    assert to_test_data[0].metric_name == 'test_stat_1'
+    assert to_test_data[1].metric_name == 'test_stat_2'
+    assert to_test_data[0].value == 3
+    assert to_test_data[0].unit == 'tests'
+    assert abs(to_test_data[0].timestamp - 130.452) < 0.1
+    assert to_test_data[0].complete
 
 
 def test_timer_can_time():
@@ -58,8 +58,8 @@ def test_timer_can_time():
     with test_collector.timer('test_time'):
         pass
 
-    assert test_collector._data[0].Dimensions
-    assert test_collector._data[0].Value > 0
+    assert test_collector._data[0].complete
+    assert test_collector._data[0].value > 0
 
 
 def test_timer_error_handling():
@@ -70,7 +70,7 @@ def test_timer_error_handling():
             raise Exception
 
     assert len(test_collector._data) > 0
-    assert test_collector._data[0].Dimensions is False
+    assert test_collector._data[0].complete is False
 
 
 def test_data_writing(tmp_path):

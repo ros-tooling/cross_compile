@@ -17,6 +17,8 @@ jobs:
         target_arch: [aarch64, armhf, x86_64]
         target_os: [ubuntu, debian]
         rosdistro: [dashing, eloquent, foxy, melodic]
+    env:
+      METRICS_OUT_DIR: /tmp/collected_metrics
     steps:
     - name: Checkout sources
       uses: actions/checkout@v2
@@ -32,18 +34,15 @@ jobs:
         sudo apt update && sudo apt install -y qemu-user-static
     - name: Install cross-compile
       run: pip install -e .
-    - run: mkdir -p /tmp/collected_metrics
+    - run: mkdir -p METRICS_OUT_DIR
     - name: Run end-to-end test
-      env:
-        METRICS_OUT_DIR: /tmp/collected_metrics
       run: |
         ./test/run_e2e_test.sh -a "${{ matrix.target_arch }}" -o "${{ matrix.target_os }}" -d "${{ matrix.rosdistro }}"
     - uses: actions/upload-artifact@v2
       with:
         name: performance_metrics
-        path: /tmp/collected_metrics/
+        path: ${{ env.METRICS_OUT_DIR }}
     - name: Configure AWS Credentials
-      if: ${{ matrix.target_arch != 'armhf' && matrix.rosdistro != 'foxy' }}
       uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -52,11 +51,12 @@ jobs:
     - uses: ros-tooling/action-cloudwatch-metrics@0.0.5
       if: ${{ matrix.target_arch != 'armhf' && matrix.rosdistro != 'foxy' }}
       with:
-        metric-data: "/tmp/collected_metrics/${{ matrix.target_arch }}_${{ matrix.target_os }}_${{ matrix.rosdistro }}_a"
+        metric-data: "${{ env.METRICS_OUT_DIR }}/${{ matrix.target_arch }}_${{ matrix.target_os }}_${{ matrix.rosdistro }}_a"
+        namespace: "CrossCompileMetrics"
     - uses: ros-tooling/action-cloudwatch-metrics@0.0.5
       if: ${{ matrix.target_arch != 'armhf' && matrix.rosdistro != 'foxy' }}
       with:
-        metric-data: "/tmp/collected_metrics/${{ matrix.target_arch }}_${{ matrix.target_os }}_${{ matrix.rosdistro }}_b"
+        metric-data: "${{ env.METRICS_OUT_DIR }}/${{ matrix.target_arch }}_${{ matrix.target_os }}_${{ matrix.rosdistro }}_b"
 
   log_workflow_status_to_cloudwatch:
     runs-on: ubuntu-latest

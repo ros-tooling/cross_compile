@@ -27,11 +27,11 @@ from typing import Dict, List, NamedTuple, Union
 INTERNALS_DIR = 'cc_internals'
 
 
-Datum = NamedTuple('Datum', [('MetricName', str),
-                             ('Value', Union[int, float]),
-                             ('Unit', str),
-                             ('Timestamp', float),
-                             ('Dimensions', Union[List[Dict], bool])])
+Datum = NamedTuple('Datum', [('metric_name', str),
+                             ('value', Union[int, float]),
+                             ('unit', str),
+                             ('timestamp', float),
+                             ('complete', bool)])
 
 
 class Units(Enum):
@@ -45,21 +45,12 @@ class DataCollector:
     def __init__(self):
         self._data = []
 
+    @property
+    def data(self):
+        return self._data
+
     def add_datum(self, new_datum: Datum):
         self._data.append(new_datum)
-
-    def serialize_data(self, args: Namespace) -> List[Dict]:
-        def _serialize_helper(datum: Dict) -> Dict:
-            serialized_dimension = [{'Name': 'Complete', 'Value': str(datum['Dimensions'])},
-                                    {'Name': 'Architecture', 'Value': args.arch},
-                                    {'Name': 'OS', 'Value': args.os},
-                                    {'Name': 'ROS Distro', 'Value': args.rosdistro}]
-            datum['Dimensions'] = serialized_dimension
-            return datum
-
-        serialized_data = list(map(lambda d: d._asdict(), self._data))
-        serialized_data = list(map(_serialize_helper, serialized_data))
-        return serialized_data
 
     @contextmanager
     def timer(self, name: str):
@@ -92,24 +83,49 @@ class DataWriter:
         self._write_path.mkdir(parents=True, exist_ok=True)
         self.write_file = self._write_path / output_file
 
-    def print_helper(self, data_to_print: List[Dict]):
+    def print_helper(self, data_to_print: List[Datum]):
         print('--------------------------------- Collected Data ---------------------------------')
         print('=================================================================================')
         for datum in data_to_print:
             # readable_time = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(datum['timestamp']))
-            readable_time = datetime.utcfromtimestamp(datum['Timestamp']).isoformat()
-            if datum['Unit'] == Units.Seconds.value:
-                print('{:>12} | {:>35}: {:.2f} {}'.format(readable_time, datum['MetricName'],
-                                                          datum['Value'], datum['Unit']),
+            readable_time = datetime.utcfromtimestamp(datum.timestamp).isoformat()
+            if datum.unit == Units.Seconds.value:
+                print('{:>12} | {:>35}: {:.2f} {}'.format(readable_time, datum.metric_name,
+                                                          datum.value, datum.unit),
                       end='')
             else:
-                print('{:>12} | {:>35}: {} {}'.format(readable_time, datum['MetricName'],
-                                                      datum['Value'], datum['Unit']),
+                print('{:>12} | {:>35}: {} {}'.format(readable_time, datum.metric_name,
+                                                      datum.value, datum.unit),
                       end='')
-            if datum['Dimensions']:
+            if datum.complete:
                 print('\n')
             else:
                 print(' {}'.format('incomplete'))
+
+    def serialize_to_cloudwatch(self, data: List[Datum], args: Namespace) -> List[Dict]:
+        """
+        Serialize collected datums to fit the AWS Cloudwatch publishing format.
+
+        To get an idea of what the Cloudwatch formatting is like, refer to
+        https://awscli.amazonaws.com/v2/documentation/api/latest/reference/
+        cloudwatch/put-metric-data.html.
+        """
+        def serialize_helper(datum: Dict) -> Dict:
+            datum['MetricName'] = datum.pop('metric_name')
+            datum['Value'] = datum.pop('value')
+            datum['Unit'] = datum.pop('unit')
+            datum['Timestamp'] = datum.pop('timestamp')
+
+            serialized_dimension = [{'Name': 'Complete', 'Value': str(datum.pop('complete'))},
+                                    {'Name': 'Architecture', 'Value': args.arch},
+                                    {'Name': 'OS', 'Value': args.os},
+                                    {'Name': 'ROS Distro', 'Value': args.rosdistro}]
+            datum['Dimensions'] = serialized_dimension
+            return datum
+
+        serialized_data = list(map(lambda d: d._asdict(), data))
+        serialized_data = list(map(serialize_helper, serialized_data))
+        return serialized_data
 
     def write(self, data_collector: DataCollector, args: Namespace):
         """
@@ -118,8 +134,8 @@ class DataWriter:
         Before writing, however, we convert each datum to a dictionary,
         so that they are conveniently 'dumpable' into a JSON file.
         """
-        data_to_dump = data_collector.serialize_data(args)
         if args.print_metrics:
-            self.print_helper(data_to_dump)
+            self.print_helper(data_collector.data)
         with self.write_file.open('w') as f:
+            data_to_dump = self.serialize_to_cloudwatch(data_collector.data, args)
             json.dump(list(data_to_dump), f, sort_keys=True, indent=4)
