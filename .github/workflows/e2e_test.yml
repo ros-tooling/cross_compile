@@ -42,7 +42,7 @@ jobs:
       with:
         name: performance_metrics
         path: /tmp/collected_metrics/
-        if-no-file-found: error
+        if-no-files-found: error
     - uses: ros-tooling/action-cloudwatch-metrics@0.0.5
       if: success()
       with:
