@@ -43,13 +43,14 @@ jobs:
         name: performance_metrics
         path: /tmp/collected_metrics/
     - name: Configure AWS Credentials
+      if: ${{ matrix.target_arch != armhf && matrix.rosdistro != foxy }}
       uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
     - uses: ros-tooling/action-cloudwatch-metrics@0.0.5
-      run: 'test -f /tmp/collected_metrics/${{ matrix.target_arch }}_${{ matrix.target_os }}_${{ matrix.rosdistro }}_a' || echo 'File not found, skipping step'
+      if: success()
       with:
         metric-data: "/tmp/collected_metrics/${{ matrix.target_arch }}_${{ matrix.target_os }}_${{ matrix.rosdistro }}_a"
     - uses: ros-tooling/action-cloudwatch-metrics@0.0.5
