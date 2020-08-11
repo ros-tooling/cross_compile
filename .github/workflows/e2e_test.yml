@@ -40,7 +40,14 @@ jobs:
         ./test/run_e2e_test.sh -a "${{ matrix.target_arch }}" -o "${{ matrix.target_os }}" -d "${{ matrix.rosdistro }}"
     - uses: actions/upload-artifact@v2
       with:
+        name: performance_metrics
         path: /tmp/collected_metrics/
+    - uses: actions/action-cloudwatch-metrics@0.0.5
+      with:
+        metric-data: "${{ matrix.target_arch }}_${{ matrix.target_os }}_${{ matrix.rosdistro }}_a"
+    - uses: actions/action-cloudwatch-metrics@0.0.5
+      with:
+        metric-data: "${{ matrix.target_arch }}_${{ matrix.target_os }}_${{ matrix.rosdistro }}_b"
 
   log_workflow_status_to_cloudwatch:
     runs-on: ubuntu-latest
@@ -66,22 +73,3 @@ jobs:
       with:
         metric-name: 'BuildsE2E'
         metric-value: ${{needs.test_macOS.result == 'success' && needs.test_ubuntu.result == 'success' }}
-
-  log_cross_compile_metrics_to_cloudwatch:
-    runs-on: ubuntu-latest
-    container:
-      image: ubuntu:bionic
-    needs:
-    - build_and_test
-    if: always()
-    continue-on-error: ${{ github.event_name == 'pull_request' }}
-    steps:
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ secrets.AWS_REGION }}
-    - uses: ros-tooling/action-cloudwatch-metrics@0.0.4
-      with:
-        metric-data: /tmp/collected_metrics/*.json
