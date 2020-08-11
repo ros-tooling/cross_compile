@@ -34,7 +34,7 @@ jobs:
         sudo apt update && sudo apt install -y qemu-user-static
     - name: Install cross-compile
       run: pip install -e .
-    - run: mkdir -p METRICS_OUT_DIR
+    - run: mkdir -p ${{ env.METRICS_OUT_DIR }}
     - name: Run end-to-end test
       run: |
         ./test/run_e2e_test.sh -a "${{ matrix.target_arch }}" -o "${{ matrix.target_os }}" -d "${{ matrix.rosdistro }}"
