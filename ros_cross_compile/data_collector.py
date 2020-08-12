@@ -22,6 +22,8 @@ from pathlib import Path
 import time
 from typing import Dict, List, NamedTuple, Union
 
+from ros_cross_compile.platform import Platform
+
 
 INTERNALS_DIR = 'cc_internals'
 
@@ -34,8 +36,8 @@ Datum = NamedTuple('Datum', [('name', str),
 
 
 class Units(Enum):
-    Seconds = 'seconds'
-    Bytes = 'bytes'
+    Seconds = 'Seconds'
+    Bytes = 'Bytes'
 
 
 class DataCollector:
@@ -44,11 +46,12 @@ class DataCollector:
     def __init__(self):
         self._data = []
 
+    @property
+    def data(self):
+        return self._data
+
     def add_datum(self, new_datum: Datum):
         self._data.append(new_datum)
-
-    def serialize_data(self) -> List[Dict]:
-        return list(map(lambda d: d._asdict(), self._data))
 
     @contextmanager
     def timer(self, name: str):
@@ -81,34 +84,56 @@ class DataWriter:
         self._write_path.mkdir(parents=True, exist_ok=True)
         self.write_file = self._write_path / output_file
 
-    def print_helper(self, data_to_print: List[Dict]):
+    def print_helper(self, data_to_print: List[Datum]):
         print('--------------------------------- Collected Data ---------------------------------')
         print('=================================================================================')
         for datum in data_to_print:
             # readable_time = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(datum['timestamp']))
-            readable_time = datetime.utcfromtimestamp(datum['timestamp']).isoformat()
-            if datum['unit'] == Units.Seconds.value:
-                print('{:>12} | {:>35}: {:.2f} {}'.format(readable_time, datum['name'],
-                                                          datum['value'], datum['unit']),
+            readable_time = datetime.utcfromtimestamp(datum.timestamp).isoformat()
+            if datum.unit == Units.Seconds.value:
+                print('{:>12} | {:>35}: {:.2f} {}'.format(readable_time, datum.name,
+                                                          datum.value, datum.unit),
                       end='')
             else:
-                print('{:>12} | {:>35}: {} {}'.format(readable_time, datum['name'],
-                                                      datum['value'], datum['unit']),
+                print('{:>12} | {:>35}: {} {}'.format(readable_time, datum.name,
+                                                      datum.value, datum.unit),
                       end='')
-            if datum['complete']:
+            if datum.complete:
                 print('\n')
             else:
                 print(' {}'.format('incomplete'))
 
-    def write(self, data_collector: DataCollector, print_data: bool):
+    def serialize_to_cloudwatch(self, data: List[Datum], platform: Platform) -> List[Dict]:
+        """
+        Serialize collected datums to fit the AWS Cloudwatch publishing format.
+
+        To get an idea of what the Cloudwatch formatting is like, refer to
+        https://awscli.amazonaws.com/v2/documentation/api/latest/reference/
+        cloudwatch/put-metric-data.html.
+        """
+        def serialize_helper(datum: Datum) -> Dict:
+            return {
+                'MetricName': datum.name,
+                'Value': datum.value,
+                'Unit': datum.unit,
+                'Timestamp': datum.timestamp,
+                'Dimensions': [{'Name': 'Complete', 'Value': str(datum.complete)},
+                               {'Name': 'Architecture', 'Value': platform.arch},
+                               {'Name': 'OS', 'Value': platform.os_name},
+                               {'Name': 'ROS Distro', 'Value': platform.ros_distro}]
+            }
+
+        return [serialize_helper(d) for d in data]
+
+    def write(self, data_collector: DataCollector, platform: Platform, print_data: bool):
         """
         Write collected datums to a file.
 
         Before writing, however, we convert each datum to a dictionary,
         so that they are conveniently 'dumpable' into a JSON file.
         """
-        data_to_dump = data_collector.serialize_data()
         if print_data:
-            self.print_helper(data_to_dump)
+            self.print_helper(data_collector.data)
         with self.write_file.open('w') as f:
+            data_to_dump = self.serialize_to_cloudwatch(data_collector.data, platform)
             json.dump(list(data_to_dump), f, sort_keys=True, indent=4)

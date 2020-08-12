@@ -48,8 +48,9 @@ def test_trivial_argparse():
 def test_bad_workspace(tmpdir):
     args = parse_args([str(tmpdir), '-a', 'aarch64', '-o', 'ubuntu', '-d', 'foxy'])
     test_collector = DataCollector()
+    platform = Platform(args.arch, args.os, args.rosdistro)
     with pytest.raises(ValueError):
-        cross_compile_pipeline(args, test_collector)
+        cross_compile_pipeline(args, test_collector, platform)
 
 
 def test_relative_workspace(tmpdir):
@@ -60,13 +61,14 @@ def test_relative_workspace(tmpdir):
     (tmp / 'src').mkdir()
     relative_dir = '.'
     args = parse_args([relative_dir, '-a', 'aarch64', '-o', 'ubuntu', '-d', 'foxy'])
+    platform = Platform(args.arch, args.os, args.rosdistro)
     with chdir(str(tmp)), patch(
         'ros_cross_compile.ros_cross_compile.DockerClient', Mock()
     ), patch(
         'ros_cross_compile.dependencies.assert_install_rosdep_script_exists'
     ):
         # should not raise an exception
-        cross_compile_pipeline(args, test_collector)
+        cross_compile_pipeline(args, test_collector, platform)
 
 
 def test_mocked_cc_pipeline(tmpdir):
@@ -74,12 +76,13 @@ def test_mocked_cc_pipeline(tmpdir):
     test_collector = DataCollector()
     (tmp / 'src').mkdir()
     args = parse_args([str(tmpdir), '-a', 'aarch64', '-o', 'ubuntu'])
+    platform = Platform(args.arch, args.os, args.rosdistro)
     with patch(
         'ros_cross_compile.ros_cross_compile.DockerClient', Mock()
     ) as docker_mock, patch(
         'ros_cross_compile.dependencies.assert_install_rosdep_script_exists'
     ) as script_mock:
-        cross_compile_pipeline(args, test_collector)
+        cross_compile_pipeline(args, test_collector, platform)
         assert script_mock.called
         assert docker_mock.called
         assert docker_mock().build_image.call_count == 2

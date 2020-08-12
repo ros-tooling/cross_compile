@@ -17,6 +17,8 @@ jobs:
         target_arch: [aarch64, armhf, x86_64]
         target_os: [ubuntu, debian]
         rosdistro: [dashing, eloquent, foxy, melodic]
+    env:
+      METRICS_OUT_DIR: /tmp/collected_metrics
     steps:
     - name: Checkout sources
       uses: actions/checkout@v2
@@ -32,9 +34,29 @@ jobs:
         sudo apt update && sudo apt install -y qemu-user-static
     - name: Install cross-compile
       run: pip install -e .
+    - run: mkdir -p ${{ env.METRICS_OUT_DIR }}
     - name: Run end-to-end test
       run: |
         ./test/run_e2e_test.sh -a "${{ matrix.target_arch }}" -o "${{ matrix.target_os }}" -d "${{ matrix.rosdistro }}"
+    - uses: actions/upload-artifact@v2
+      with:
+        name: performance_metrics
+        path: ${{ env.METRICS_OUT_DIR }}
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+    - uses: ros-tooling/action-cloudwatch-metrics@0.0.5
+      if: ${{ matrix.target_arch != 'armhf' && matrix.rosdistro != 'foxy' }}
+      with:
+        metric-data: "${{ env.METRICS_OUT_DIR }}/${{ matrix.target_arch }}_${{ matrix.target_os }}_${{ matrix.rosdistro }}_a"
+        namespace: "CrossCompileMetrics"
+    - uses: ros-tooling/action-cloudwatch-metrics@0.0.5
+      if: ${{ matrix.target_arch != 'armhf' && matrix.rosdistro != 'foxy' }}
+      with:
+        metric-data: "${{ env.METRICS_OUT_DIR }}/${{ matrix.target_arch }}_${{ matrix.target_os }}_${{ matrix.rosdistro }}_b"
 
   log_workflow_status_to_cloudwatch:
     runs-on: ubuntu-latest
