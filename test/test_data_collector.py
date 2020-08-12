@@ -21,7 +21,7 @@ import pytest
 from ros_cross_compile.data_collector import DataCollector
 from ros_cross_compile.data_collector import DataWriter
 from ros_cross_compile.data_collector import Datum
-from ros_cross_compile.ros_cross_compile import parse_args
+from ros_cross_compile.platform import Platform
 
 
 def test_datum_construction():
@@ -45,8 +45,8 @@ def test_data_collection():
 
     to_test_data = test_collector.data
 
-    assert to_test_data[0].metric_name == 'test_stat_1'
-    assert to_test_data[1].metric_name == 'test_stat_2'
+    assert to_test_data[0].name == 'test_stat_1'
+    assert to_test_data[1].name == 'test_stat_2'
     assert to_test_data[0].value == 3
     assert to_test_data[0].unit == 'tests'
     assert abs(to_test_data[0].timestamp - 130.452) < 0.1
@@ -82,8 +82,7 @@ def test_data_writing(tmp_path):
         except JSONDecodeError:
             return False
 
-    args = parse_args([str(tmp_path), '-a', 'aarch64', '-o', 'ubuntu',
-                       '-d', 'foxy', '--print-metrics'])
+    platform = Platform('aarch64', 'ubuntu', 'foxy')
     test_collector = DataCollector()
 
     test_datum_a = Datum('test_stat_1', 3, 'tests', 130.243, True)
@@ -94,21 +93,20 @@ def test_data_writing(tmp_path):
 
     test_writer = DataWriter(tmp_path, 'test.json')
 
-    test_writer.write(test_collector, args)
+    test_writer.write(test_collector, platform, False)
 
     assert test_writer.write_file.exists()
     assert load_json_validation(test_writer.write_file)
 
 
 def test_data_printing(tmp_path, capfd):
-    args = parse_args([str(tmp_path), '-a', 'aarch64', '-o', 'ubuntu',
-                       '-d', 'foxy', '--print-metrics'])
+    platform = Platform('aarch64', 'ubuntu', 'foxy')
     test_collector = DataCollector()
     test_datum_a = Datum('test_stat_1', 3, 'tests', 130.243, True)
     test_collector.add_datum(test_datum_a)
 
     test_writer = DataWriter(tmp_path, 'test.json')
-    test_writer.write(test_collector, args)
+    test_writer.write(test_collector, platform, True)
 
     out, err = capfd.readouterr()
     test_name = '------------'

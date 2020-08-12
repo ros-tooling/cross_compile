@@ -161,9 +161,8 @@ def parse_args(args: List[str]) -> argparse.Namespace:
 def cross_compile_pipeline(
     args: argparse.Namespace,
     data_collector: DataCollector,
+    platform: Platform,
 ):
-    platform = Platform(args.arch, args.os, args.rosdistro, args.sysroot_base_image)
-
     ros_workspace_dir = _resolve_ros_workspace(args.ros_workspace)
     skip_rosdep_keys = args.skip_rosdep_keys
     custom_data_dir = _path_if(args.custom_data_dir)
@@ -196,15 +195,16 @@ def cross_compile_pipeline(
 def main():
     """Start the cross-compilation workflow."""
     args = parse_args(sys.argv[1:])
+    platform = Platform(args.arch, args.os, args.rosdistro, args.sysroot_base_image)
     ros_workspace_dir = _resolve_ros_workspace(args.ros_workspace)
     data_collector = DataCollector()
     data_writer = DataWriter(ros_workspace_dir, args.custom_metric_file)
 
     try:
         with data_collector.timer('end_to_end'):
-            cross_compile_pipeline(args, data_collector)
+            cross_compile_pipeline(args, data_collector, platform)
     finally:
-        data_writer.write(data_collector, args)
+        data_writer.write(data_collector, platform, args)
 
 
 if __name__ == '__main__':
