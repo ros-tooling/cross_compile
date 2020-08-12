@@ -204,7 +204,7 @@ def main():
         with data_collector.timer('end_to_end'):
             cross_compile_pipeline(args, data_collector, platform)
     finally:
-        data_writer.write(data_collector, platform, args)
+        data_writer.write(data_collector, platform, args.print_metrics)
 
 
 if __name__ == '__main__':

@@ -125,14 +125,14 @@ class DataWriter:
 
         return [serialize_helper(d) for d in data]
 
-    def write(self, data_collector: DataCollector, platform: Platform, print_check: bool):
+    def write(self, data_collector: DataCollector, platform: Platform, print_data: bool):
         """
         Write collected datums to a file.
 
         Before writing, however, we convert each datum to a dictionary,
         so that they are conveniently 'dumpable' into a JSON file.
         """
-        if print_check:
+        if print_data:
             self.print_helper(data_collector.data)
         with self.write_file.open('w') as f:
             data_to_dump = self.serialize_to_cloudwatch(data_collector.data, platform)
