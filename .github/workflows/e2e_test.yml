@@ -57,6 +57,7 @@ jobs:
       if: ${{ matrix.target_arch != 'armhf' && matrix.rosdistro != 'foxy' }}
       with:
         metric-data: "${{ env.METRICS_OUT_DIR }}/${{ matrix.target_arch }}_${{ matrix.target_os }}_${{ matrix.rosdistro }}_b"
+        namespace: "CrossCompileMetrics"
 
   log_workflow_status_to_cloudwatch:
     runs-on: ubuntu-latest
