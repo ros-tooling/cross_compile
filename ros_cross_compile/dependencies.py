@@ -23,7 +23,7 @@ from ros_cross_compile.docker_client import DockerClient
 from ros_cross_compile.pipeline_stages import PipelineStage
 from ros_cross_compile.pipeline_stages import PipelineStageOptions
 from ros_cross_compile.platform import Platform
-from ros_cross_compile.sysroot_creator import build_internals_dir
+from ros_cross_compile.sysroot_creator import build_internals_dir, rosdep_install_script
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('Rosdep Gatherer')
@@ -34,9 +34,6 @@ CUSTOM_DATA = '/usercustom/custom-data'
 _IMG_NAME = 'ros_cross_compile:rosdep'
 
 
-def rosdep_install_script(platform: Platform) -> Path:
-    """Construct relative path of the script that installs rosdeps into the sysroot image."""
-    return build_internals_dir(platform) / 'install_rosdeps.sh'
 
 
 def gather_rosdeps(

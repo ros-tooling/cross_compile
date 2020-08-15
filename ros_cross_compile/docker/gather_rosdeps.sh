@@ -49,7 +49,7 @@ grep "apt-get install -y" /tmp/all-deps.sh > /tmp/apt-deps.sh || true
 # awk notes:
 #  "apt-get", "install", "-y", package_name is the fourth column
 #  ORS=' ' makes the output space-separated instead of newline-separated output
-echo "apt-get install -y $(awk '{print $4}' ORS=' ' < /tmp/apt-deps.sh)" >> "${OUT_PATH}"
+echo "apt-get install -y --no-install-recommends $(awk '{print $4}' ORS=' ' < /tmp/apt-deps.sh)" >> "${OUT_PATH}"
 
 chmod +x "${OUT_PATH}"
 chown -R "${OWNER_USER}" "${out_dir}"

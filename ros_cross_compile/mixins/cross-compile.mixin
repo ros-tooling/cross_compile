@@ -1,66 +1,18 @@
 build:
-  aarch64-docker: {}
-  aarch64-linux:
-    cmake-args:
-      - "-DCMAKE_SYSTEM_NAME=Linux"
-      - "-DCMAKE_SYSTEM_VERSION=1"
-      - "-DCMAKE_SYSTEM_PROCESSOR=aarch64"
-      - "-DCMAKE_C_COMPILER=/usr/bin/aarch64-linux-gnu-gcc"
-      - "-DCMAKE_CXX_COMPILER=/usr/bin/aarch64-linux-gnu-g++"
-      - "-DCMAKE_SYSROOT=$CC_ROOT/sysroot"
-      - "-DCMAKE_TRY_COMPILE_TARGET_TYPE=STATIC_LIBRARY"
-      - "-DCMAKE_FIND_ROOT_PATH=$CC_ROOT/sysroot/root_path:$CC_ROOT/install"
-      - "-DCMAKE_INSTALL_RPATH=$CC_ROOT/sysroot/opt/ros/$ROS_DISTRO/lib"
-      - "-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=TRUE"
-      - "-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER"
-      - "-DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=ONLY"
-      - "-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY"
-      - "-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY"
-      - "-DPYTHON_SOABI=cpython-36m-aarch64-linux-gnu"
-      - "-DTHREADS_PTHREAD_ARG=0"
-      - "--no-warn-unused-cli"
-  arm-linux:
-    cmake-args:
-      - "-DCMAKE_SYSTEM_NAME=Linux"
-      - "-DCMAKE_SYSTEM_VERSION=1"
-      - "-DCMAKE_SYSTEM_PROCESSOR=armv7l"
-      - "-DCMAKE_C_COMPILER=/usr/bin/arm-linux-gnueabi-gcc"
-      - "-DCMAKE_CXX_COMPILER=/usr/bin/arm-linux-gnueabi-g++"
-      - "-DCMAKE_SYSROOT=$CC_ROOT/sysroot"
-      - "-DCMAKE_FIND_ROOT_PATH=$CC_ROOT/sysroot/root_path:$CC_ROOT/install"
-      - "-DCMAKE_INSTALL_RPATH=$CC_ROOT/sysroot/opt/ros/$ROS_DISTRO/lib"
-      - "-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=TRUE"
-      - "-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER"
-      - "-DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=ONLY"
-      - "-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY"
-      - "-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY"
-      - "-DPYTHON_SOABI=cpython-36m-arm-linux-gnueabi"
-      - "-DTHREADS_PTHREAD_ARG=0"
-      - "--no-warn-unused-cli"
-  armhf-docker:
-    cmake-args:
-      - "-DCMAKE_C_FLAGS=-Wno-psabi"
-      - "-DCMAKE_CXX_FLAGS=-Wno-psabi"
-      - "--no-warn-unused-cli"
-  armhf-linux:
-    cmake-args:
-      - "-DCMAKE_SYSTEM_NAME=Linux"
-      - "-DCMAKE_SYSTEM_VERSION=1"
-      - "-DCMAKE_SYSTEM_PROCESSOR=arm"
-      - "-DCMAKE_C_COMPILER=/usr/bin/arm-linux-gnueabihf-gcc"
-      - "-DCMAKE_CXX_COMPILER=/usr/bin/arm-linux-gnueabihf-g++"
-      - "-DCMAKE_SYSROOT=$CC_ROOT/sysroot"
-      - "-DCMAKE_C_FLAGS=-Wno-psabi"
-      - "-DCMAKE_CXX_FLAGS=-Wno-psabi"
-      - "-DCMAKE_FIND_ROOT_PATH=$CC_ROOT/sysroot/root_path:$CC_ROOT/install"
-      - "-DCMAKE_INSTALL_RPATH=$CC_ROOT/sysroot/opt/ros/$ROS_DISTRO/lib"
-      - "-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=TRUE"
-      - "-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER"
-      - "-DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=ONLY"
-      - "-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY"
-      - "-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY"
-      - "-DPYTHON_SOABI=cpython-36m-arm-linux-gnueabihf"
-      - "-DTHREADS_PTHREAD_ARG=0"
-      - "--no-warn-unused-cli"
-  x86_64-docker: {}
-  x86_64-linux: {}
+    aarch64-docker: {}
+    aarch64-linux:
+        cmake-args:
+            - "-DCMAKE_TOOLCHAIN_FILE=/toolchains/aarch64-gnu.cmake"
+            - "--no-warn-unused-cli"
+    armhf-docker:
+        cmake-args:
+            - "-DCMAKE_C_FLAGS=-Wno-psabi"
+            - "-DCMAKE_CXX_FLAGS=-Wno-psabi"
+            - "--no-warn-unused-cli"
+    armhf-linux:
+        cmake-args:
+                "--no-warn-unused-cli"
+            ],
+        }
+    }
+}

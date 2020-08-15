@@ -11,19 +11,39 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import io
 import logging
 from pathlib import Path
+import tarfile
 from typing import Dict
 from typing import Optional
 
 import docker
 from docker.utils import kwargs_from_env as docker_kwargs_from_env
 
-
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('Docker Client')
 
 DEFAULT_COLCON_DEFAULTS_FILE = 'defaults.yaml'
+
+
+class GeneratorStream(io.RawIOBase):
+    def __init__(self, generator):
+        self.leftover = None
+        self.generator = generator
+
+    def readable(self):
+        return True
+
+    def readinto(self, b):
+        try:
+            length = len(b)  # : We're supposed to return at most this much
+            chunk = self.leftover or next(self.generator)
+            output, self.leftover = chunk[:length], chunk[length:]
+            b[:len(output)] = output
+            return len(output)
+        except StopIteration:
+            return 0  # : Indicate EOF
 
 
 class DockerClient:
@@ -65,6 +85,7 @@ class DockerClient:
         """
         # Use low-level API to expose logs for image building
         docker_api = docker.APIClient(**docker_kwargs_from_env())
+        logger.info('Sending context to Docker client')
         log_generator = docker_api.build(
             path=str(dockerfile_dir) if dockerfile_dir else self._default_docker_dir,
             dockerfile=dockerfile_name,
@@ -119,6 +140,7 @@ class DockerClient:
         # Note that the `run` kwarg `stream` is not available
         # in the version of dockerpy that we are using, so we must detach to live-stream logs
         # Do not `remove` so that the container can be queried for its exit code after finishing
+        logger.info("Running docker container of image {}".format(image_name))
         container = self._client.containers.run(
             image=image_name,
             name=container_name,
@@ -146,3 +168,10 @@ class DockerClient:
 
     def get_image_size(self, img_name: str) -> int:
         return self._client.images.get(img_name).attrs['Size']
+
+    def export_image_filesystem(self, image_tag: str):
+        container = self._client.containers.run(image=image_tag, detach=True)
+        export_generator = container.export()
+        stream = io.BufferedReader(GeneratorStream(export_generator))
+        tar = tarfile.open(fileobj=stream, mode='r|*')
+        return tar

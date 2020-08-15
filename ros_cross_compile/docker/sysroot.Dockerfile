@@ -5,71 +5,33 @@
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE}
 
-ARG ROS_VERSION
-
 SHELL ["/bin/bash", "-c"]
+ENV DEBIAN_FRONTEND=noninteractive
 
+# Grab the qemu binaries, if any, that were placed in the build context for us
 COPY bin/* /usr/bin/
 
-# Set timezone
-RUN echo 'Etc/UTC' > /etc/timezone && \
-    ln -sf /usr/share/zoneinfo/Etc/UTC /etc/localtime
-
+# # Add the ros apt repo
 RUN apt-get update && apt-get install --no-install-recommends -y \
-        tzdata \
-        locales \
-    && rm -rf /var/lib/apt/lists/*
-
-# Set locale
-RUN echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen && \
-    locale-gen && \
-    update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
-ENV LANG en_US.UTF-8
-ENV LC_ALL C.UTF-8
-
-# Add the ros apt repo
-RUN apt-get update && apt-get install --no-install-recommends -y \
-        dirmngr \
         gnupg2 \
         lsb-release \
     && rm -rf /var/lib/apt/lists/*
 RUN apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' \
     --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
 
-RUN echo "deb http://packages.ros.org/${ROS_VERSION}/ubuntu `lsb_release -cs` main" \
-    > /etc/apt/sources.list.d/${ROS_VERSION}-latest.list
+RUN echo "deb http://packages.ros.org/ros/ubuntu `lsb_release -cs` main" \
+    >> /etc/apt/sources.list.d/ros-latest.list
+RUN echo "deb http://packages.ros.org/ros2/ubuntu `lsb_release -cs` main" \
+    >> /etc/apt/sources.list.d/ros-latest.list
 
 # ROS dependencies
 RUN apt-get update && apt-get install --no-install-recommends -y \
-      build-essential \
-      cmake \
-      python3-colcon-common-extensions \
-      python3-colcon-mixin \
-      python3-dev \
       python3-pip \
+      libssl-dev \
+      symlinks \
     && rm -rf /var/lib/apt/lists/*
 
-RUN python3 -m pip install -U \
-    setuptools
-
-# Install some pip packages needed for testing ROS 2
-RUN if [[ "${ROS_VERSION}" == "ros2" ]]; then \
-    python3 -m pip install -U \
-    flake8 \
-    flake8-blind-except \
-    flake8-builtins \
-    flake8-class-newline \
-    flake8-comprehensions \
-    flake8-deprecated \
-    flake8-docstrings \
-    flake8-import-order \
-    flake8-quotes \
-    pytest-repeat \
-    pytest-rerunfailures \
-    pytest \
-    pytest-cov \
-    pytest-runner \
-  ; fi
+ARG ROS_VERSION
 
 # Install Fast-RTPS dependencies for ROS 2
 RUN if [[ "${ROS_VERSION}" == "ros2" ]]; then \
@@ -86,12 +48,16 @@ RUN chmod +x ./user-custom-setup && \
     ./user-custom-setup && \
     rm -rf /var/lib/apt/lists/*
 
+ARG DEPENDENCY_SCRIPT
 # Use generated rosdep installation script
-COPY install_rosdeps.sh .
-RUN chmod +x install_rosdeps.sh
-RUN export DEBIAN_FRONTEND=noninteractive && apt-get update && \
-    ./install_rosdeps.sh && \
+COPY ${DEPENDENCY_SCRIPT} .
+RUN chmod +x ${DEPENDENCY_SCRIPT}
+RUN apt-get update && \
+    ./${DEPENDENCY_SCRIPT} && \
     rm -rf /var/lib/apt/lists/*
+
+# Make all absolute symlinks in the filesystem relative, so that we can use it for cross-compilation
+RUN symlinks -rc /
 
 # Set up build tools for the workspace
 COPY mixins/ mixins/

@@ -8,6 +8,8 @@ FROM $BASE_IMAGE
 
 WORKDIR /ros_ws
 
+RUN apt-get update && apt-get install -q -y --no-install-recommends less vim
+
 ARG INSTALL_PATH
 COPY $INSTALL_PATH/ install
 
