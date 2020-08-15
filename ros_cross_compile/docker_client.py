@@ -11,8 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import io
 import logging
 from pathlib import Path
+import tarfile
 from typing import Dict
 from typing import Optional
 
@@ -24,6 +26,27 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('Docker Client')
 
 DEFAULT_COLCON_DEFAULTS_FILE = 'defaults.yaml'
+
+
+class GeneratorStream(io.RawIOBase):
+    """TODO what is this doing."""
+
+    def __init__(self, generator):
+        self.leftover = None
+        self.generator = generator
+
+    def readable(self):
+        return True
+
+    def readinto(self, b):
+        try:
+            length = len(b)  # : We're supposed to return at most this much
+            chunk = self.leftover or next(self.generator)
+            output, self.leftover = chunk[:length], chunk[length:]
+            b[:len(output)] = output
+            return len(output)
+        except StopIteration:
+            return 0  # : Indicate EOF
 
 
 class DockerClient:
@@ -84,7 +107,7 @@ class DockerClient:
             if error_line:
                 logger.exception(
                     'Error building Docker image. The follow error was caught:\n' + error_line)
-                raise docker.errors.BuildError(error_line)
+                raise docker.errors.BuildError(reason=error_line, build_log=error_line)
             line = chunk.get('stream', '')
             line = line.rstrip()
             if line:
@@ -146,3 +169,10 @@ class DockerClient:
 
     def get_image_size(self, img_name: str) -> int:
         return self._client.images.get(img_name).attrs['Size']
+
+    def export_image_filesystem(self, image_tag: str):
+        container = self._client.containers.run(image=image_tag, detach=True)
+        export_generator = container.export()
+        stream = io.BufferedReader(GeneratorStream(export_generator))
+        tar = tarfile.open(fileobj=stream, mode='r|*')
+        return tar

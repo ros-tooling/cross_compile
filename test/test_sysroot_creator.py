@@ -23,6 +23,7 @@ from unittest.mock import patch
 
 import pytest
 
+from ros_cross_compile.dependencies import rosdep_install_script
 from ros_cross_compile.platform import Platform
 from ros_cross_compile.sysroot_creator import CreateSysrootStage
 from ros_cross_compile.sysroot_creator import prepare_docker_build_environment
@@ -82,11 +83,12 @@ def test_prepare_docker_build_with_user_custom(tmpdir):
 
 def test_basic_sysroot_creation(tmpdir):
     """Very simple smoke test to validate that syntax is correct."""
-    # Very simple smoke test to validate that all internal syntax is correct
-
     mock_docker_client = Mock()
     mock_data_collector = Mock()
     platform = Platform('aarch64', 'ubuntu', 'eloquent')
+
+    rosdep_script = Path(str(tmpdir)) / rosdep_install_script(platform)
+    rosdep_script.touch()
 
     stage = CreateSysrootStage()
     stage(

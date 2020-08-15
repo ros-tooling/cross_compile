@@ -5,9 +5,9 @@ __pycache__/
 .tox/
 /.coverage
 /coverage.xml
-
 .idea/
-
 sysroot/
-
 .DS_Store
+*.ipynb
+*.tags
+*.tags1

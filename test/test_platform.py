@@ -91,13 +91,8 @@ def test_get_docker_base_image():
 
 
 def test_docker_py_version():
-    # Explicitly check a known difference between apt and pip versions
-    with pytest.raises(TypeError):
-        # 1.20 (from pip, which we are not using) API has named arguments
-        err = docker.errors.BuildError(reason='problem', build_log='stuff that happened')
-
-    # 1.10 API (from apt which we are using) does not
-    err = docker.errors.BuildError('problem')
+    # Explicitly check that we are using the expected version of the docker api
+    err = docker.errors.BuildError(reason='problem', build_log='stuff that happened')
     assert err
 
 

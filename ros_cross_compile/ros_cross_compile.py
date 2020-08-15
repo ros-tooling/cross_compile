@@ -24,7 +24,8 @@ import sys
 from typing import List
 from typing import Optional
 
-from ros_cross_compile.builders import EmulatedDockerBuildStage
+from ros_cross_compile.builders import CrossCompileBuildStage
+# from ros_cross_compile.builders import EmulatedDockerBuildStage
 from ros_cross_compile.data_collector import DataCollector
 from ros_cross_compile.data_collector import DataWriter
 from ros_cross_compile.dependencies import CollectDependencyListStage
@@ -45,7 +46,7 @@ logger = logging.getLogger(__name__)
 _PIPELINE = [
     CollectDependencyListStage(),
     CreateSysrootStage(),
-    EmulatedDockerBuildStage(),
+    CrossCompileBuildStage(),
     PackageRuntimeImageStage(),
 ]
 

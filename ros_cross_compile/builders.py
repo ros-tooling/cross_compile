@@ -69,3 +69,47 @@ class EmulatedDockerBuildStage(PipelineStage):
         data_collector: DataCollector
     ):
         run_emulated_docker_build(docker_client, platform, ros_workspace_dir)
+
+
+def run_cross_compile_docker_build(
+    docker_client: DockerClient,
+    platform: Platform,
+    workspace_path: Path,
+) -> None:
+    docker_client.build_image(
+        dockerfile_name='build.Dockerfile',
+        tag=platform.build_image_tag,
+    )
+
+    docker_client.run_container(
+        image_name=platform.build_image_tag,
+        environment={
+            'OWNER_USER': str(os.getuid()),
+            'ROS_DISTRO': platform.ros_distro,
+            'TARGET_ARCH': platform.arch,
+        },
+        volumes={
+            workspace_path: '/ros_ws',
+        }
+    )
+
+
+class CrossCompileBuildStage(PipelineStage):
+    """
+    This stage performs a true cross-compile build running in the native architecture.
+
+    The build itself is much faster, but adds some overhead to setup.
+    """
+
+    def __init__(self):
+        super().__init__('cross_compile_build')
+
+    def __call__(
+        self,
+        platform: Platform,
+        docker_client: DockerClient,
+        ros_workspace_dir: Path,
+        options: PipelineStageOptions,
+        data_collector: DataCollector
+    ):
+        run_cross_compile_docker_build(docker_client, platform, ros_workspace_dir)

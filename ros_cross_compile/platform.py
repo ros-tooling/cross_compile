@@ -11,18 +11,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import getpass
 from typing import NamedTuple
 from typing import Optional
 
-ArchNameMapping = NamedTuple('ArchNameMapping', [('docker', str), ('qemu', str)])
+ArchNameMapping = NamedTuple(
+    'ArchNameMapping', [('docker', str), ('qemu', str), ('target_triple', str)])
 
 
 # NOTE: when changing any following values, update README.md Supported Targets section
 ARCHITECTURE_NAME_MAP = {
-    'armhf': ArchNameMapping(docker='arm32v7', qemu='arm'),
-    'aarch64': ArchNameMapping(docker='arm64v8', qemu='aarch64'),
-    'x86_64': ArchNameMapping(docker='', qemu='x86_64'),
+    'armhf': ArchNameMapping(
+        docker='arm32v7', qemu='arm', target_triple='arm-linux-gnueabi'),
+    'aarch64': ArchNameMapping(
+        docker='arm64v8', qemu='aarch64', target_triple='aarch64-linux-gnu'),
+    'x86_64': ArchNameMapping(
+        docker='', qemu='x86_64', target_triple='x86_64-linux-gnu'),
 }
 SUPPORTED_ARCHITECTURES = tuple(ARCHITECTURE_NAME_MAP.keys())
 
@@ -96,6 +99,7 @@ class Platform:
         else:
             self._os_distro = ROSDISTRO_OS_MAP[self.ros_distro][self.os_name]
             native_base = '{}:{}'.format(self.os_name, self.os_distro)
+            self._native_base = native_base
             if docker_org:
                 self._docker_target_base = '{}/{}'.format(docker_org, native_base)
             else:
@@ -132,7 +136,15 @@ class Platform:
     @property
     def sysroot_image_tag(self) -> str:
         """Generate docker image name and tag."""
-        return getpass.getuser() + '/' + str(self) + ':latest'
+        return 'ros_cross_compile/{}:sysroot'.format(self)
+
+    @property
+    def build_image_tag(self) -> str:
+        return 'ros_cross_compile/{}:build'.format(self)
+
+    @property
+    def build_base_image(self) -> str:
+        return self._native_base
 
     @property
     def target_base_image(self) -> str:
