@@ -19,7 +19,7 @@ from ros_cross_compile.pipeline_stages import PipelineStageOptions
 
 def test_config_tuple_creation():
     test_options = PipelineStageOptions(
-        skip_rosdeps=['abc', 'def'],
+        skip_rosdep_keys=['abc', 'def'],
         custom_script=Path('./'),
         custom_data_dir=Path('./'),
         custom_setup_script=Path('./'))

@@ -24,7 +24,6 @@ from unittest.mock import patch
 import pytest
 
 from ros_cross_compile.platform import Platform
-from ros_cross_compile.sysroot_creator import create_workspace_sysroot_image
 from ros_cross_compile.sysroot_creator import CreateSysrootStage
 from ros_cross_compile.sysroot_creator import prepare_docker_build_environment
 from ros_cross_compile.sysroot_creator import setup_emulator
@@ -102,8 +101,3 @@ def test_basic_sysroot_creation(tmpdir):
 def test_create_sysroot_stage_creation():
     temp_stage = CreateSysrootStage()
     assert temp_stage
-
-
-def test_create_sysroot_stage_name():
-    temp_stage = CreateSysrootStage()
-    assert temp_stage._name == create_workspace_sysroot_image.__name__

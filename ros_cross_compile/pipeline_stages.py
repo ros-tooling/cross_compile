@@ -54,7 +54,7 @@ class PipelineStage(ABC):
         platform: Platform,
         docker_client: DockerClient,
         ros_workspace_dir: Path,
-        pipeline_stage_config_options: PipelineStageOptions,
+        options: PipelineStageOptions,
         data_collector: DataCollector
     ):
         raise NotImplementedError
