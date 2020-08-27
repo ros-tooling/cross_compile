@@ -14,10 +14,13 @@
 
 from pathlib import Path
 
-from ros_cross_compile.pipeline_stages import PipelineStageConfigOptions
+from ros_cross_compile.pipeline_stages import PipelineStageOptions
 
 
 def test_config_tuple_creation():
-    test_options = PipelineStageConfigOptions(True, ['abc', 'def'], Path('./'),
-                                              Path('./'), Path('./'))
+    test_options = PipelineStageOptions(
+        skip_rosdeps=['abc', 'def'],
+        custom_script=Path('./'),
+        custom_data_dir=Path('./'),
+        custom_setup_script=Path('./'))
     assert test_options

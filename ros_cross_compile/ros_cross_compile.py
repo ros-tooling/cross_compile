@@ -30,7 +30,7 @@ from ros_cross_compile.data_collector import DataWriter
 from ros_cross_compile.dependencies import CollectDependencyListStage
 from ros_cross_compile.docker_client import DEFAULT_COLCON_DEFAULTS_FILE
 from ros_cross_compile.docker_client import DockerClient
-from ros_cross_compile.pipeline_stages import PipelineStageConfigOptions
+from ros_cross_compile.pipeline_stages import PipelineStageOptions
 from ros_cross_compile.platform import Platform
 from ros_cross_compile.platform import SUPPORTED_ARCHITECTURES
 from ros_cross_compile.platform import SUPPORTED_ROS2_DISTROS
@@ -41,7 +41,7 @@ from ros_cross_compile.sysroot_creator import prepare_docker_build_environment
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-stages = [
+_PIPELINE = [
     CollectDependencyListStage(),
     CreateSysrootStage(),
     EmulatedDockerBuildStage(),
@@ -154,11 +154,12 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         required=False,
         help='All collected metrics will be printed to stdout via the logging framework.')
     parser.add_argument(
-        '--skip-steps',
+        '--stages-skip',
         nargs='+',
-        choices=[stage.name for stage in stages],
+        choices=[stage.name for stage in _PIPELINE],
         default=[],
-        help='Skip these steps')
+        help='Skip the given stages of the build pipeline to save time. Use at your own risk, '
+             'as this could cause undefined behavior if some stage has not been previously run.')
 
     return parser.parse_args(args)
 
@@ -184,16 +185,16 @@ def cross_compile_pipeline(
         default_docker_dir=sysroot_build_context,
         colcon_defaults_file=args.colcon_defaults)
 
-    customizations = PipelineStageOptions(
+    options = PipelineStageOptions(
         skip_rosdep_keys,
         custom_rosdep_script,
         custom_data_dir,
         custom_setup_script)
 
-    for stage in stages:
-        if stage.name not in args.skip_steps:
+    for stage in _PIPELINE:
+        if stage.name not in args.stages_skip:
             with data_collector.timer('{}'.format(stage.name)):
-                stage(platform, docker_client, ros_workspace_dir, customizations, data_collector)
+                stage(platform, docker_client, ros_workspace_dir, options, data_collector)
 
 
 def main():

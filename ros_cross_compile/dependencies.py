@@ -21,7 +21,7 @@ from typing import Optional
 from ros_cross_compile.data_collector import DataCollector
 from ros_cross_compile.docker_client import DockerClient
 from ros_cross_compile.pipeline_stages import PipelineStage
-from ros_cross_compile.pipeline_stages import PipelineStageConfigOptions
+from ros_cross_compile.pipeline_stages import PipelineStageOptions
 from ros_cross_compile.platform import Platform
 from ros_cross_compile.sysroot_creator import build_internals_dir
 
@@ -111,9 +111,14 @@ class CollectDependencyListStage(PipelineStage):
     def __init__(self):
         super().__init__('gather_rosdeps')
 
-    def __call__(self, platform: Platform, docker_client: DockerClient, ros_workspace_dir: Path,
-                 pipeline_stage_config_options: PipelineStageConfigOptions,
-                 data_collector: DataCollector):
+    def __call__(
+        self,
+        platform: Platform,
+        docker_client: DockerClient,
+        ros_workspace_dir: Path,
+        options: PipelineStageOptions,
+        data_collector: DataCollector
+    ):
         """
         Run the inspection and output the dependency installation script.
 
@@ -128,9 +133,9 @@ class CollectDependencyListStage(PipelineStage):
             docker_client=docker_client,
             platform=platform,
             workspace=ros_workspace_dir,
-            skip_rosdep_keys=pipeline_stage_config_options.skip_rosdep_keys,
-            custom_script=pipeline_stage_config_options.custom_script,
-            custom_data_dir=pipeline_stage_config_options.custom_data_dir)
+            skip_rosdep_keys=options.skip_rosdep_keys,
+            custom_script=options.custom_script,
+            custom_data_dir=options.custom_data_dir)
         assert_install_rosdep_script_exists(ros_workspace_dir, platform)
 
         img_size = docker_client.get_image_size(_IMG_NAME)

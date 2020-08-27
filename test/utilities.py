@@ -17,6 +17,8 @@ import platform
 
 import pytest
 
+from ros_cross_compile.pipeline_stages import PipelineStageOptions
+
 
 def uses_docker(func):
     """Decorate test to be skipped on platforms that don't have Docker for testing."""
@@ -28,3 +30,11 @@ def uses_docker(func):
     def wrapper(*args, **kwargs):
         return func(*args, **kwargs)
     return wrapper
+
+
+def default_pipeline_options() -> PipelineStageOptions:
+    return PipelineStageOptions(
+        skip_rosdep_keys=[],
+        custom_script=None,
+        custom_data_dir=None,
+        custom_setup_script=None)

@@ -49,7 +49,12 @@ class PipelineStage(ABC):
         return self._name
 
     @abstractmethod
-    def __call__(self, platform: Platform, docker_client: DockerClient, ros_workspace_dir: Path,
-                 pipeline_stage_config_options: PipelineStageConfigOptions,
-                 data_collector: DataCollector):
+    def __call__(
+        self,
+        platform: Platform,
+        docker_client: DockerClient,
+        ros_workspace_dir: Path,
+        pipeline_stage_config_options: PipelineStageOptions,
+        data_collector: DataCollector
+    ):
         raise NotImplementedError
