@@ -100,7 +100,7 @@ def assert_install_rosdep_script_exists(
     return True
 
 
-class DependenciesStage(PipelineStage):
+class CollectDependencyListStage(PipelineStage):
     """
     This stage determines what external dependencies are needed for building.
 
@@ -124,14 +124,13 @@ class DependenciesStage(PipelineStage):
         """
         # NOTE: Stage skipping will be handled more generically in the future;
         # for now we handle this specific case internally to maintain the original API.
-        if not pipeline_stage_config_options.skip_rosdep_collection:
-            gather_rosdeps(
-                docker_client=docker_client,
-                platform=platform,
-                workspace=ros_workspace_dir,
-                skip_rosdep_keys=pipeline_stage_config_options.skip_rosdep_keys,
-                custom_script=pipeline_stage_config_options.custom_script,
-                custom_data_dir=pipeline_stage_config_options.custom_data_dir)
+        gather_rosdeps(
+            docker_client=docker_client,
+            platform=platform,
+            workspace=ros_workspace_dir,
+            skip_rosdep_keys=pipeline_stage_config_options.skip_rosdep_keys,
+            custom_script=pipeline_stage_config_options.custom_script,
+            custom_data_dir=pipeline_stage_config_options.custom_data_dir)
         assert_install_rosdep_script_exists(ros_workspace_dir, platform)
 
         img_size = docker_client.get_image_size(_IMG_NAME)
