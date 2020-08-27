@@ -127,8 +127,6 @@ class CollectDependencyListStage(PipelineStage):
         :raises RuntimeError if the step was skipped when no dependency script has been
         previously generated
         """
-        # NOTE: Stage skipping will be handled more generically in the future;
-        # for now we handle this specific case internally to maintain the original API.
         gather_rosdeps(
             docker_client=docker_client,
             platform=platform,
