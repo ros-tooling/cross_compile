@@ -19,7 +19,7 @@ jobs:
     steps:
     - name: Checkout sources
       uses: actions/checkout@v2
-    - uses: actions/setup-python@v2.1.1
+    - uses: actions/setup-python@v2.1.2
       with:
         python-version: ${{ matrix.python-version }}
         architecture: x64
@@ -53,7 +53,7 @@ jobs:
       run: |
         apt-get update
         apt-get install -y git qemu-user-static python3 python3-pip
-    - uses: actions/setup-python@v2.1.1
+    - uses: actions/setup-python@v2.1.2
       with:
         python-version: ${{ matrix.python-version }}
         architecture: x64
@@ -61,7 +61,7 @@ jobs:
       run: pip3 install tox
     - name: Run tests
       run: tox -e py
-    - uses: codecov/codecov-action@v1.0.12
+    - uses: codecov/codecov-action@v1.0.13
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         file: coverage.xml
