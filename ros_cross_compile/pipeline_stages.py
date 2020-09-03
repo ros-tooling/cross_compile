@@ -27,12 +27,14 @@ A NamedTuple that collects the customizations for each stage passed in by the us
 As such, the documentation for each customization can be found by looking at the
 argparse options in ros_cross_compile.py.
 """
-PipelineStageConfigOptions = NamedTuple('PipelineStageConfigOptions',
-                                        [('skip_rosdep_collection', bool),
-                                         ('skip_rosdep_keys', List[str]),
-                                         ('custom_script', Optional[Path]),
-                                         ('custom_data_dir', Optional[Path]),
-                                         ('custom_setup_script', Optional[Path])])
+PipelineStageOptions = NamedTuple(
+    'PipelineStageOptions',
+    [
+        ('skip_rosdep_keys', List[str]),
+        ('custom_script', Optional[Path]),
+        ('custom_data_dir', Optional[Path]),
+        ('custom_setup_script', Optional[Path]),
+    ])
 
 
 class PipelineStage(ABC):
@@ -47,7 +49,12 @@ class PipelineStage(ABC):
         return self._name
 
     @abstractmethod
-    def __call__(self, platform: Platform, docker_client: DockerClient, ros_workspace_dir: Path,
-                 pipeline_stage_config_options: PipelineStageConfigOptions,
-                 data_collector: DataCollector):
+    def __call__(
+        self,
+        platform: Platform,
+        docker_client: DockerClient,
+        ros_workspace_dir: Path,
+        options: PipelineStageOptions,
+        data_collector: DataCollector
+    ):
         raise NotImplementedError

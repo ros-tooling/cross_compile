@@ -24,13 +24,13 @@ import sys
 from typing import List
 from typing import Optional
 
-from ros_cross_compile.builders import DockerBuildStage
+from ros_cross_compile.builders import EmulatedDockerBuildStage
 from ros_cross_compile.data_collector import DataCollector
 from ros_cross_compile.data_collector import DataWriter
-from ros_cross_compile.dependencies import DependenciesStage
+from ros_cross_compile.dependencies import CollectDependencyListStage
 from ros_cross_compile.docker_client import DEFAULT_COLCON_DEFAULTS_FILE
 from ros_cross_compile.docker_client import DockerClient
-from ros_cross_compile.pipeline_stages import PipelineStageConfigOptions
+from ros_cross_compile.pipeline_stages import PipelineStageOptions
 from ros_cross_compile.platform import Platform
 from ros_cross_compile.platform import SUPPORTED_ARCHITECTURES
 from ros_cross_compile.platform import SUPPORTED_ROS2_DISTROS
@@ -40,6 +40,12 @@ from ros_cross_compile.sysroot_creator import prepare_docker_build_environment
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+_PIPELINE = [
+    CollectDependencyListStage(),
+    CreateSysrootStage(),
+    EmulatedDockerBuildStage(),
+]
 
 
 def _path_if(path: Optional[str] = None) -> Optional[Path]:
@@ -131,13 +137,6 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         help='Relative path within the workspace to a file that provides colcon arguments. '
              'See "Package Selection and Build Customization" in README.md for more details.')
     parser.add_argument(
-        '--skip-rosdep-collection',
-        action='store_true',
-        required=False,
-        help='Skip querying rosdep for dependencies. This is intended to save time when running '
-             'repeatedly during development, but has undefined behavior if the dependencies of '
-             'the workspace have changed since the last time they were collected.')
-    parser.add_argument(
         '--skip-rosdep-keys',
         default=[],
         nargs='+',
@@ -154,6 +153,13 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         action='store_true',
         required=False,
         help='All collected metrics will be printed to stdout via the logging framework.')
+    parser.add_argument(
+        '--stages-skip',
+        nargs='+',
+        choices=[stage.name for stage in _PIPELINE],
+        default=[],
+        help='Skip the given stages of the build pipeline to save time. Use at your own risk, '
+             'as this could cause undefined behavior if some stage has not been previously run.')
 
     return parser.parse_args(args)
 
@@ -179,17 +185,16 @@ def cross_compile_pipeline(
         default_docker_dir=sysroot_build_context,
         colcon_defaults_file=args.colcon_defaults)
 
-    stages = [DependenciesStage(), CreateSysrootStage(), DockerBuildStage()]
-    customizations = PipelineStageConfigOptions(
-        args.skip_rosdep_collection,
+    options = PipelineStageOptions(
         skip_rosdep_keys,
         custom_rosdep_script,
         custom_data_dir,
         custom_setup_script)
 
-    for stage in stages:
-        with data_collector.timer('{}'.format(stage.name)):
-            stage(platform, docker_client, ros_workspace_dir, customizations, data_collector)
+    for stage in _PIPELINE:
+        if stage.name not in args.stages_skip:
+            with data_collector.timer('{}'.format(stage.name)):
+                stage(platform, docker_client, ros_workspace_dir, options, data_collector)
 
 
 def main():

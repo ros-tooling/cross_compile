@@ -18,7 +18,7 @@ from pathlib import Path
 from ros_cross_compile.data_collector import DataCollector
 from ros_cross_compile.docker_client import DockerClient
 from ros_cross_compile.pipeline_stages import PipelineStage
-from ros_cross_compile.pipeline_stages import PipelineStageConfigOptions
+from ros_cross_compile.pipeline_stages import PipelineStageOptions
 from ros_cross_compile.platform import Platform
 
 logging.basicConfig(level=logging.INFO)
@@ -50,7 +50,7 @@ def run_emulated_docker_build(
     )
 
 
-class DockerBuildStage(PipelineStage):
+class EmulatedDockerBuildStage(PipelineStage):
     """
     This stage spins up a docker container and runs the emulated build with it.
 
@@ -58,9 +58,14 @@ class DockerBuildStage(PipelineStage):
     """
 
     def __init__(self):
-        super().__init__('run_emulated_docker_build')
+        super().__init__('emulated_build')
 
-    def __call__(self, platform: Platform, docker_client: DockerClient, ros_workspace_dir: Path,
-                 pipeline_stage_config_options: PipelineStageConfigOptions,
-                 data_collector: DataCollector):
+    def __call__(
+        self,
+        platform: Platform,
+        docker_client: DockerClient,
+        ros_workspace_dir: Path,
+        options: PipelineStageOptions,
+        data_collector: DataCollector
+    ):
         run_emulated_docker_build(docker_client, platform, ros_workspace_dir)
