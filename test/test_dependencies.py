@@ -18,13 +18,13 @@ import docker
 import pytest
 
 from ros_cross_compile.data_collector import DataCollector
-from ros_cross_compile.dependencies import DependenciesStage
+from ros_cross_compile.dependencies import CollectDependencyListStage
 from ros_cross_compile.dependencies import gather_rosdeps
 from ros_cross_compile.dependencies import rosdep_install_script
 from ros_cross_compile.docker_client import DockerClient
-from ros_cross_compile.pipeline_stages import PipelineStageConfigOptions
 from ros_cross_compile.platform import Platform
 
+from .utilities import default_pipeline_options
 from .utilities import uses_docker
 
 
@@ -62,11 +62,8 @@ def test_dummy_ros2_pkg(tmpdir):
     out_script = ws / rosdep_install_script(platform)
     test_collector = DataCollector()
 
-    # a default set of customizations for the dependencies stage
-    customizations = PipelineStageConfigOptions(False, [], None, None, None)
-    temp_stage = DependenciesStage()
-
-    temp_stage(platform, client, ws, customizations, test_collector)
+    stage = CollectDependencyListStage()
+    stage(platform, client, ws, default_pipeline_options(), test_collector)
 
     result = out_script.read_text()
     assert 'ros-dashing-ament-cmake' in result
@@ -214,10 +211,10 @@ def test_dummy_skip_rosdep_multiple_keys_pkg(tmpdir):
 
 
 def test_dependencies_stage_creation():
-    temp_stage = DependenciesStage()
+    temp_stage = CollectDependencyListStage()
     assert temp_stage
 
 
 def test_dependencies_stage_name():
-    temp_stage = DependenciesStage()
+    temp_stage = CollectDependencyListStage()
     assert temp_stage._name == gather_rosdeps.__name__

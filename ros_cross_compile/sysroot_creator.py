@@ -23,7 +23,7 @@ from ros_cross_compile.data_collector import DataCollector
 from ros_cross_compile.data_collector import INTERNALS_DIR
 from ros_cross_compile.docker_client import DockerClient
 from ros_cross_compile.pipeline_stages import PipelineStage
-from ros_cross_compile.pipeline_stages import PipelineStageConfigOptions
+from ros_cross_compile.pipeline_stages import PipelineStageOptions
 from ros_cross_compile.platform import Platform
 
 logging.basicConfig(level=logging.INFO)
@@ -132,11 +132,16 @@ class CreateSysrootStage(PipelineStage):
     """
 
     def __init__(self):
-        super().__init__('create_workspace_sysroot_image')
+        super().__init__('sysroot')
 
-    def __call__(self, platform: Platform, docker_client: DockerClient, ros_workspace_dir: Path,
-                 pipeline_stage_config_options: PipelineStageConfigOptions,
-                 data_collector: DataCollector):
+    def __call__(
+        self,
+        platform: Platform,
+        docker_client: DockerClient,
+        ros_workspace_dir: Path,
+        options: PipelineStageOptions,
+        data_collector: DataCollector
+    ):
         create_workspace_sysroot_image(docker_client, platform)
 
         img_size = docker_client.get_image_size(platform.sysroot_image_tag)
