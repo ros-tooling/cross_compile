@@ -46,13 +46,8 @@ jobs:
       image: ubuntu:bionic
     needs:
     - build_and_test
-    if: always()  # run even if the dependent jobs have failed to log failures
-    # Allow build reports to fail on pull requests.
-    # When a contribution is made on a fork, the secrets will not be available,
-    # and this step will be failing. This is acceptable.
-    # On the other end, we want to be notified if this happens on merge, or
-    # on schedule.
-    continue-on-error: ${{ github.event_name == 'pull_request'}}
+    # Don't skip if prior steps failed, but don't run on a fork because it won't have access to AWS secrets
+    if: ${{ always() && ! github.event.repository.fork && ! github.event.pull_request.head.repo.fork }}
     steps:
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1
