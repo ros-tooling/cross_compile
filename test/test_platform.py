@@ -17,7 +17,6 @@
 
 import getpass
 
-import docker
 import pytest
 
 from ros_cross_compile.sysroot_creator import Platform
@@ -84,17 +83,6 @@ def test_get_docker_base_image():
     verify_base_docker_images('armhf', 'debian', 'foxy', 'arm32v7/debian:buster')
     verify_base_docker_images('armhf', 'debian', 'melodic', 'arm32v7/debian:stretch')
     verify_base_docker_images('armhf', 'debian', 'noetic', 'arm32v7/debian:buster')
-
-
-def test_docker_py_version():
-    # Explicitly check a known difference between apt and pip versions
-    with pytest.raises(TypeError):
-        # 1.20 (from pip, which we are not using) API has named arguments
-        err = docker.errors.BuildError(reason='problem', build_log='stuff that happened')
-
-    # 1.10 API (from apt which we are using) does not
-    err = docker.errors.BuildError('problem')
-    assert err
 
 
 def test_ros_version_map():
