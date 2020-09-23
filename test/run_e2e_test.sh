@@ -119,7 +119,8 @@ do
 done
 
 # Expected name of the container
-readonly IMAGE_TAG="$(whoami)/$arch-$os-$distro:latest"
+readonly BUILD_IMAGE_TAG="$(whoami)/$arch-$os-$distro:latest"
+readonly RUNTIME_IMAGE_TAG="$(whoami)/$arch-$os-$distro:e2e-runtime"
 # Create trap to make sure all artifacts are removed on exit
 trap 'cleanup $result' EXIT
 
@@ -130,6 +131,7 @@ setup
 log "Executing cross compilation script..."
 python3 -m ros_cross_compile "$test_sysroot_dir" \
   --arch "$arch" --os "$os" --rosdistro "$distro" \
+  --runtime-tag "$RUNTIME_IMAGE_TAG" \
   --custom-setup-script "$custom_setup_script" --custom-metric-file "${arch}_${os}_${distro}_a"
 CC_SCRIPT_STATUS=$?
 if [[ "$CC_SCRIPT_STATUS" -ne 0 ]]; then
@@ -162,12 +164,10 @@ if [[ "$binary_file_info" != *"$expected_binary"* ]]; then
   panic "The binary output was not of the expected architecture"
 fi
 
-log "Running example node in the builder container..."
+log "Running example node in the runtime container..."
 docker run --rm \
-  --entrypoint "/bin/bash" \
-  -v "$test_sysroot_dir":/ros_ws \
-  "$IMAGE_TAG" \
-  -c "source /ros_ws/install_${arch}/setup.bash && dummy_binary"
+  "$RUNTIME_IMAGE_TAG" \
+  -c "source /root/.bashrc && dummy_binary"
 RUN_RESULT=$?
 if [[ "$RUN_RESULT" -ne 0 ]]; then
   panic "Failed to run the dummy binary in the Docker container."
