@@ -22,6 +22,8 @@ os=ubuntu     # or "debian"
 distro=dashing
 result=1        # Default to failure
 
+readonly RUNTIME_IMAGE_TAG="$(whoami)/$arch-$os-$distro:e2e-runtime"
+
 # Loggers
 log(){
   printf "%b%s%b\n" "$CYAN" "$1" "$NORM"
@@ -118,9 +120,6 @@ do
   esac
 done
 
-# Expected name of the container
-readonly BUILD_IMAGE_TAG="$(whoami)/$arch-$os-$distro:latest"
-readonly RUNTIME_IMAGE_TAG="$(whoami)/$arch-$os-$distro:e2e-runtime"
 # Create trap to make sure all artifacts are removed on exit
 trap 'cleanup $result' EXIT
 
