@@ -227,6 +227,7 @@ ros2 launch my_package my.launch.py
 
 Note: Currently this feature is a thin layer on top of the image used for building, so it is not a fully minimal image - it contains build tools, build dependencies, and test dependencies in addition to the necessary runtime dependencies.
 Future work is planned to slim down this output image to a properly minimal runtime.
+This work is tracked in https://github.com/ros-tooling/cross_compile/issues/263.
 
 
 ## Tutorial
