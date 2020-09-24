@@ -59,4 +59,8 @@ class PackageRuntimeImageStage(PipelineStage):
         options: PipelineStageOptions,
         data_collector: DataCollector
     ):
-        create_runtime_image(docker_client, platform, ros_workspace_dir, options.runtime_tag)
+        tag = options.runtime_tag
+        assert tag is not None
+        create_runtime_image(docker_client, platform, ros_workspace_dir, tag)
+        img_size = docker_client.get_image_size(tag)
+        data_collector.add_size(self.name, img_size)

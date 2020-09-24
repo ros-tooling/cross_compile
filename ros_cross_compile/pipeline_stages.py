@@ -34,7 +34,7 @@ PipelineStageOptions = NamedTuple(
         ('custom_script', Optional[Path]),
         ('custom_data_dir', Optional[Path]),
         ('custom_setup_script', Optional[Path]),
-        ('runtime_tag', str),
+        ('runtime_tag', Optional[str]),
     ])
 
 

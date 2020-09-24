@@ -166,9 +166,10 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         '--runtime-tag',
         type=str,
         required=False,
-        default='cc-runtime',
+        default=None,
         help='Package the resulting build as a runnable Docker image, with all runtime '
-             'dependencies installed. The image will use the tag provided to this argument.')
+             'dependencies installed. The image will use the tag provided to this argument. '
+             'Example: "my_registry/image_name:image_tag"')
 
     return parser.parse_args(args)
 

@@ -22,5 +22,6 @@ def test_config_tuple_creation():
         skip_rosdep_keys=['abc', 'def'],
         custom_script=Path('./'),
         custom_data_dir=Path('./'),
-        custom_setup_script=Path('./'))
+        custom_setup_script=Path('./'),
+        runtime_tag='foo')
     assert test_options
