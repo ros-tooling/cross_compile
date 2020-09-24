@@ -35,6 +35,7 @@ from ros_cross_compile.platform import Platform
 from ros_cross_compile.platform import SUPPORTED_ARCHITECTURES
 from ros_cross_compile.platform import SUPPORTED_ROS2_DISTROS
 from ros_cross_compile.platform import SUPPORTED_ROS_DISTROS
+from ros_cross_compile.runtime import PackageRuntimeImageStage
 from ros_cross_compile.sysroot_creator import CreateSysrootStage
 from ros_cross_compile.sysroot_creator import prepare_docker_build_environment
 
@@ -45,6 +46,7 @@ _PIPELINE = [
     CollectDependencyListStage(),
     CreateSysrootStage(),
     EmulatedDockerBuildStage(),
+    PackageRuntimeImageStage(),
 ]
 
 
@@ -160,6 +162,14 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         default=[],
         help='Skip the given stages of the build pipeline to save time. Use at your own risk, '
              'as this could cause undefined behavior if some stage has not been previously run.')
+    parser.add_argument(
+        '--runtime-tag',
+        type=str,
+        required=False,
+        default=None,
+        help='Package the resulting build as a runnable Docker image, with all runtime '
+             'dependencies installed. The image will use the tag provided to this argument. '
+             'Example: "my_registry/image_name:image_tag"')
 
     return parser.parse_args(args)
 
@@ -189,10 +199,17 @@ def cross_compile_pipeline(
         skip_rosdep_keys,
         custom_rosdep_script,
         custom_data_dir,
-        custom_setup_script)
+        custom_setup_script,
+        args.runtime_tag)
+
+    skip = set(args.stages_skip)
+
+    # Only package the runtime image if the user has specified a tag for it
+    if not args.runtime_tag:
+        skip.add(PackageRuntimeImageStage.NAME)
 
     for stage in _PIPELINE:
-        if stage.name not in args.stages_skip:
+        if stage.name not in skip:
             with data_collector.timer('{}'.format(stage.name)):
                 stage(platform, docker_client, ros_workspace_dir, options, data_collector)
 

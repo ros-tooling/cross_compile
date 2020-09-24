@@ -37,4 +37,5 @@ def default_pipeline_options() -> PipelineStageOptions:
         skip_rosdep_keys=[],
         custom_script=None,
         custom_data_dir=None,
-        custom_setup_script=None)
+        custom_setup_script=None,
+        runtime_tag=None)
