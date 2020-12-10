@@ -98,3 +98,34 @@ def test_build_ownership_on_success(buildable_env):
     user = getpass.getuser()
     for p in buildable_env.ros_workspace.rglob('*'):
         assert user == p.owner()
+
+
+@uses_docker
+def test_build_ownership_on_failure(buildable_env):
+    ros_workspace = buildable_env.ros_workspace
+
+    bad_package = ros_workspace / 'src' / 'bad_package'
+    bad_package.mkdir(parents=True, exist_ok=True)
+    (bad_package / 'package.xml').write_text("""
+    <package>
+    <name>bad_package</name>
+    <export>
+        <build_type>ament_cmake</build_type>
+    </export>
+    </package>
+    """)
+    (bad_package / 'CMakeLists.txt').write_text('Invalid CMakeLists content.')
+
+    # Expect the build to fail
+    with pytest.raises(Exception):
+        EmulatedDockerBuildStage()(
+            buildable_env.platform,
+            buildable_env.docker,
+            ros_workspace,
+            buildable_env.options,
+            buildable_env.data_collector)
+
+    # make sure all files are owned by the current user
+    user = getpass.getuser()
+    for p in buildable_env.ros_workspace.rglob('*'):
+        assert user == p.owner()
