@@ -164,6 +164,37 @@ add-apt-repository ppa:rpi-distro/ppa
 apt-get install -y pigpio
 ```
 
+### Custom post-build script
+
+You may want to perform arbitrary post-processing on your build outputs, in the event of a sucessful build - use `--custom-post-build-script` for this.
+
+Keep in mind
+It is run at the root of the built workspace.
+
+Following is an example setup that allows a user to run [colcon bundle](https://github.com/colcon/colcon-bundle) to create a portable bundle of the cross-compiled application.
+
+here  is the `--custom-setup-script` script
+
+```bash
+#! /bin/bash
+set -eux
+pip3 install -U colcon-ros-bundle
+```
+
+Then, in the `--custom-post-build-script`:
+
+```bash
+#!/bin/bash
+set -eux
+colcon bundle \
+  --build-base build_"${TARGET_ARCH}" \
+  --install-base install_"${TARGET_ARCH}" \
+  --bundle-base bundle_"${TARGET_ARCH}"
+```
+
+Now, after the build completes, you should see the bundle outputs in the workspace directory.
+
+
 ### Custom data directory
 
 Your custom setup or rosdep script (see preceding sections) may need some data that is not otherwise accessible.

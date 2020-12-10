@@ -99,4 +99,6 @@ RUN colcon mixin add cc_mixin file://$(pwd)/mixins/index.yaml && colcon mixin up
 # In case the workspace did not actually install any dependencies, add these for uniformity
 COPY build_workspace.sh /root
 WORKDIR /ros_ws
+COPY user-custom-post-build /
+RUN chmod +x /user-custom-post-build
 ENTRYPOINT ["/root/build_workspace.sh"]
