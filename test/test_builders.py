@@ -70,6 +70,7 @@ BuildableEnv = NamedTuple('BuildableEnv', [
 
 @pytest.fixture
 def buildable_env(tmpdir):
+    """Set up a temporary directory with everything needed to run the EmulatedDockerBuildStage."""
     platform = Platform('aarch64', 'ubuntu', 'foxy')
     ros_workspace = Path(str(tmpdir)) / 'ros_ws'
     _touch_anywhere(ros_workspace / rosdep_install_script(platform))
