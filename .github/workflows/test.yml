@@ -34,25 +34,11 @@ jobs:
       fail-fast: false
       matrix:
         python-version: [3.5, 3.6, 3.7]
-    container:
-      image: ubuntu:bionic
-      volumes:
-        - /var/run/docker.sock:/var/run/docker.sock
-        # Mount the source workspace as a volume.
-        # This fixes the tests that depend on Docker for Docker containers.
-        # The reason being is that Docker in Docker commonly works by spinning up sibling containers.
-        # This makes it so any file/folder created within the parent Docker container is not accessible in the child.
-        # Tox creates a temp directory at cross_compile/test/.tox
-        # By mounting the source as a volume, all files created during test will be written back to host and
-        # will be accessible once the child Docker container starts
-        - /__w/cross_compile/cross_compile:/__w/cross_compile/cross_compile
     steps:
     - name: Checkout sources
       uses: actions/checkout@v2
     - name: Install dependencies
-      run: |
-        apt-get update
-        apt-get install -y git qemu-user-static python3 python3-pip
+      run: sudo apt-get update && sudo apt-get install -y qemu-user-static
     - uses: actions/setup-python@v2.1.4
       with:
         python-version: ${{ matrix.python-version }}

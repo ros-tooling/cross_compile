@@ -64,8 +64,8 @@ def setup_emulator(arch: str, output_dir: Path) -> None:
 def prepare_docker_build_environment(
     platform: Platform,
     ros_workspace: Path,
-    custom_setup_script: Optional[Path],
-    custom_data_dir: Optional[Path],
+    custom_setup_script: Optional[Path] = None,
+    custom_data_dir: Optional[Path] = None,
 ) -> Path:
     """
     Prepare the directory for the sysroot.Docker build context.
