@@ -69,7 +69,7 @@ BuildableEnv = NamedTuple('BuildableEnv', [
 
 
 @pytest.fixture
-def buildable_env(tmpdir):
+def buildable_env(request, tmpdir):
     """Set up a temporary directory with everything needed to run the EmulatedDockerBuildStage."""
     platform = Platform('aarch64', 'ubuntu', 'foxy')
     ros_workspace = Path(str(tmpdir)) / 'ros_ws'
@@ -129,3 +129,30 @@ def test_build_ownership_on_failure(buildable_env):
     user = getpass.getuser()
     for p in buildable_env.ros_workspace.rglob('*'):
         assert user == p.owner()
+
+
+@uses_docker
+def test_custom_post_build_script(tmpdir):
+    created_filename = 'file-created-by-post-build'
+    platform = Platform('aarch64', 'ubuntu', 'foxy')
+    ros_workspace = Path(str(tmpdir)) / 'ros_ws'
+    _touch_anywhere(ros_workspace / rosdep_install_script(platform))
+    post_build_script = ros_workspace / 'post_build'
+    post_build_script.write_text(f"""
+    #!/bin/bash
+    echo "success" > {created_filename}
+    """)
+    build_context = prepare_docker_build_environment(
+        platform,
+        ros_workspace,
+        custom_post_build_script=post_build_script)
+    docker = DockerClient(disable_cache=False, default_docker_dir=build_context)
+    options = default_pipeline_options()
+    data_collector = DataCollector()
+
+    CreateSysrootStage()(
+        platform, docker, ros_workspace, options, data_collector)
+    EmulatedDockerBuildStage()(
+        platform, docker, ros_workspace, options, data_collector)
+
+    assert (ros_workspace / created_filename).is_file()
