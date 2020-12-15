@@ -173,26 +173,34 @@ It is run at the root of the built workspace.
 
 Following is an example setup that allows a user to run [colcon bundle](https://github.com/colcon/colcon-bundle) to create a portable bundle of the cross-compiled application.
 
-here  is the `--custom-setup-script` script
-
-```bash
-#! /bin/bash
-set -eux
-pip3 install -U colcon-ros-bundle
-```
-
-Then, in the `--custom-post-build-script`:
+Here are the contents of `./postbuild.sh`
 
 ```bash
 #!/bin/bash
 set -eux
+
+apt-get update
+apt-get install -y wget
+wget http://packages.osrfoundation.org/gazebo.key -O - | apt-key add -
+
+apt-get install -y python3-apt
+pip3 install -u setuptools pip
+pip3 install -U colcon-ros-bundle
+
 colcon bundle \
   --build-base build_"${TARGET_ARCH}" \
   --install-base install_"${TARGET_ARCH}" \
   --bundle-base bundle_"${TARGET_ARCH}"
 ```
 
-Now, after the build completes, you should see the bundle outputs in the workspace directory.
+Now, run
+
+```
+ros_cross_compile /path/to/my/workspace --arch aarch64 --os ubuntu \
+  --custom-post-build-script ./postbuild.sh
+```
+
+After the build completes, you should see the bundle outputs in `bundle_aarch64`
 
 
 ### Custom data directory
