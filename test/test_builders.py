@@ -138,10 +138,10 @@ def test_custom_post_build_script(tmpdir):
     ros_workspace = Path(str(tmpdir)) / 'ros_ws'
     _touch_anywhere(ros_workspace / rosdep_install_script(platform))
     post_build_script = ros_workspace / 'post_build'
-    post_build_script.write_text(f"""
+    post_build_script.write_text("""
     #!/bin/bash
-    echo "success" > {created_filename}
-    """)
+    echo "success" > {}
+    """.format(created_filename))
     build_context = prepare_docker_build_environment(
         platform,
         ros_workspace,
