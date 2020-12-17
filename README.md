@@ -167,9 +167,7 @@ apt-get install -y pigpio
 ### Custom post-build script
 
 You may want to perform arbitrary post-processing on your build outputs, in the event of a sucessful build - use `--custom-post-build-script` for this.
-
-Keep in mind
-It is run at the root of the built workspace.
+Keep in mind that it is run at the root of the built workspace.
 
 Following is an example setup that allows a user to run [colcon bundle](https://github.com/colcon/colcon-bundle) to create a portable bundle of the cross-compiled application.
 
