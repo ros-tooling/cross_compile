@@ -118,11 +118,19 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         required=False,
         default=None,
         type=str,
-        help='Provide a path to a shell script that will be executed in the sysroot container '
+        help='Provide a path to a shell script that will be executed in the build container '
              'right before running "rosdep install" for your ROS workspace. This allows for '
              'adding extra apt sources that rosdep may not handle, or other arbitrary setup that '
              'is specific to your application build. See the section on "Custom Setup Script" '
              'in README.md for more details.')
+    parser.add_argument(
+        '--custom-post-build-script',
+        required=False,
+        default=None,
+        type=str,
+        help='Provide a path to a shell script that will be executed in the build container '
+             'after the build successfully completes. '
+             'See "Custom post-build script" in README.md for more information.')
     parser.add_argument(
         '--custom-data-dir',
         required=False,
@@ -184,11 +192,13 @@ def cross_compile_pipeline(
     custom_data_dir = _path_if(args.custom_data_dir)
     custom_rosdep_script = _path_if(args.custom_rosdep_script)
     custom_setup_script = _path_if(args.custom_setup_script)
+    custom_post_build_script = _path_if(args.custom_post_build_script)
 
     sysroot_build_context = prepare_docker_build_environment(
         platform=platform,
         ros_workspace=ros_workspace_dir,
         custom_setup_script=custom_setup_script,
+        custom_post_build_script=custom_post_build_script,
         custom_data_dir=custom_data_dir)
     docker_client = DockerClient(
         args.sysroot_nocache,

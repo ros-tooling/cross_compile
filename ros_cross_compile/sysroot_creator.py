@@ -45,6 +45,18 @@ def _copyfile(src: Path, dest: Path) -> None:
     shutil.copy(str(src), str(dest))
 
 
+def _copy_or_touch(src: Optional[Path], dest: Path) -> None:
+    """
+    Copy a single file, if specified, to a destination.
+
+    If the file src is not provided, create an empty file at dest.
+    """
+    if src:
+        _copyfile(src, dest)
+    else:
+        dest.touch()
+
+
 def setup_emulator(arch: str, output_dir: Path) -> None:
     """Copy the appropriate emulator binary to the output location."""
     emulator_name = 'qemu-{}-static'.format(arch)
@@ -65,6 +77,7 @@ def prepare_docker_build_environment(
     platform: Platform,
     ros_workspace: Path,
     custom_setup_script: Optional[Path] = None,
+    custom_post_build_script: Optional[Path] = None,
     custom_data_dir: Optional[Path] = None,
 ) -> Path:
     """
@@ -89,11 +102,9 @@ def prepare_docker_build_environment(
     else:
         custom_data_dest.mkdir(exist_ok=True)
 
-    custom_setup_dest = docker_build_dir / 'user-custom-setup'
-    if custom_setup_script:
-        _copyfile(custom_setup_script, custom_setup_dest)
-    else:
-        custom_setup_dest.touch()
+    _copy_or_touch(custom_setup_script, docker_build_dir / 'user-custom-setup')
+    _copy_or_touch(custom_post_build_script, docker_build_dir / 'user-custom-post-build')
+
     setup_emulator(platform.qemu_arch, docker_build_dir)
 
     return docker_build_dir

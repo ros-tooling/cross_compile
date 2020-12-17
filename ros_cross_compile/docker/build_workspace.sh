@@ -17,3 +17,6 @@ set -ux
 colcon build --mixin "${TARGET_ARCH}"-docker \
   --build-base build_"${TARGET_ARCH}" \
   --install-base install_"${TARGET_ARCH}"
+
+# Runs user-provided post-build logic (file is present and empty if it wasn't specified)
+/user-custom-post-build
