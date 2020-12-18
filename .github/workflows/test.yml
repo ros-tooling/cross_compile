@@ -47,7 +47,7 @@ jobs:
       run: pip3 install tox
     - name: Run tests
       run: tox -e py
-    - uses: codecov/codecov-action@v1.0.15
+    - uses: codecov/codecov-action@v1.1.0
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         file: coverage.xml
