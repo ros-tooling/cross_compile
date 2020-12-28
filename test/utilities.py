@@ -20,6 +20,9 @@ import pytest
 from ros_cross_compile.pipeline_stages import PipelineStageOptions
 
 
+DEFAULT_TEST_DISTRO = 'foxy'
+
+
 def uses_docker(func):
     """Decorate test to be skipped on platforms that don't have Docker for testing."""
     NO_MAC_REASON = 'CI environment cannot install Docker on Mac OS hosts.'

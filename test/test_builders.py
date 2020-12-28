@@ -28,6 +28,7 @@ from ros_cross_compile.sysroot_creator import CreateSysrootStage
 from ros_cross_compile.sysroot_creator import prepare_docker_build_environment
 
 from .utilities import default_pipeline_options
+from .utilities import DEFAULT_TEST_DISTRO
 from .utilities import uses_docker
 
 
@@ -41,7 +42,7 @@ def test_emulated_docker_build():
     # Very simple smoke test to validate that all internal syntax is correct
     mock_docker_client = Mock()
     mock_data_collector = Mock()
-    platform = Platform('aarch64', 'ubuntu', 'eloquent')
+    platform = Platform('aarch64', 'ubuntu', DEFAULT_TEST_DISTRO)
 
     stage = EmulatedDockerBuildStage()
     stage(

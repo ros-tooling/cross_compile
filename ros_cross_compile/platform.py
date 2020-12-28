@@ -12,8 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import getpass
+import logging
 from typing import NamedTuple
 from typing import Optional
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 ArchNameMapping = NamedTuple('ArchNameMapping', [('docker', str), ('qemu', str)])
 
@@ -28,6 +32,7 @@ SUPPORTED_ARCHITECTURES = tuple(ARCHITECTURE_NAME_MAP.keys())
 
 SUPPORTED_ROS2_DISTROS = ('dashing', 'eloquent', 'foxy')
 SUPPORTED_ROS_DISTROS = ('kinetic', 'melodic')
+EOL_DISTROS = {'eloquent'}
 
 ROSDISTRO_OS_MAP = {
     'kinetic': {
@@ -83,6 +88,12 @@ class Platform:
             self._ros_version = 'ros'
         else:
             raise ValueError('Unknown ROS distribution "{}" specified'.format(ros_distro))
+
+        if self.ros_distro in EOL_DISTROS:
+            logger.error(
+                'Targeted ROS distribution "{}" has reached End Of Life (EOL) '
+                '- there is no guarantee this build will continue working in the future'.format(
+                    self.ros_distro))
 
         os_map = ROSDISTRO_OS_MAP[self.ros_distro]
         if self.os_name not in os_map:

@@ -29,6 +29,7 @@ from ros_cross_compile.sysroot_creator import prepare_docker_build_environment
 from ros_cross_compile.sysroot_creator import setup_emulator
 
 from .utilities import default_pipeline_options
+from .utilities import DEFAULT_TEST_DISTRO
 
 THIS_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -64,7 +65,7 @@ def test_run_twice(tmpdir):
 
 
 def test_prepare_docker_build_with_user_custom(tmpdir):
-    platform = Platform('aarch64', 'ubuntu', 'eloquent')
+    platform = Platform('aarch64', 'ubuntu', DEFAULT_TEST_DISTRO)
     tmp = Path(str(tmpdir))
     this_dir = Path(__file__).parent
     out_dir = prepare_docker_build_environment(
@@ -86,7 +87,7 @@ def test_basic_sysroot_creation(tmpdir):
 
     mock_docker_client = Mock()
     mock_data_collector = Mock()
-    platform = Platform('aarch64', 'ubuntu', 'eloquent')
+    platform = Platform('aarch64', 'ubuntu', DEFAULT_TEST_DISTRO)
 
     stage = CreateSysrootStage()
     stage(
