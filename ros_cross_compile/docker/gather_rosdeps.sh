@@ -16,7 +16,9 @@ fi
 out_dir=$(dirname "${OUT_PATH}")
 mkdir -p "${out_dir}"
 
-rosdep update
+# Note: users are allowed to build against EOL distros! There are just no updates to them,
+# but they should continue working
+rosdep update --include-eol-distros
 
 cat > "${OUT_PATH}" <<EOF
 #!/bin/bash
