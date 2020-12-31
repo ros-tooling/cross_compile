@@ -89,7 +89,7 @@ RUN chmod +x ./user-custom-setup && \
 # Use generated rosdep installation script
 COPY install_rosdeps.sh .
 RUN chmod +x install_rosdeps.sh
-RUN apt-get update && \
+RUN export DEBIAN_FRONTEND=noninteractive && apt-get update && \
     ./install_rosdeps.sh && \
     rm -rf /var/lib/apt/lists/*
 
