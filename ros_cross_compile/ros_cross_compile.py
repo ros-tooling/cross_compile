@@ -243,8 +243,4 @@ if __name__ == '__main__':
     if sys.version_info < (3, 5):
         logger.warning('You are using an unsupported version of Python.'
                        'Cross-compile only supports Python >= 3.5 per the ROS2 REP 2000.')
-    try:
-        main()
-    except Exception as e:
-        logger.exception(e)
-        exit(1)
+    main()
