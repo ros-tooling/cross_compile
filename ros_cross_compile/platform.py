@@ -18,7 +18,8 @@ from typing import Optional
 ArchNameMapping = NamedTuple('ArchNameMapping', [('docker', str), ('qemu', str)])
 
 
-# NOTE: when changing any following values, update README.md Supported Targets section
+# NOTE: when changing any following values, update README.md Supported Targets section,
+# and add to .github/workflows/e2e_test.yml
 ARCHITECTURE_NAME_MAP = {
     'armhf': ArchNameMapping(docker='arm32v7', qemu='arm'),
     'aarch64': ArchNameMapping(docker='arm64v8', qemu='aarch64'),
@@ -27,7 +28,7 @@ ARCHITECTURE_NAME_MAP = {
 SUPPORTED_ARCHITECTURES = tuple(ARCHITECTURE_NAME_MAP.keys())
 
 SUPPORTED_ROS2_DISTROS = ('dashing', 'eloquent', 'foxy')
-SUPPORTED_ROS_DISTROS = ('kinetic', 'melodic')
+SUPPORTED_ROS_DISTROS = ('kinetic', 'melodic', 'noetic')
 
 ROSDISTRO_OS_MAP = {
     'kinetic': {
@@ -37,6 +38,10 @@ ROSDISTRO_OS_MAP = {
     'melodic': {
         'ubuntu': 'bionic',
         'debian': 'stretch',
+    },
+    'noetic': {
+        'ubuntu': 'focal',
+        'debian': 'buster',
     },
     'dashing': {
         'ubuntu': 'bionic',
@@ -52,6 +57,7 @@ ROSDISTRO_OS_MAP = {
     },
 }
 # NOTE: when changing any preceding values, update README.md Supported Targets section
+# and add to .github/workflows/e2e_test.yml
 
 
 class Platform:
