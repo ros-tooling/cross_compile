@@ -26,7 +26,7 @@ ARCHITECTURE_NAME_MAP = {
 }
 SUPPORTED_ARCHITECTURES = tuple(ARCHITECTURE_NAME_MAP.keys())
 
-SUPPORTED_ROS2_DISTROS = ('dashing', 'eloquent', 'foxy')
+SUPPORTED_ROS2_DISTROS = ('dashing', 'eloquent', 'foxy', 'rolling')
 SUPPORTED_ROS_DISTROS = ('kinetic', 'melodic')
 
 ROSDISTRO_OS_MAP = {
@@ -47,6 +47,10 @@ ROSDISTRO_OS_MAP = {
         'debian': 'buster',
     },
     'foxy': {
+        'ubuntu': 'focal',
+        'debian': 'buster',
+    },
+    'rolling': {
         'ubuntu': 'focal',
         'debian': 'buster',
     },
