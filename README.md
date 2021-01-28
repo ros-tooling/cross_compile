@@ -16,7 +16,7 @@ This tool supports compiling a workspace for all combinations of the following:
 * Architecture: `armhf`, `aarch64`, `x86_64`
 * ROS Distro
   * ROS: `kinetic`, `melodic`
-  * ROS 2: `dashing`, `eloquent`, `foxy`
+  * ROS 2: `dashing`, `eloquent`, `foxy`, `rolling`
 * OS: `Ubuntu`, `Debian`
 
 NOTE: ROS 2 supports Debian only as a Tier 3 platform.
