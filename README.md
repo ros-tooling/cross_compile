@@ -271,51 +271,47 @@ This work is tracked in https://github.com/ros-tooling/cross_compile/issues/263.
 
 For a new user, this section walks you through a representative use case, step by step.
 
-This tutorial demonstrates how to cross-compile the [File Talker tool](https://github.com/ros-tooling/file_talker) against ROS 2 Dashing, to run on an ARM64 Ubuntu system.
-You can generalize this workflow to any `.repos` file for your project.
+This tutorial demonstrates how to cross-compile the [ROS 2 Demo Nodes](https://github.com/ros-tooling/demos) against ROS 2 Foxy, to run on an ARM64 Ubuntu system.
+You can generalize this workflow to use on any workspace for your project.
 
 NOTE: this tutorial assumes a Debian-based (including Ubuntu) Linux distribution as the host platform.
 
 ### Creating a simple source workspace
 
-1. Create a directory for your workspace
-    * `mkdir cross_compile_ws`
-    * `cd cross_compile_ws`
-1. Create a `.repos` file for `vcs`
-    * `file_talker.repos`
-    ```
-    repositories:
-      file_talker:
-        type: git
-        url: https://github.com/ros-tooling/file_talker.git
-        version: master
-    ```
-1. Check out the sources to build
-    * `mkdir -p src`
-    * `vcs import src < file_talker.repos`
+Create a directory for your workspace and checkout the sources
+
+```
+mkdir -p cross_compile_ws/src
+cd cross_compile_ws
+git clone -b foxy https://github.com/ros2/demos src/demos
+```
+
+Create a file `defaults.yaml` in this directory with the following contents. This file narrows down the set of built packages, rather than building every single package in the source repository. This file is optional - see preceding section "Package Selection and Build Customization
+" for more information.
+
+```
+build:
+  # only build the demo_nodes_cpp package, to save time building all of the demos
+  packages-up-to:
+    - demo_nodes_cpp
+```
 
 ### Running the cross-compilation
 
 ```bash
-ros_cross_compile $(pwd) --rosdistro dashing --arch aarch64 --os ubuntu
+ros_cross_compile . --rosdistro foxy --arch aarch64 --os ubuntu
 ```
 
-Here is a detailed look at the arguments passed to the script:
+Here is a detailed look at the arguments passed to the script (`ros_cross_compile -h` will print all valid choices for each option):
 
-* `--rosdistro dashing`
-
-You may specify both ROS and ROS 2 distributions by name, for example, `kinetic` (ROS) or `dashing` (ROS 2).
-`ros_cross_compile -h` prints the supported distributions for this option
-
+* `.`
+  * The first argument to `ros_cross_compile` is the directory of the workspace to be built. This could be any relative or absolute path, in this case it's just `.`, the current working directory.
+* `--rosdistro foxy`
+  * You may specify either a ROS and ROS 2 distribution by name, for example `melodic` (ROS) or `foxy` (ROS 2).
 * `--arch aarch64`
-
-Target the ARMv8 / ARM64 / aarch64 architecture (which are different names for the same thing).
-`ros_cross_compile -h` prints the supported architectures for this option.
-
+  * Target the ARMv8 / ARM64 / aarch64 architecture (which are different names for effectively the same thing).
 * `--os ubuntu`
-
-The target OS is Ubuntu - the tool chooses the OS version automatically based on the ROS Distro's target OS.
-In this case for ROS 2 Dashing - 18.04 Bionic Beaver.
+  * The target OS is Ubuntu - the tool chooses the OS version automatically based on the ROS Distro's target OS. In this case for ROS 2 Foxy - Ubuntu 20.04 Focal Fossa.
 
 ### Outputs of the build
 
@@ -328,18 +324,23 @@ ls cross_compile_ws
 If the build succeeded, the directory looks like this:
 
 ```
+build_aarch64/
+cc_internals/
+defaults.yaml
+install_aarch64/
+log/
 src/
-|-- file_talker/
-|-- install_aarch64/
-|-- build_aarch64/
+tutorial.repos
 ```
 
-The created directory `install_aarch64` is the installation of your ROS workspace for your target architecture.
-You can verify this:
+* The created directory `install_aarch64` is the installation of your ROS workspace for your target architecture.
+* `cc_internals` is used by `ros_cross_compile` to cache artifacts between builds - as a user you will not need to inspect it
+
+You can verify that the build created binaries for the target architecture (note "ARM aarch64" in below output. Your `sha1` may differ):
 
 ```bash
-$ file cross_compile_ws/install_aarch64/lib/file_talker/file_talker                                                               0s
-cross_compile_ws/install_aarch64/lib/file_talker/file_talker: ELF 64-bit LSB shared object, ARM aarch64, version 1 (GNU/Linux), dynamically linked, interpreter /lib/ld-, for GNU/Linux 3.7.0, BuildID[sha1]=02ede8a648dfa6b5b30c03d54c6d87fd9151389e, not stripped
+$ file install_aarch64/demo_nodes_cpp/lib/demo_nodes_cpp/talker
+install_aarch64/demo_nodes_cpp/lib/demo_nodes_cpp/talker: ELF 64-bit LSB shared object, ARM aarch64, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux-aarch64.so.1, BuildID[sha1]=f086db477d6f5f919414d63911366077f1051b80, for GNU/Linux 3.7.0, not stripped
 ```
 
 ### Using the build on a target platform
@@ -351,14 +352,17 @@ If your workspace has any dependencies that are outside the source tree - that i
 ```bash
 # Run this on the target system, which must have rosdep already installed
 # remember `rosdep init`, `rosdep update`, `apt-get update` if you need them
-rosdep install --from-paths install_aarch64/share --ignore-src --rosdistro dashing -y
+rosdep install --from-paths install_aarch64/share --ignore-src --rosdistro foxy -y
 ```
 
 Now you may use the ROS installation as you would on any other system
 
 ```bash
 source install_aarch64/setup.bash
-ros2 run file_talker file_talker my_text_file.txt
+ros2 run demo_nodes_cpp talker
+
+# and in a different shell
+ros2 run demo_nodes_cpp listener
 ```
 
 
