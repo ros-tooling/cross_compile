@@ -365,6 +365,51 @@ ros2 run demo_nodes_cpp talker
 ros2 run demo_nodes_cpp listener
 ```
 
+## Troubleshooting
+
+If you are running in docker with `/var/run/docker.sock` mounted and see the following error:
+> No src/ directory found at /ws, did you remember to mount your workspace?
+
+You may need to try running in docker-in-docker. This approach is demonstrated to work in gitlab-ci with a privileged runner and the following `gitlab.yml` as an example:
+
+```yaml
+image: teracy/ubuntu:18.04-dind-19.03.3
+
+services:
+  - docker:19.03.3-dind
+
+variables:
+  # Disable TLS or we get SSLv1 errors. We shouldn't need this since we mount the /certs volume.
+  # We also need to connect to the docker daemon via DOCKER_HOST.
+  DOCKER_TLS_CERTDIR: ""
+  DOCKER_HOST: tcp://docker:2375
+  
+build-stuff:
+  stage: build
+  tags:
+    - ros
+  before_script:
+    # Install packages
+    - apt update
+    - apt install -qq -y qemu-user-static python3-pip rsync
+
+    # Set up the workspace
+    - cd ${CI_PROJECT_DIR}/..
+    - rm -rf cross_compile_ws/src
+    - mkdir -p cross_compile_ws/src
+    - cp -r ${CI_PROJECT_DIR} cross_compile_ws/src/
+    - rsync -a ${CI_PROJECT_DIR}/../cross_compile_ws ${CI_PROJECT_DIR}
+    - cd ${CI_PROJECT_DIR}
+    
+    # Install ros_cross_compile
+    - pip3 install ros_cross_compile
+  script:
+    - ros_cross_compile cross_compile_ws --arch aarch64 --os ubuntu --rosdistro melodic
+  artifacts:
+    paths:
+      - $CI_PROJECT_DIR/cross_compile_ws/install_aarch64
+    expire_in: 1 week
+```
 
 ## License
 
