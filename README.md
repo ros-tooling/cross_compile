@@ -16,7 +16,7 @@ This tool supports compiling a workspace for all combinations of the following:
 * Architecture: `armhf`, `aarch64`, `x86_64`
 * ROS Distro
   * ROS: `kinetic`, `melodic`
-  * ROS 2: `dashing`, `eloquent`, `foxy`, `rolling`
+  * ROS 2: `dashing`, `eloquent`, `foxy`, `galactic`, `rolling`
 * OS: `Ubuntu`, `Debian`
 
 NOTE: ROS 2 supports Debian only as a Tier 3 platform.
@@ -307,7 +307,7 @@ Here is a detailed look at the arguments passed to the script (`ros_cross_compil
 * `.`
   * The first argument to `ros_cross_compile` is the directory of the workspace to be built. This could be any relative or absolute path, in this case it's just `.`, the current working directory.
 * `--rosdistro foxy`
-  * You may specify either a ROS and ROS 2 distribution by name, for example `melodic` (ROS) or `foxy` (ROS 2).
+  * You may specify either a ROS and ROS 2 distribution by name, for example `melodic` (ROS) or `galactic` (ROS 2).
 * `--arch aarch64`
   * Target the ARMv8 / ARM64 / aarch64 architecture (which are different names for effectively the same thing).
 * `--os ubuntu`
@@ -383,7 +383,7 @@ variables:
   # We also need to connect to the docker daemon via DOCKER_HOST.
   DOCKER_TLS_CERTDIR: ""
   DOCKER_HOST: tcp://docker:2375
-  
+
 build-stuff:
   stage: build
   tags:
@@ -400,7 +400,7 @@ build-stuff:
     - cp -r ${CI_PROJECT_DIR} cross_compile_ws/src/
     - rsync -a ${CI_PROJECT_DIR}/../cross_compile_ws ${CI_PROJECT_DIR}
     - cd ${CI_PROJECT_DIR}
-    
+
     # Install ros_cross_compile
     - pip3 install ros_cross_compile
   script:
