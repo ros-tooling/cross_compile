@@ -26,7 +26,7 @@ jobs:
       needs:
       - auto-approve-dependabot
       steps:
-        - uses: pascalgn/automerge-action@v0.13.1
+        - uses: pascalgn/automerge-action@v0.14.2
           if: github.actor == 'dependabot[bot]' || github.actor == 'dependabot-preview[bot]'
           env:
             GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
