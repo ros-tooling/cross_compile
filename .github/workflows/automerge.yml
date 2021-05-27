@@ -1,4 +1,4 @@
-name: Automate Dependabot PRs
+name: Auto merge
 
 on:
   pull_request:
@@ -12,22 +12,12 @@ on:
       - completed
   status: {}
 jobs:
-    # Automatically approve green dependabot PRs
-    auto-approve-dependabot:
-      runs-on: ubuntu-latest
-      steps:
-      - uses: hmarr/auto-approve-action@v2.0.0
-        if: github.actor == 'dependabot[bot]' || github.actor == 'dependabot-preview[bot]'
-        with:
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
     # Automatically merge approved and green dependabot PRs.
     auto-merge-dependabot:
       runs-on: ubuntu-latest
-      needs:
-      - auto-approve-dependabot
+      if: github.actor == 'dependabot[bot]' || github.actor == 'dependabot-preview[bot]'
       steps:
-        - uses: pascalgn/automerge-action@v0.13.1
-          if: github.actor == 'dependabot[bot]' || github.actor == 'dependabot-preview[bot]'
+        - uses: pascalgn/automerge-action@v0.14.1
           env:
             GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
             MERGE_LABELS: "dependencies"
