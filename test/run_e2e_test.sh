@@ -22,7 +22,8 @@ os=ubuntu     # or "debian"
 distro=dashing
 result=1        # Default to failure
 
-readonly RUNTIME_IMAGE_TAG="$(whoami)/$arch-$os-$distro:e2e-runtime"
+RUNTIME_IMAGE_TAG="$(whoami)/$arch-$os-$distro:e2e-runtime"
+readonly RUNTIME_IMAGE_TAG
 
 # Loggers
 log(){
