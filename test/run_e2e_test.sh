@@ -22,7 +22,8 @@ os=ubuntu     # or "debian"
 distro=dashing
 result=1        # Default to failure
 
-readonly RUNTIME_IMAGE_TAG="$(whoami)/$arch-$os-$distro:e2e-runtime"
+RUNTIME_IMAGE_TAG="$(whoami)/$arch-$os-$distro:e2e-runtime"
+readonly RUNTIME_IMAGE_TAG
 
 # Loggers
 log(){
@@ -86,8 +87,8 @@ setup(){
   custom_setup_script=${test_sysroot_dir}/custom-setup.bash
   echo "#!/bin/bash" > "$custom_setup_script"
   if [ "$arch" == "armhf" ]; then
-    if [ "$distro" == "foxy" ] || [ "$distro" == "rolling" ]; then
-      error "Foxy and Rolling do not have armhf binaries available"
+    if [ "$distro" == "foxy" ] || [ "$distro" == "galactic" ] || [ "$distro" == "rolling" ]; then
+      error "Foxy, Galactic and Rolling do not have armhf binaries available"
       exit 0
     fi
   fi
