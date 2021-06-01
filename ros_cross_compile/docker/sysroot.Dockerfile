@@ -29,15 +29,21 @@ ENV LC_ALL C.UTF-8
 
 # Add the ros apt repo
 RUN apt-get update && apt-get install --no-install-recommends -y \
+        ca-certificates \
+        curl \
         dirmngr \
         gnupg2 \
         lsb-release \
     && rm -rf /var/lib/apt/lists/*
-RUN apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' \
-    --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
-
-RUN echo "deb http://packages.ros.org/${ROS_VERSION}/ubuntu `lsb_release -cs` main" \
-    > /etc/apt/sources.list.d/${ROS_VERSION}-latest.list
+RUN if [[ "${ROS_VERSION}" == "ros2" ]]; then \
+      curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg; \
+      echo "deb [signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/${ROS_VERSION}/ubuntu `lsb_release -cs` main" | \
+          tee /etc/apt/sources.list.d/ros2.list > /dev/null; \
+    else \
+      curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add - ; \
+      echo "deb http://packages.ros.org/${ROS_VERSION}/ubuntu `lsb_release -cs` main" \
+          > /etc/apt/sources.list.d/${ROS_VERSION}-latest.list; \
+    fi
 
 # ROS dependencies
 RUN apt-get update && apt-get install --no-install-recommends -y \
