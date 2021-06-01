@@ -49,7 +49,7 @@ def test_platform_argument_validation():
 
 
 def test_construct_x86():
-    p = Platform('x86_64', 'ubuntu', 'eloquent')
+    p = Platform('x86_64', 'ubuntu', 'foxy')
     assert p
 
 
@@ -70,22 +70,18 @@ def verify_base_docker_images(arch, os_name, rosdistro, image_name):
 def test_get_docker_base_image():
     """Test that the correct base docker image is used for all arguments."""
     verify_base_docker_images('aarch64', 'ubuntu', 'dashing', 'arm64v8/ubuntu:bionic')
-    verify_base_docker_images('aarch64', 'ubuntu', 'eloquent', 'arm64v8/ubuntu:bionic')
     verify_base_docker_images('aarch64', 'ubuntu', 'kinetic', 'arm64v8/ubuntu:xenial')
     verify_base_docker_images('aarch64', 'ubuntu', 'melodic', 'arm64v8/ubuntu:bionic')
 
     verify_base_docker_images('aarch64', 'debian', 'dashing', 'arm64v8/debian:stretch')
-    verify_base_docker_images('aarch64', 'debian', 'eloquent', 'arm64v8/debian:buster')
     verify_base_docker_images('aarch64', 'debian', 'kinetic', 'arm64v8/debian:jessie')
     verify_base_docker_images('aarch64', 'debian', 'melodic', 'arm64v8/debian:stretch')
 
     verify_base_docker_images('armhf', 'ubuntu', 'dashing', 'arm32v7/ubuntu:bionic')
-    verify_base_docker_images('armhf', 'ubuntu', 'eloquent', 'arm32v7/ubuntu:bionic')
     verify_base_docker_images('armhf', 'ubuntu', 'kinetic', 'arm32v7/ubuntu:xenial')
     verify_base_docker_images('armhf', 'ubuntu', 'melodic', 'arm32v7/ubuntu:bionic')
 
     verify_base_docker_images('armhf', 'debian', 'dashing', 'arm32v7/debian:stretch')
-    verify_base_docker_images('armhf', 'debian', 'eloquent', 'arm32v7/debian:buster')
     verify_base_docker_images('armhf', 'debian', 'kinetic', 'arm32v7/debian:jessie')
     verify_base_docker_images('armhf', 'debian', 'melodic', 'arm32v7/debian:stretch')
 

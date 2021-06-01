@@ -64,7 +64,7 @@ def test_run_twice(tmpdir):
 
 
 def test_prepare_docker_build_with_user_custom(tmpdir):
-    platform = Platform('aarch64', 'ubuntu', 'eloquent')
+    platform = Platform('aarch64', 'ubuntu', 'foxy')
     tmp = Path(str(tmpdir))
     this_dir = Path(__file__).parent
     out_dir = prepare_docker_build_environment(
@@ -86,7 +86,7 @@ def test_basic_sysroot_creation(tmpdir):
 
     mock_docker_client = Mock()
     mock_data_collector = Mock()
-    platform = Platform('aarch64', 'ubuntu', 'eloquent')
+    platform = Platform('aarch64', 'ubuntu', 'foxy')
 
     stage = CreateSysrootStage()
     stage(

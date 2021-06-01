@@ -41,7 +41,7 @@ def test_emulated_docker_build():
     # Very simple smoke test to validate that all internal syntax is correct
     mock_docker_client = Mock()
     mock_data_collector = Mock()
-    platform = Platform('aarch64', 'ubuntu', 'eloquent')
+    platform = Platform('aarch64', 'ubuntu', 'foxy')
 
     stage = EmulatedDockerBuildStage()
     stage(
