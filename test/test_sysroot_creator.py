@@ -45,7 +45,7 @@ def test_emulator_touch(system_mock, tmpdir):
 
 
 def test_prepare_docker_build_basic(tmpdir):
-    platform = Platform('armhf', 'debian', 'kinetic')
+    platform = Platform('armhf', 'debian', 'melodic')
     tmp = Path(str(tmpdir))
     out_dir = prepare_docker_build_environment(platform, tmp, None, None)
 
@@ -57,7 +57,7 @@ def test_prepare_docker_build_basic(tmpdir):
 
 def test_run_twice(tmpdir):
     # The test is that this doesn't throw an exception for already existing paths
-    platform = Platform('armhf', 'debian', 'kinetic')
+    platform = Platform('armhf', 'debian', 'melodic')
     tmp = Path(str(tmpdir))
     prepare_docker_build_environment(platform, tmp, None, None)
     prepare_docker_build_environment(platform, tmp, None, None)

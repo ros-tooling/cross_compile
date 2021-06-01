@@ -60,7 +60,7 @@ cleanup(){
 }
 
 setup(){
-  if [[ "$distro" =~ ^(kinetic|melodic|noetic)$ ]]; then
+  if [[ "$distro" =~ ^(melodic|noetic)$ ]]; then
     ros_version=ros
   else
     ros_version=ros2

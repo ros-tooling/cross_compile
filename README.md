@@ -15,7 +15,7 @@ This tool supports compiling a workspace for all combinations of the following:
 
 * Architecture: `armhf`, `aarch64`, `x86_64`
 * ROS Distro
-  * ROS: `kinetic`, `melodic`
+  * ROS: `melodic`
   * ROS 2: `dashing`, `foxy`, `galactic`, `rolling`
 * OS: `Ubuntu`, `Debian`
 
