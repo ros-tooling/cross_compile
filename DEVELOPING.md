@@ -12,7 +12,7 @@ virtualenv venv
 # use it
 source venv/bin/activate
 # install this package in the virtualenv to get dependencies
-pip install -e .
+pip3 install -e .
 # now you can run your work
 ros_cross_compile
 ```
@@ -34,11 +34,11 @@ Cross-compiling on ARM host platforms is out of scope.
 See [REP 2000](https://www.ros.org/reps/rep-2000.html) for this list, which is now:
 * Dashing Diademata
   * Ubuntu Bionic 18.04
-    * support installation via `pip` and `apt`
+    * support installation via `pip3` and `apt`
   * MacOS Sierra (10.12)
-    * support installation via `pip`
+    * support installation via `pip3`
   * Windows 10 (VS2019)
-    * support installation via `pip`
+    * support installation via `pip3`
 
 Though not all of these targets may be fully supported yet, design decisions may not be made that rule out support for those platforms in the future.
 
