@@ -24,7 +24,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name=package_name,
-    version='0.7.0',
+    version='0.8.0',
     packages=find_packages(exclude=['test']),
     author='ROS Tooling Working Group',
     author_email='ros-tooling@googlegroups.com',
