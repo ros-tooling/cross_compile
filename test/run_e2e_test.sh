@@ -91,6 +91,12 @@ setup(){
       error "Foxy, Galactic and Rolling do not have armhf binaries available"
       exit 0
     fi
+    if [ "$os" == "debian" ]; then
+      if [ "$distro" == "noetic" ]; then
+        error "Noetic does not have armhf binaries available to debian"
+        exit 0
+      fi
+    fi
   fi
 }
 

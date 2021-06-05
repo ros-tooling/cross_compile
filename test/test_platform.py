@@ -71,15 +71,19 @@ def test_get_docker_base_image():
     """Test that the correct base docker image is used for all arguments."""
     verify_base_docker_images('aarch64', 'ubuntu', 'dashing', 'arm64v8/ubuntu:bionic')
     verify_base_docker_images('aarch64', 'ubuntu', 'melodic', 'arm64v8/ubuntu:bionic')
+    verify_base_docker_images('aarch64', 'ubuntu', 'noetic', 'arm64v8/ubuntu:focal')
 
     verify_base_docker_images('aarch64', 'debian', 'dashing', 'arm64v8/debian:stretch')
     verify_base_docker_images('aarch64', 'debian', 'melodic', 'arm64v8/debian:stretch')
+    verify_base_docker_images('aarch64', 'debian', 'noetic', 'arm64v8/debian:buster')
 
     verify_base_docker_images('armhf', 'ubuntu', 'dashing', 'arm32v7/ubuntu:bionic')
     verify_base_docker_images('armhf', 'ubuntu', 'melodic', 'arm32v7/ubuntu:bionic')
+    verify_base_docker_images('armhf', 'ubuntu', 'noetic', 'arm32v7/ubuntu:focal')
 
     verify_base_docker_images('armhf', 'debian', 'dashing', 'arm32v7/debian:stretch')
     verify_base_docker_images('armhf', 'debian', 'melodic', 'arm32v7/debian:stretch')
+    verify_base_docker_images('armhf', 'debian', 'noetic', 'arm32v7/debian:buster')
 
 
 def test_docker_py_version():
@@ -94,9 +98,13 @@ def test_docker_py_version():
 
 
 def test_ros_version_map():
-    platform = Platform('aarch64', 'ubuntu', 'dashing')
+    platform = Platform('armhf', 'ubuntu', 'dashing')
     assert platform.ros_version == 'ros2'
-    platform = Platform('aarch64', 'ubuntu', 'melodic')
+    platform = Platform('x86_64', 'ubuntu', 'foxy')
+    assert platform.ros_version == 'ros2'
+    platform = Platform('armhf', 'ubuntu', 'melodic')
+    assert platform.ros_version == 'ros'
+    platform = Platform('aarch64', 'ubuntu', 'noetic')
     assert platform.ros_version == 'ros'
 
 
