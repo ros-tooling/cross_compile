@@ -64,7 +64,13 @@ def setup_emulator(arch: str, output_dir: Path) -> None:
     bin_dir.mkdir(parents=True, exist_ok=True)
     needs_emulator = (py_platform.system() != 'Darwin') and (py_platform.machine() != arch)
     if needs_emulator:
-        emulator_path = Path('/') / 'usr' / 'bin' / emulator_name
+        """
+        Using the same qemu binaries as the ones provided in
+        https://github.com/osrf/multiarch-docker-image-generation in order to
+        work around https://bugs.launchpad.net/qemu/+bug/1805913 and so qemu
+        supports renameat2() syscall.
+        """
+        emulator_path = Path(__file__).parent / 'qemu' / emulator_name
         if not emulator_path.is_file():
             raise RuntimeError('Could not find the expected QEmu emulator binary "{}"'.format(
                 emulator_path))

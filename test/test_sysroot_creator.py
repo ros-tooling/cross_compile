@@ -57,7 +57,7 @@ def test_prepare_docker_build_basic(tmpdir):
 
 def test_run_twice(tmpdir):
     # The test is that this doesn't throw an exception for already existing paths
-    platform = Platform('armhf', 'debian', 'melodic')
+    platform = Platform('armhf', 'debian', 'noetic')
     tmp = Path(str(tmpdir))
     prepare_docker_build_environment(platform, tmp, None, None)
     prepare_docker_build_environment(platform, tmp, None, None)

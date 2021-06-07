@@ -16,7 +16,7 @@ jobs:
       matrix:
         target_arch: [aarch64, armhf, x86_64]
         target_os: [ubuntu, debian]
-        rosdistro: [dashing, foxy, galactic, rolling, melodic]
+        rosdistro: [melodic, noetic, dashing, foxy, galactic, rolling]
     env:
       METRICS_OUT_DIR: /tmp/collected_metrics
     steps:
@@ -51,12 +51,12 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
     - uses: ros-tooling/action-cloudwatch-metrics@0.0.5
-      if: ${{ always() && !github.event.repository.fork && !github.event.pull_request.head.repo.fork && ( matrix.target_arch != 'armhf' || matrix.rosdistro != 'foxy' ) && ( matrix.target_arch != 'armhf' || matrix.rosdistro != 'galactic' ) && ( matrix.target_arch != 'armhf' || matrix.rosdistro != 'rolling' ) }}
+      if: ${{ always() && !github.event.repository.fork && !github.event.pull_request.head.repo.fork && ( matrix.target_arch != 'armhf' || matrix.target_os != 'debian' || matrix.rosdistro != 'noetic' ) && ( matrix.target_arch != 'armhf' || matrix.rosdistro != 'foxy' ) && ( matrix.target_arch != 'armhf' || matrix.rosdistro != 'galactic' ) && ( matrix.target_arch != 'armhf' || matrix.rosdistro != 'rolling' ) }}
       with:
         metric-data: "${{ env.METRICS_OUT_DIR }}/${{ matrix.target_arch }}_${{ matrix.target_os }}_${{ matrix.rosdistro }}_a"
         namespace: "CrossCompileMetrics"
     - uses: ros-tooling/action-cloudwatch-metrics@0.0.5
-      if: ${{ always() && !github.event.repository.fork && !github.event.pull_request.head.repo.fork && ( matrix.target_arch != 'armhf' || matrix.rosdistro != 'foxy' ) && ( matrix.target_arch != 'armhf' || matrix.rosdistro != 'galactic' ) && ( matrix.target_arch != 'armhf' || matrix.rosdistro != 'rolling' ) }}
+      if: ${{ always() && !github.event.repository.fork && !github.event.pull_request.head.repo.fork && ( matrix.target_arch != 'armhf' || matrix.target_os != 'debian' || matrix.rosdistro != 'noetic' ) && ( matrix.target_arch != 'armhf' || matrix.rosdistro != 'foxy' ) && ( matrix.target_arch != 'armhf' || matrix.rosdistro != 'galactic' ) && ( matrix.target_arch != 'armhf' || matrix.rosdistro != 'rolling' ) }}
       with:
         metric-data: "${{ env.METRICS_OUT_DIR }}/${{ matrix.target_arch }}_${{ matrix.target_os }}_${{ matrix.rosdistro }}_b"
         namespace: "CrossCompileMetrics"

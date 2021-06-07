@@ -41,6 +41,7 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Topic :: Software Development',
     ],
     description='A tool to build ROS workspaces for various target architectures and platforms.',
@@ -48,7 +49,7 @@ setup(
     long_description_content_type='text/markdown',
     license='Apache License, Version 2.0',
     package_data={
-        package_name: ['docker/*.*', 'mixins/*.*'],
+        package_name: ['docker/*.*', 'mixins/*.*', 'qemu/*.*'],
     },
     install_requires=[
         'docker>=2,<3',
