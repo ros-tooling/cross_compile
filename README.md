@@ -129,7 +129,6 @@ Here is an example script for an application that adds extra rosdep source lists
 ```bash
 cp ./custom-data/rosdep-rules/raspicam-node.yaml /etc/ros/rosdep/custom-rules/raspicam-node.yaml
 echo "yaml file:/etc/ros/rosdep/custom-rules/raspicam-node.yaml" > /etc/ros/rosdep/sources.list.d/22-raspicam-node.list
-echo "yaml https://s3-us-west-2.amazonaws.com/rosdep/python.yaml" > /etc/ros/rosdep/sources.list.d/18-aws-python.list
 ```
 
 Tool invocation for this example:
