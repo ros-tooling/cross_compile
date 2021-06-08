@@ -54,18 +54,3 @@ jobs:
         flags: unittests
         name: codecov-umbrella
         yml: ./codecov.yml
-    # Upload the package to the PyPI test repository.
-    # This will silently fail if a package with this version number already
-    # exists.
-    - uses: ros-tooling/action-pypi@0.0.3
-      # As the package is platform-independent, only trigger this step on Linux
-      # and only on push.
-      # This action should never happen on pull-request, as it would lead us
-      # to upload the package in its initial state, before review.
-      # The final state of the pull request would then never be uploaded, as
-      # we cannot overwrite packages.
-      if: github.event_name == 'push'
-      with:
-        username: ${{ secrets.PYPI_USERNAME }}
-        password: ${{ secrets.PYPI_PASSWORD }}
-        repository-url: https://test.pypi.org/legacy/
