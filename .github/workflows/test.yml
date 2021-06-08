@@ -69,21 +69,3 @@ jobs:
         username: ${{ secrets.PYPI_USERNAME }}
         password: ${{ secrets.PYPI_PASSWORD }}
         repository-url: https://test.pypi.org/legacy/
-
-  log_workflow_status_to_cloudwatch:
-    runs-on: ubuntu-latest
-    container:
-      image: ubuntu:bionic
-    needs: [test_macOS, test_ubuntu]
-    # Don't skip if prior steps failed, but don't run on a fork because it won't have access to AWS secrets
-    if: ${{ always() && ! github.event.repository.fork && ! github.event.pull_request.head.repo.fork }}
-    steps:
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ secrets.AWS_REGION }}
-    - uses: ros-tooling/action-cloudwatch-metrics@0.0.4
-      with:
-        metric-value: ${{needs.test_macOS.result == 'success' && needs.test_ubuntu.result == 'success' }}
