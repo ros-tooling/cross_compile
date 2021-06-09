@@ -14,6 +14,7 @@ set +ux
 # shellcheck source=/dev/null
 source /opt/ros/"${ROS_DISTRO}"/setup.bash
 if [ -f /custom-data/setup.bash ]; then
+    # shellcheck source=/dev/null
     source /custom-data/setup.bash
 fi
 set -ux
