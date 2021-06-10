@@ -49,7 +49,6 @@ jobs:
       run: tox -e py
     - uses: codecov/codecov-action@v1.2.1
       with:
-        token: ${{ secrets.CODECOV_TOKEN }}
         file: coverage.xml
         flags: unittests
         name: codecov-umbrella
