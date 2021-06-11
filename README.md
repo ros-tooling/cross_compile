@@ -163,6 +163,8 @@ add-apt-repository ppa:rpi-distro/ppa
 apt-get install -y pigpio
 ```
 
+Additionally, a custom setup script may control the build environment by populating the `/custom-data/setup.bash` file which will be sourced before building.
+
 ### Custom post-build script
 
 You may want to perform arbitrary post-processing on your build outputs, in the event of a sucessful build - use `--custom-post-build-script` for this.
