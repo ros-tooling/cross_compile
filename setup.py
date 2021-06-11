@@ -49,7 +49,7 @@ setup(
     long_description_content_type='text/markdown',
     license='Apache License, Version 2.0',
     package_data={
-        package_name: ['docker/*.*', 'mixins/*.*', 'qemu/*.*'],
+        package_name: ['docker/*.*', 'mixins/*.*', 'qemu/*'],
     },
     install_requires=[
         'docker>=2,<3',
