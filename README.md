@@ -84,7 +84,7 @@ The command's first argument is the path to your ROS workspace.
 Here is a simple invocation for a standard workflow.
 
 ```bash
-ros_cross_compile /path/to/my/workspace --arch aarch64 --os ubuntu --rosdistro dashing
+ros_cross_compile /path/to/my/workspace --arch aarch64 --os ubuntu --rosdistro foxy
 ```
 
 For information on all available options, run `ros_cross_compile -h`.
