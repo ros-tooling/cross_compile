@@ -112,3 +112,10 @@ def test_override_base():
     override = 'arm128v12/ubuntu:quintessential'
     platform = Platform('aarch64', 'ubuntu', 'dashing', override)
     assert platform.target_base_image == override
+
+
+def test_override_build_image():
+    build_image = 'rostooling/setup-ros-docker:ubuntu-focal-ros-foxy-ros-base-latest'
+    platform = Platform('aarch64', 'ubuntu', 'dashing')
+    platform.override_sysroot_image_tag(build_image)
+    assert platform.sysroot_image_tag == build_image

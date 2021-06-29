@@ -76,6 +76,8 @@ class Platform:
         self._ros_distro = ros_distro
         self._os_name = os_name
 
+        self._overridden_sysroot_image_tag = None
+
         try:
             docker_org = ARCHITECTURE_NAME_MAP[arch].docker
         except KeyError:
@@ -136,7 +138,13 @@ class Platform:
     @property
     def sysroot_image_tag(self) -> str:
         """Generate docker image name and tag."""
+        if (self._overridden_sysroot_image_tag):
+            return self._overridden_sysroot_image_tag
         return getpass.getuser() + '/' + str(self) + ':latest'
+
+    def override_sysroot_image_tag(self, tag):
+        """Override the sysroot_image_tag with tag."""
+        self._overridden_sysroot_image_tag = tag
 
     @property
     def target_base_image(self) -> str:

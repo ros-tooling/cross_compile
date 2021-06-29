@@ -178,6 +178,13 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         help='Package the resulting build as a runnable Docker image, with all runtime '
              'dependencies installed. The image will use the tag provided to this argument. '
              'Example: "my_registry/image_name:image_tag"')
+    parser.add_argument(
+        '--use-build-image',
+        type=str,
+        required=False,
+        default=None,
+        help='Use the provided image to override the syroot and perform the build.'
+    )
 
     return parser.parse_args(args)
 
@@ -193,6 +200,10 @@ def cross_compile_pipeline(
     custom_rosdep_script = _path_if(args.custom_rosdep_script)
     custom_setup_script = _path_if(args.custom_setup_script)
     custom_post_build_script = _path_if(args.custom_post_build_script)
+
+    override_sysroot_image_tag = args.use_build_image
+    if (override_sysroot_image_tag):
+        platform.override_sysroot_image_tag(override_sysroot_image_tag)
 
     sysroot_build_context = prepare_docker_build_environment(
         platform=platform,
@@ -218,6 +229,10 @@ def cross_compile_pipeline(
     if not args.runtime_tag:
         skip.add(PackageRuntimeImageStage.NAME)
 
+    if override_sysroot_image_tag:
+        skip.add('gather_rosdeps')
+        skip.add('sysroot')
+
     for stage in _PIPELINE:
         if stage.name not in skip:
             with data_collector.timer('{}'.format(stage.name)):
@@ -228,6 +243,7 @@ def main():
     """Start the cross-compilation workflow."""
     args = parse_args(sys.argv[1:])
     platform = Platform(args.arch, args.os, args.rosdistro, args.sysroot_base_image)
+
     ros_workspace_dir = _resolve_ros_workspace(args.ros_workspace)
     data_collector = DataCollector()
     data_writer = DataWriter(ros_workspace_dir, args.custom_metric_file)
