@@ -23,8 +23,6 @@ from docker.utils import kwargs_from_env as docker_kwargs_from_env
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('Docker Client')
 
-DEFAULT_COLCON_DEFAULTS_FILE = 'defaults.yaml'
-
 
 class DockerClient:
     """Simplified Docker API for this package's usage patterns."""
@@ -32,8 +30,7 @@ class DockerClient:
     def __init__(
         self,
         disable_cache: bool = False,
-        default_docker_dir: Optional[Path] = None,
-        colcon_defaults_file: Optional[Path] = None,
+        default_docker_dir: Optional[Path] = None
     ):
         """
         Construct the DockerClient.
@@ -43,7 +40,6 @@ class DockerClient:
         self._client = docker.from_env()
         self._disable_cache = disable_cache
         self._default_docker_dir = str(default_docker_dir or Path(__file__).parent / 'docker')
-        self._colcon_defaults_file = str(colcon_defaults_file or DEFAULT_COLCON_DEFAULTS_FILE)
 
     def build_image(
         self,
@@ -115,7 +111,6 @@ class DockerClient:
             }
             for src, dest in volumes.items()
         }
-        environment['COLCON_DEFAULTS_FILE'] = self._colcon_defaults_file
         # Note that the `run` kwarg `stream` is not available
         # in the version of dockerpy that we are using, so we must detach to live-stream logs
         # Do not `remove` so that the container can be queried for its exit code after finishing

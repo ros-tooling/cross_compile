@@ -158,7 +158,7 @@ def test_colcon_defaults(tmpdir):
     platform = Platform(arch='aarch64', os_name='ubuntu', ros_distro='dashing')
     out_script = ws / rosdep_install_script(platform)
 
-    # no defaults file should get everything
+    # none or default config should get everything
     gather_rosdeps(client, platform, workspace=ws)
 
     result = out_script.read_text()
