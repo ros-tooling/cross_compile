@@ -114,6 +114,15 @@ build:
   merge-install: true
 ```
 
+Other configurations can be passed and used as command line args. Examples are CMake build arguments, like the build type or the verb configurations for the event handlers:
+
+```yaml
+# my_workspace/defaults.yaml
+build:
+  cmake-args: ["-DCMAKE_BUILD_TYPE=Release"]
+  event-handlers: ["console_direct+"]
+```
+
 ### Custom rosdep script
 
 Your ROS application may need nonstandard rosdep rules.
