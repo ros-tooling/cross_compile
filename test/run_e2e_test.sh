@@ -185,10 +185,12 @@ list:
   packages-select: [dummy_pkg]
 build:
   packages-select: [dummy_pkg]
+  event-handlers: ["console_cohesion+","console_package_list+"]
 EOF
 
 python3 -m ros_cross_compile "$test_sysroot_dir" \
   --arch "$arch" --os "$os" --rosdistro "$distro" \
+  --colcon-defaults "$test_sysroot_dir/defaults.yaml" \
   --custom-metric-file "${arch}_${os}_${distro}_b"
 CC_SCRIPT_STATUS=$?
 if [[ "$CC_SCRIPT_STATUS" -ne 0 ]]; then

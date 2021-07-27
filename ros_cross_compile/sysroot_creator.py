@@ -84,6 +84,7 @@ def prepare_docker_build_environment(
     ros_workspace: Path,
     custom_setup_script: Optional[Path] = None,
     custom_post_build_script: Optional[Path] = None,
+    colcon_defaults_file: Optional[Path] = None,
     custom_data_dir: Optional[Path] = None,
 ) -> Path:
     """
@@ -92,6 +93,7 @@ def prepare_docker_build_environment(
     :param platform Information about the target platform
     :param ros_workspace Location of the ROS source workspace
     :param custom_setup_script Optional arbitrary script
+    :param colcon_defaults_file Optional colcon configuration file
     :param custom_data_dir Optional arbitrary directory for use by custom_setup_script
     :return The directory that was created.
     """
@@ -110,6 +112,14 @@ def prepare_docker_build_environment(
 
     _copy_or_touch(custom_setup_script, docker_build_dir / 'user-custom-setup')
     _copy_or_touch(custom_post_build_script, docker_build_dir / 'user-custom-post-build')
+
+    if colcon_defaults_file:
+        _copyfile(colcon_defaults_file, docker_build_dir / 'defaults.yaml')
+    else:
+        (docker_build_dir / 'defaults.yaml').write_text("""
+build:
+  event-handlers: ["console_cohesion+","console_package_list+"]
+""")
 
     setup_emulator(platform.qemu_arch, docker_build_dir)
 

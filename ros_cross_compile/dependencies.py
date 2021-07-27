@@ -82,6 +82,7 @@ def gather_rosdeps(
             'OWNER_USER': str(os.getuid()),
             'ROSDISTRO': platform.ros_distro,
             'SKIP_ROSDEP_KEYS': ' '.join(skip_rosdep_keys),
+            'COLCON_DEFAULTS_FILE': 'defaults.yaml',
             'TARGET_OS': '{}:{}'.format(platform.os_name, platform.os_distro),
         },
         volumes=volumes,

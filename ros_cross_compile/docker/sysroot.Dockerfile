@@ -99,6 +99,10 @@ RUN export DEBIAN_FRONTEND=noninteractive && apt-get update && \
     ./install_rosdeps.sh && \
     rm -rf /var/lib/apt/lists/*
 
+# Copy colcon defaults config and set COLCON_DEFAULTS_FILE
+COPY defaults.yaml /root
+ENV COLCON_DEFAULTS_FILE=/root/defaults.yaml
+
 # Set up build tools for the workspace
 COPY mixins/ mixins/
 RUN colcon mixin add cc_mixin file://$(pwd)/mixins/index.yaml && colcon mixin update cc_mixin

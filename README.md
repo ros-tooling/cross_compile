@@ -97,7 +97,7 @@ To build, it runs `colcon build`.
 
 You can provide arbitrary arguments to these commands via the [colcon `defaults.yaml`](https://colcon.readthedocs.io/en/released/user/configuration.html#defaults-yaml).
 
-You can either specify the name of this file via `ros_cross_compile --colcon-defaults relative/path/to/defaults.yaml`, or if not specified, a file called `defaults.yaml` will be used if present.
+You can either specify the name of this file via `ros_cross_compile --colcon-defaults /path/to/defaults.yaml`, or if not specified, a file called `defaults.yaml` will be used if present.
 
 For example, there are repositories checked out in your workspace that contain packages that are not needed for your application - some repos provide many packages and you may only want one!
 In this scenario there is a "bringup" package that acts as the entry point to your application:
@@ -112,6 +112,15 @@ build:
   packages-up-to: [my_application_bringup]
   # example of a boolean commandline argument
   merge-install: true
+```
+
+Other configurations can be passed and used as command line args. Examples are CMake build arguments, like the build type or the verb configurations for the event handlers:
+
+```yaml
+# my_workspace/defaults.yaml
+build:
+  cmake-args: ["-DCMAKE_BUILD_TYPE=Release"]
+  event-handlers: ["console_direct+"]
 ```
 
 ### Custom rosdep script
