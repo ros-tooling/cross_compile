@@ -340,7 +340,6 @@ defaults.yaml
 install_aarch64/
 log/
 src/
-tutorial.repos
 ```
 
 * The created directory `install_aarch64` is the installation of your ROS workspace for your target architecture.
