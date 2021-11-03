@@ -304,12 +304,19 @@ build:
   # only build the demo_nodes_cpp package, to save time building all of the demos
   packages-up-to:
     - demo_nodes_cpp
+  # make a merged install space, which is easier to distribute
+  merge-install: true
+  # add some output for readability
+  event-handlers:
+    - console_cohesion+
+    - console_package_list+
+
 ```
 
 ### Running the cross-compilation
 
 ```bash
-ros_cross_compile . --rosdistro foxy --arch aarch64 --os ubuntu
+ros_cross_compile . --rosdistro foxy --arch aarch64 --os ubuntu --colcon-defaults ./defaults.yaml
 ```
 
 Here is a detailed look at the arguments passed to the script (`ros_cross_compile -h` will print all valid choices for each option):
