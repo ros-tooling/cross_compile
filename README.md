@@ -365,6 +365,8 @@ Copy `install_aarch64` onto the target system into a location of your choosing. 
 
 If your workspace has any dependencies that are outside the source tree - that is, if `rosdep` had anything to install during the build - then you still need to install these dependencies on the target system.
 
+Note first: if you need `rosdep` to install packages via the package manager, then your system will need its package manager sources (APT for Ubuntu). See [Setup Sources](https://docs.ros.org/en/foxy/Installation/Ubuntu-Install-Debians.html#setup-sources) portion of ROS 2 installation instructions for an example of how to do this on Ubuntu.
+
 ```bash
 # Run this on the target system, which must have rosdep already installed
 # remember `rosdep init`, `rosdep update`, `apt-get update` if you need them
