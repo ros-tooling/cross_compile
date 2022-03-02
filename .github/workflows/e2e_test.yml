@@ -21,7 +21,7 @@ jobs:
       METRICS_OUT_DIR: /tmp/collected_metrics
     steps:
     - name: Checkout sources
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Setup python
       uses: actions/setup-python@v3
       with:
