@@ -31,8 +31,7 @@ ENV LC_ALL C.UTF-8
 RUN apt-get update && apt-get install --no-install-recommends -y \
         ca-certificates \
         curl \
-        dirmngr \
-        gnupg2 \
+        gnupg \
         lsb-release \
     && rm -rf /var/lib/apt/lists/*
 RUN if [[ "${ROS_VERSION}" == "ros2" ]]; then \
