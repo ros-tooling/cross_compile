@@ -69,7 +69,7 @@ class DockerClient:
             quiet=False,
             nocache=self._disable_cache,
             decode=True,
-            network_mode="host"
+            network_mode='host'
         )
         self._process_build_log(log_generator)
 
