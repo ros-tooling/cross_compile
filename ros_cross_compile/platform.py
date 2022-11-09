@@ -26,7 +26,7 @@ ARCHITECTURE_NAME_MAP = {
 }
 SUPPORTED_ARCHITECTURES = tuple(ARCHITECTURE_NAME_MAP.keys())
 
-SUPPORTED_ROS2_DISTROS = ('dashing', 'foxy', 'galactic', 'rolling')
+SUPPORTED_ROS2_DISTROS = ('foxy', 'galactic', 'humble', 'rolling')
 SUPPORTED_ROS_DISTROS = ('melodic', 'noetic')
 
 ROSDISTRO_OS_MAP = {
@@ -38,10 +38,6 @@ ROSDISTRO_OS_MAP = {
         'ubuntu': 'focal',
         'debian': 'buster',
     },
-    'dashing': {
-        'ubuntu': 'bionic',
-        'debian': 'stretch',
-    },
     'foxy': {
         'ubuntu': 'focal',
         'debian': 'buster',
@@ -50,9 +46,13 @@ ROSDISTRO_OS_MAP = {
         'ubuntu': 'focal',
         'debian': 'buster',
     },
+    'humble': {
+        'ubuntu': 'jammy',
+        'debian': 'bullseye',
+    },
     'rolling': {
-        'ubuntu': 'focal',
-        'debian': 'buster',
+        'ubuntu': 'jammy',
+        'debian': 'bullseye',
     },
 }
 # NOTE: when changing any preceding values, update README.md Supported Targets section
