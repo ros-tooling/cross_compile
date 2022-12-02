@@ -50,7 +50,7 @@ setup(
         package_name: ['docker/*.*', 'mixins/*.*', 'qemu/*'],
     },
     install_requires=[
-        'docker>=2,<5',
+        'docker==4.*',
         'setuptools',
     ],
     zip_safe=True,
