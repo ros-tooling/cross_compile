@@ -16,7 +16,7 @@ jobs:
       matrix:
         target_arch: [aarch64, armhf, x86_64]
         target_os: [ubuntu, debian]
-        rosdistro: [melodic, noetic, dashing, foxy, galactic, rolling]
+        rosdistro: [foxy, galactic, humble, rolling]
     env:
       METRICS_OUT_DIR: /tmp/collected_metrics
     steps:
