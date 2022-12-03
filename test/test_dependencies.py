@@ -109,6 +109,32 @@ echo "yaml file:/test_rules.yaml" > /etc/ros/rosdep/sources.list.d/22-test-rules
 
 
 @uses_docker
+def test_custom_rosdep_melodic_no_data_dir(tmpdir):
+    script_contents = """
+cat > /test_rules.yaml <<EOF
+definitely_does_not_exist:
+  ubuntu:
+    bionic: [successful_test]
+EOF
+echo "yaml file:/test_rules.yaml" > /etc/ros/rosdep/sources.list.d/22-test-rules.list
+"""
+    ws = Path(str(tmpdir))
+    pkg_xml = Path(ws) / 'src' / 'dummy' / 'package.xml'
+    pkg_xml.parent.mkdir(parents=True)
+    pkg_xml.write_text(CUSTOM_KEY_PKG_XML)
+    client = DockerClient()
+    platform = Platform(arch='aarch64', os_name='ubuntu', ros_distro='melodic')
+
+    rosdep_setup = ws / 'rosdep_setup.sh'
+    rosdep_setup.write_text(script_contents)
+
+    gather_rosdeps(client, platform, workspace=ws, custom_script=rosdep_setup)
+    out_script = ws / rosdep_install_script(platform)
+    result = out_script.read_text()
+    assert 'successful_test' in result
+
+
+@uses_docker
 def test_custom_rosdep_with_data_dir(tmpdir):
     rule_contents = """
 definitely_does_not_exist:
@@ -128,6 +154,43 @@ echo "yaml file:/test_rules.yaml" > /etc/ros/rosdep/sources.list.d/22-test-rules
     pkg_xml.write_text(CUSTOM_KEY_PKG_XML)
     client = DockerClient()
     platform = Platform(arch='aarch64', os_name='ubuntu', ros_distro='foxy')
+
+    rosdep_setup = ws / 'rosdep_setup.sh'
+    rosdep_setup.write_text(script_contents)
+
+    data_dir = ws / 'custom_data'
+    data_file = data_dir / 'test_rules.yaml'
+    data_file.parent.mkdir(parents=True)
+    data_file.write_text(rule_contents)
+
+    gather_rosdeps(
+        client, platform, workspace=ws, custom_script=rosdep_setup, custom_data_dir=data_dir)
+
+    out_script = ws / rosdep_install_script(platform)
+    result = out_script.read_text()
+    assert 'successful_test' in result
+
+
+@uses_docker
+def test_custom_rosdep_melodic_with_data_dir(tmpdir):
+    rule_contents = """
+definitely_does_not_exist:
+  ubuntu:
+    bionic: [successful_test]
+"""
+
+    script_contents = """
+#!/bin/bash
+set -euxo
+cp ./custom-data/test_rules.yaml /test_rules.yaml
+echo "yaml file:/test_rules.yaml" > /etc/ros/rosdep/sources.list.d/22-test-rules.list
+"""
+    ws = Path(str(tmpdir))
+    pkg_xml = Path(ws) / 'src' / 'dummy' / 'package.xml'
+    pkg_xml.parent.mkdir(parents=True)
+    pkg_xml.write_text(CUSTOM_KEY_PKG_XML)
+    client = DockerClient()
+    platform = Platform(arch='aarch64', os_name='ubuntu', ros_distro='melodic')
 
     rosdep_setup = ws / 'rosdep_setup.sh'
     rosdep_setup.write_text(script_contents)
