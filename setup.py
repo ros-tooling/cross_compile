@@ -38,7 +38,6 @@ setup(
         'Environment :: Console',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Topic :: Software Development',
@@ -60,5 +59,5 @@ setup(
             'ros_cross_compile = ros_cross_compile.ros_cross_compile:main'
         ]
     },
-    python_requires='>=3.6',
+    python_requires='>=3.7',
 )

@@ -19,7 +19,7 @@ readonly NORM='\033[0m'
 # Defaults
 arch=aarch64  # or "armhf"
 os=ubuntu     # or "debian"
-distro=dashing
+distro=foxy
 result=1        # Default to failure
 
 RUNTIME_IMAGE_TAG="$(whoami)/$arch-$os-$distro:e2e-runtime"
@@ -87,8 +87,11 @@ setup(){
   custom_setup_script=${test_sysroot_dir}/custom-setup.bash
   echo "#!/bin/bash" > "$custom_setup_script"
   if [ "$arch" == "armhf" ]; then
-    if [ "$distro" == "foxy" ] || [ "$distro" == "galactic" ] || [ "$distro" == "rolling" ]; then
-      error "Foxy, Galactic and Rolling do not have armhf binaries available"
+    if [ "$distro" == "foxy" ] || \
+       [ "$distro" == "galactic" ] || \
+       [ "$distro" == "humble" ] || \
+       [ "$distro" == "rolling" ]; then
+      error "Foxy, Galactic, Humble and Rolling do not have armhf binaries available"
       exit 0
     fi
     if [ "$os" == "debian" ]; then
@@ -156,14 +159,22 @@ fi
 
 log "Checking that the binary output is in the correct architecture..."
 if [ "$arch" = 'armhf' ]; then
-  expected_binary='ELF 32-bit LSB shared object, ARM'
+  expected_binary_bits='ELF 32-bit'
 elif [ "$arch" = 'aarch64' ]; then
-  expected_binary='ELF 64-bit LSB shared object, ARM aarch64'
+  expected_binary_bits='ELF 64-bit'
 elif [ "$arch" = 'x86_64' ]; then
-  expected_binary='ELF 64-bit LSB shared object, x86-64'
+  expected_binary_bits='ELF 64-bit'
+fi
+
+if [ "$arch" = 'armhf' ]; then
+  expected_binary_architecture=', ARM'
+elif [ "$arch" = 'aarch64' ]; then
+  expected_binary_architecture=', ARM aarch64'
+elif [ "$arch" = 'x86_64' ]; then
+  expected_binary_architecture=', x86-64'
 fi
 binary_file_info=$(file "$install_dir/$target_package/bin/dummy_binary")
-if [[ "$binary_file_info" != *"$expected_binary"* ]]; then
+if [[ "$binary_file_info" != *"$expected_binary_bits"*"$expected_binary_architecture"* ]]; then
   panic "The binary output was not of the expected architecture"
 fi
 

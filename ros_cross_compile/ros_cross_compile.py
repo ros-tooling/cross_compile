@@ -82,7 +82,7 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         '-d', '--rosdistro',
         required=False,
         type=str,
-        default='dashing',
+        default='foxy',
         choices=SUPPORTED_ROS_DISTROS + SUPPORTED_ROS2_DISTROS,
         help='Target ROS distribution')
     parser.add_argument(
@@ -96,7 +96,7 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         required=False,
         type=str,
         help='Override the default base Docker image to use for building the sysroot. '
-             'Ex. "arm64v8/ubuntu:bionic"')
+             'Ex. "arm64v8/ubuntu:focal"')
     parser.add_argument(
         '--sysroot-nocache',
         action='store_true',
@@ -240,7 +240,7 @@ def main():
 
 
 if __name__ == '__main__':
-    if sys.version_info < (3, 6):
+    if sys.version_info < (3, 7):
         logger.warning('You are using an unsupported version of Python.'
-                       'Cross-compile only supports Python >= 3.6 per the ROS2 REP 2000.')
+                       'Cross-compile only supports Python >= 3.7 per the ROS2 REP 2000.')
     main()
