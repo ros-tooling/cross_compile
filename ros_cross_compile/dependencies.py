@@ -60,10 +60,16 @@ def gather_rosdeps(
     out_path = rosdep_install_script(platform)
 
     logger.info('Building rosdep collector image: %s', _IMG_NAME)
-    docker_client.build_image(
-        dockerfile_name='rosdep.Dockerfile',
-        tag=_IMG_NAME,
-    )
+    if platform.ros_distro == 'melodic':
+        docker_client.build_image(
+            dockerfile_name='rosdep.Dockerfile',
+            tag=_IMG_NAME,
+        )
+    else:
+        docker_client.build_image(
+            dockerfile_name='rosdep_focal.Dockerfile',
+            tag=_IMG_NAME,
+        )
 
     logger.info('Running rosdep collector image on workspace {}'.format(workspace))
     volumes = {

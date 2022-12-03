@@ -58,7 +58,7 @@ def test_dummy_ros2_pkg(tmpdir):
     pkg_xml.write_text(RCLCPP_PKG_XML)
 
     client = DockerClient()
-    platform = Platform(arch='aarch64', os_name='ubuntu', ros_distro='dashing')
+    platform = Platform(arch='aarch64', os_name='ubuntu', ros_distro='foxy')
     out_script = ws / rosdep_install_script(platform)
     test_collector = DataCollector()
 
@@ -66,8 +66,8 @@ def test_dummy_ros2_pkg(tmpdir):
     stage(platform, client, ws, default_pipeline_options(), test_collector)
 
     result = out_script.read_text()
-    assert 'ros-dashing-ament-cmake' in result
-    assert 'ros-dashing-rclcpp' in result
+    assert 'ros-foxy-ament-cmake' in result
+    assert 'ros-foxy-rclcpp' in result
 
 
 @uses_docker
@@ -77,7 +77,7 @@ def test_rosdep_bad_key(tmpdir):
     pkg_xml.parent.mkdir(parents=True)
     pkg_xml.write_text(CUSTOM_KEY_PKG_XML)
     client = DockerClient()
-    platform = Platform(arch='aarch64', os_name='ubuntu', ros_distro='dashing')
+    platform = Platform(arch='aarch64', os_name='ubuntu', ros_distro='foxy')
     with pytest.raises(docker.errors.ContainerError):
         gather_rosdeps(client, platform, workspace=ws)
 
@@ -88,7 +88,7 @@ def test_custom_rosdep_no_data_dir(tmpdir):
 cat > /test_rules.yaml <<EOF
 definitely_does_not_exist:
   ubuntu:
-    bionic: [successful_test]
+    focal: [successful_test]
 EOF
 echo "yaml file:/test_rules.yaml" > /etc/ros/rosdep/sources.list.d/22-test-rules.list
 """
@@ -97,7 +97,7 @@ echo "yaml file:/test_rules.yaml" > /etc/ros/rosdep/sources.list.d/22-test-rules
     pkg_xml.parent.mkdir(parents=True)
     pkg_xml.write_text(CUSTOM_KEY_PKG_XML)
     client = DockerClient()
-    platform = Platform(arch='aarch64', os_name='ubuntu', ros_distro='dashing')
+    platform = Platform(arch='aarch64', os_name='ubuntu', ros_distro='foxy')
 
     rosdep_setup = ws / 'rosdep_setup.sh'
     rosdep_setup.write_text(script_contents)
@@ -113,7 +113,7 @@ def test_custom_rosdep_with_data_dir(tmpdir):
     rule_contents = """
 definitely_does_not_exist:
   ubuntu:
-    bionic: [successful_test]
+    focal: [successful_test]
 """
 
     script_contents = """
@@ -127,7 +127,7 @@ echo "yaml file:/test_rules.yaml" > /etc/ros/rosdep/sources.list.d/22-test-rules
     pkg_xml.parent.mkdir(parents=True)
     pkg_xml.write_text(CUSTOM_KEY_PKG_XML)
     client = DockerClient()
-    platform = Platform(arch='aarch64', os_name='ubuntu', ros_distro='dashing')
+    platform = Platform(arch='aarch64', os_name='ubuntu', ros_distro='foxy')
 
     rosdep_setup = ws / 'rosdep_setup.sh'
     rosdep_setup.write_text(script_contents)
@@ -155,16 +155,16 @@ def test_colcon_defaults(tmpdir):
     shutil.copytree(str(this_dir / 'dummy_pkg_ros2_py'), str(src / 'dummy_pkg_ros2_py'))
 
     client = DockerClient()
-    platform = Platform(arch='aarch64', os_name='ubuntu', ros_distro='dashing')
+    platform = Platform(arch='aarch64', os_name='ubuntu', ros_distro='foxy')
     out_script = ws / rosdep_install_script(platform)
 
     # none or default config should get everything
     gather_rosdeps(client, platform, workspace=ws)
 
     result = out_script.read_text()
-    assert 'ros-dashing-ament-cmake' in result
-    assert 'ros-dashing-rclcpp' in result
-    assert 'ros-dashing-rclpy' in result
+    assert 'ros-foxy-ament-cmake' in result
+    assert 'ros-foxy-rclcpp' in result
+    assert 'ros-foxy-rclpy' in result
 
     # write defaults file and expect selective dependency output
     (ws / 'defaults.yaml').write_text("""
@@ -173,9 +173,9 @@ list:
 """)
     gather_rosdeps(client, platform, workspace=ws)
     result = out_script.read_text()
-    assert 'ros-dashing-ament-cmake' not in result
-    assert 'ros-dashing-rclcpp' not in result
-    assert 'ros-dashing-rclpy' in result
+    assert 'ros-foxy-ament-cmake' not in result
+    assert 'ros-foxy-rclcpp' not in result
+    assert 'ros-foxy-rclpy' in result
 
 
 @uses_docker
@@ -185,7 +185,7 @@ def test_dummy_skip_rosdep_keys_doesnt_exist_pkg(tmpdir):
     pkg_xml.parent.mkdir(parents=True)
     pkg_xml.write_text(CUSTOM_KEY_PKG_XML)
     client = DockerClient()
-    platform = Platform(arch='aarch64', os_name='ubuntu', ros_distro='dashing')
+    platform = Platform(arch='aarch64', os_name='ubuntu', ros_distro='foxy')
     skip_keys = ['definitely_does_not_exist']
     try:
         gather_rosdeps(client, platform, workspace=ws,  skip_rosdep_keys=skip_keys)
@@ -200,14 +200,14 @@ def test_dummy_skip_rosdep_multiple_keys_pkg(tmpdir):
     pkg_xml.parent.mkdir(parents=True)
     pkg_xml.write_text(RCLCPP_PKG_XML)
     client = DockerClient()
-    platform = Platform(arch='aarch64', os_name='ubuntu', ros_distro='dashing')
+    platform = Platform(arch='aarch64', os_name='ubuntu', ros_distro='foxy')
     out_script = ws / rosdep_install_script(platform)
 
     skip_keys = ['ament_cmake', 'rclcpp']
     gather_rosdeps(client, platform, workspace=ws, skip_rosdep_keys=skip_keys)
     result = out_script.read_text()
-    assert 'ros-dashing-ament-cmake' not in result
-    assert 'ros-dashing-rclcpp' not in result
+    assert 'ros-foxy-ament-cmake' not in result
+    assert 'ros-foxy-rclcpp' not in result
 
 
 def test_dependencies_stage_creation():

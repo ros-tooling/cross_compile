@@ -29,7 +29,7 @@ It is recommended to use a release branch of `ros2.repos` from https://github.co
 This tool officially supports running on the following host systems.
 Note that many others likely work, but these are being thoroughly tested.
 
-* Ubuntu 18.04 Bionic Beaver
+* Ubuntu 20.04 Focal
 * OSX Mojave
 
 ## Installation
@@ -131,7 +131,8 @@ If so, you have the option to provide a script to be run before the `rosdep inst
 This script has access to the "Custom data directory" same as the "Custom setup script", see the following sections. If you need any extra files for setting up rosdep, they can be accessed via this custom data directory.
 
 Note that:
-1. Rosdeps are always collected in an Ubuntu Bionic container, so scripts must be compatible with that
+1. Rosdeps for melodic collected in an Ubuntu focal container for all other ROS distros 
+   rosdeps collected in an Ubuntu Focal container, so scripts must be compatible with that
 
 Here is an example script for an application that adds extra rosdep source lists
 
@@ -438,7 +439,7 @@ This library is licensed under the Apache 2.0 License.
 | ROS 2 Release | Branch Name     | Development | Source Debian Package | X86-64 Debian Package | ARM64 Debian Package | ARMHF Debian package |
 | ------------- | --------------- | ----------- | --------------------- | --------------------- | -------------------- | -------------------- |
 | Latest        | `master`        | [![Test Pipeline Status](https://github.com/ros-tooling/cross_compile/workflows/Test%20cross_compile/badge.svg)](https://github.com/ros-tooling/cross_compile/actions) | N/A                   | N/A                   | N/A                  | N/A                  |
-| Dashing       | `dashing-devel` | [![Build Status](http://build.ros2.org/buildStatus/icon?job=Ddev__cross_compile__ubuntu_bionic_amd64)](http://build.ros2.org/job/Ddev__cross_compile__ubuntu_bionic_amd64) | [![Build Status](http://build.ros2.org/buildStatus/icon?job=Dsrc_uB__cross_compile__ubuntu_bionic__source)](http://build.ros2.org/job/Dsrc_uB__cross_compile__ubuntu_bionic__source) | [![Build Status](http://build.ros2.org/buildStatus/icon?job=Dbin_uB64__cross_compile__ubuntu_bionic_amd64__binary)](http://build.ros2.org/job/Dbin_uB64__cross_compile__ubuntu_bionic_amd64__binary) | N/A | N/A |
+| Foxy          | `foxy-devel`    | [![Build Status](http://build.ros2.org/buildStatus/icon?job=Ddev__cross_compile__ubuntu_focal_amd64)](http://build.ros2.org/job/Ddev__cross_compile__ubuntu_focal_amd64) | [![Build Status](http://build.ros2.org/buildStatus/icon?job=Dsrc_uB__cross_compile__ubuntu_focal__source)](http://build.ros2.org/job/Dsrc_uB__cross_compile__ubuntu_focal__source) | [![Build Status](http://build.ros2.org/buildStatus/icon?job=Dbin_uB64__cross_compile__ubuntu_focal_amd64__binary)](http://build.ros2.org/job/Dbin_uB64__cross_compile__ubuntu_focal_amd64__binary) | N/A | N/A |
 
 
 [ros2_dev_setup]: https://index.ros.org/doc/ros2/Installation/Latest-Development-Setup/

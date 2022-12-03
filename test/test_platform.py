@@ -28,16 +28,16 @@ def platform_config() -> Platform:
     return Platform(
         arch='aarch64',
         os_name='ubuntu',
-        ros_distro='dashing')
+        ros_distro='foxy')
 
 
 def test_platform_argument_validation():
-    p = Platform('armhf', 'ubuntu', 'dashing')
+    p = Platform('armhf', 'ubuntu', 'foxy')
     assert p
 
     with pytest.raises(ValueError):
         # invalid arch
-        p = Platform('mips', 'ubuntu', 'dashing')
+        p = Platform('mips', 'ubuntu', 'foxy')
 
     with pytest.raises(ValueError):
         # invalid distro
@@ -45,7 +45,7 @@ def test_platform_argument_validation():
 
     with pytest.raises(ValueError):
         # invalid OS
-        p = Platform('armhf', 'rhel', 'dashing')
+        p = Platform('armhf', 'rhel', 'foxy')
 
 
 def test_construct_x86():
@@ -69,19 +69,19 @@ def verify_base_docker_images(arch, os_name, rosdistro, image_name):
 
 def test_get_docker_base_image():
     """Test that the correct base docker image is used for all arguments."""
-    verify_base_docker_images('aarch64', 'ubuntu', 'dashing', 'arm64v8/ubuntu:bionic')
+    verify_base_docker_images('aarch64', 'ubuntu', 'foxy', 'arm64v8/ubuntu:focal')
     verify_base_docker_images('aarch64', 'ubuntu', 'melodic', 'arm64v8/ubuntu:bionic')
     verify_base_docker_images('aarch64', 'ubuntu', 'noetic', 'arm64v8/ubuntu:focal')
 
-    verify_base_docker_images('aarch64', 'debian', 'dashing', 'arm64v8/debian:stretch')
+    verify_base_docker_images('aarch64', 'debian', 'foxy', 'arm64v8/debian:buster')
     verify_base_docker_images('aarch64', 'debian', 'melodic', 'arm64v8/debian:stretch')
     verify_base_docker_images('aarch64', 'debian', 'noetic', 'arm64v8/debian:buster')
 
-    verify_base_docker_images('armhf', 'ubuntu', 'dashing', 'arm32v7/ubuntu:bionic')
+    verify_base_docker_images('armhf', 'ubuntu', 'foxy', 'arm32v7/ubuntu:focal')
     verify_base_docker_images('armhf', 'ubuntu', 'melodic', 'arm32v7/ubuntu:bionic')
     verify_base_docker_images('armhf', 'ubuntu', 'noetic', 'arm32v7/ubuntu:focal')
 
-    verify_base_docker_images('armhf', 'debian', 'dashing', 'arm32v7/debian:stretch')
+    verify_base_docker_images('armhf', 'debian', 'foxy', 'arm32v7/debian:buster')
     verify_base_docker_images('armhf', 'debian', 'melodic', 'arm32v7/debian:stretch')
     verify_base_docker_images('armhf', 'debian', 'noetic', 'arm32v7/debian:buster')
 
@@ -98,7 +98,7 @@ def test_docker_py_version():
 
 
 def test_ros_version_map():
-    platform = Platform('armhf', 'ubuntu', 'dashing')
+    platform = Platform('armhf', 'ubuntu', 'foxy')
     assert platform.ros_version == 'ros2'
     platform = Platform('x86_64', 'ubuntu', 'foxy')
     assert platform.ros_version == 'ros2'
@@ -110,5 +110,5 @@ def test_ros_version_map():
 
 def test_override_base():
     override = 'arm128v12/ubuntu:quintessential'
-    platform = Platform('aarch64', 'ubuntu', 'dashing', override)
+    platform = Platform('aarch64', 'ubuntu', 'foxy', override)
     assert platform.target_base_image == override
