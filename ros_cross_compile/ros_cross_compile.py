@@ -240,7 +240,7 @@ def main():
 
 
 if __name__ == '__main__':
-    if sys.version_info < (3, 6):
+    if sys.version_info < (3, 7):
         logger.warning('You are using an unsupported version of Python.'
-                       'Cross-compile only supports Python >= 3.6 per the ROS2 REP 2000.')
+                       'Cross-compile only supports Python >= 3.7 per the ROS2 REP 2000.')
     main()

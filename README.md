@@ -39,7 +39,7 @@ Note that many others likely work, but these are being thoroughly tested.
 This tool requires that you have already installed
 * [Docker](https://docs.docker.com/install/)
   * Follow the instructions to add yourself to the `docker` group as well, so you can run containers as a non-root user
-* Python 3.6 or higher
+* Python 3.7 or higher
 
 If you are using a Linux host, you must also install QEmu (Docker for OSX performs emulation automatically):
 
