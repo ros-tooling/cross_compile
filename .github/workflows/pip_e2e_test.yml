@@ -7,14 +7,14 @@ on:
     - cron:  '17 23 * * *'
 
 jobs:
-  build_and_test:
-    runs-on: ubuntu-18.04
+  build_and_test_20_04:
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
         target_arch: [aarch64, armhf]
         target_os: [ubuntu]
-        rosdistro: [foxy, galactic, humble, rolling]
+        rosdistro: [foxy, galactic]
         install_type:
           - test
           - prod
@@ -25,6 +25,39 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: 3.6
+    - name: Install dependencies
+      run: |
+        sudo apt update && sudo apt install -y qemu-user-static
+    - name: Install ros-cross-compile from Test PyPi
+      if: matrix.install_type == 'test'
+      run: |
+        pip install 'docker>=2,<3'
+        pip install -i https://test.pypi.org/simple/ ros-cross-compile
+    - name: Install ros-cross-compile from Prod PyPi
+      if: matrix.install_type == 'prod'
+      run: pip install ros-cross-compile
+    - name: Run end-to-end test
+      run: |
+        ./test/run_e2e_test.sh -a "${{ matrix.target_arch }}" -o "${{ matrix.target_os }}" -d "${{ matrix.rosdistro }}"
+
+  build_and_test_22_04:
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        target_arch: [aarch64, armhf]
+        target_os: [ubuntu]
+        rosdistro: [humble, rolling]
+        install_type:
+          - test
+          - prod
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v3
+    - name: Setup python
+      uses: actions/setup-python@v3
+      with:
+        python-version: 3.8
     - name: Install dependencies
       run: |
         sudo apt update && sudo apt install -y qemu-user-static

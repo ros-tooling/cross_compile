@@ -9,14 +9,14 @@ on:
     - cron:  '17 17 * * *'
 
 jobs:
-  build_and_test:
-    runs-on: ubuntu-18.04
+  build_and_test_20_04:
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
         target_arch: [aarch64, armhf, x86_64]
         target_os: [ubuntu, debian]
-        rosdistro: [foxy, galactic, humble, rolling]
+        rosdistro: [foxy, galactic]
     env:
       METRICS_OUT_DIR: /tmp/collected_metrics
     steps:
@@ -29,6 +29,40 @@ jobs:
         # already huge target matrix would take forever,
         # so here we just target the minimum supported version
         python-version: 3.6
+    - name: Install dependencies
+      run: |
+        sudo apt update && sudo apt install -y qemu-user-static
+    - name: Install cross-compile
+      run: pip install -e .
+    - run: mkdir -p ${{ env.METRICS_OUT_DIR }}
+    - name: Run end-to-end test
+      run: |
+        ./test/run_e2e_test.sh -a "${{ matrix.target_arch }}" -o "${{ matrix.target_os }}" -d "${{ matrix.rosdistro }}"
+    - uses: actions/upload-artifact@v3
+      with:
+        name: performance_metrics
+        path: ${{ env.METRICS_OUT_DIR }}
+
+  build_and_test_22_04:
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        target_arch: [aarch64, armhf, x86_64]
+        target_os: [ubuntu, debian]
+        rosdistro: [humble, rolling]
+    env:
+      METRICS_OUT_DIR: /tmp/collected_metrics
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v3
+    - name: Setup python
+      uses: actions/setup-python@v3
+      with:
+        # NOTE: doing a python version matrix on top of the
+        # already huge target matrix would take forever,
+        # so here we just target the minimum supported version
+        python-version: 3.8
     - name: Install dependencies
       run: |
         sudo apt update && sudo apt install -y qemu-user-static

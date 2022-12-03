@@ -19,7 +19,7 @@ readonly NORM='\033[0m'
 # Defaults
 arch=aarch64  # or "armhf"
 os=ubuntu     # or "debian"
-distro=dashing
+distro=foxy
 result=1        # Default to failure
 
 RUNTIME_IMAGE_TAG="$(whoami)/$arch-$os-$distro:e2e-runtime"
