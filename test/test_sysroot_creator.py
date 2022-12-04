@@ -74,7 +74,7 @@ def test_prepare_docker_build_with_user_custom(tmpdir):
     )
 
     assert (out_dir / 'bin' / 'qemu-aarch64-static').exists()
-    assert (out_dir / 'rosdep.Dockerfile').exists()
+    assert (out_dir / 'rosdep_focal.Dockerfile').exists()
     assert (out_dir / 'sysroot.Dockerfile').exists()
     assert (out_dir / 'custom-data' / 'arbitrary.txt')
     assert (out_dir / 'user-custom-setup')

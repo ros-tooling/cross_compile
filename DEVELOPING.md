@@ -32,8 +32,8 @@ The target host platforms for this tool are the Tier 1 platforms specified by no
 Cross-compiling on ARM host platforms is out of scope.
 
 See [REP 2000](https://www.ros.org/reps/rep-2000.html) for this list, which is now:
-* Dashing Diademata
-  * Ubuntu Bionic 18.04
+* Foxy Fitzroy
+  * Ubuntu Focal 20.04
     * support installation via `pip3` and `apt`
   * MacOS Sierra (10.12)
     * support installation via `pip3`

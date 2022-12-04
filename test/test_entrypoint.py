@@ -91,7 +91,7 @@ def test_mocked_cc_pipeline(tmpdir):
 
 def test_install_rosdep_script_exist(tmpdir):
     ws = Path(str(tmpdir))
-    platform = Platform('aarch64', 'ubuntu', 'dashing')
+    platform = Platform('aarch64', 'ubuntu', 'foxy')
     data_file = ws / rosdep_install_script(platform)
     data_file.parent.mkdir(parents=True)
     data_file.touch()
@@ -101,7 +101,7 @@ def test_install_rosdep_script_exist(tmpdir):
 
 def test_install_rosdep_script_doesnot_exist(tmpdir):
     ws = Path(str(tmpdir))
-    platform = Platform('aarch64', 'ubuntu', 'dashing')
+    platform = Platform('aarch64', 'ubuntu', 'foxy')
     data_file = ws / rosdep_install_script(platform)
     data_file.parent.mkdir(parents=True)
     with pytest.raises(RuntimeError):
