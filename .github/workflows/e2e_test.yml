@@ -23,7 +23,7 @@ jobs:
     - name: Checkout sources
       uses: actions/checkout@v3
     - name: Setup python
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v4
       with:
         # NOTE: doing a python version matrix on top of the
         # already huge target matrix would take forever,
@@ -57,7 +57,7 @@ jobs:
     - name: Checkout sources
       uses: actions/checkout@v3
     - name: Setup python
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v4
       with:
         # NOTE: doing a python version matrix on top of the
         # already huge target matrix would take forever,
