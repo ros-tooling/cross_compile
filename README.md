@@ -1,7 +1,7 @@
 ## Notice: This repository is deprecated. It is outdated and will not be supported anymore.
-Recommended to use native cross-compilation which is up to 8 times faster.
-See details in ROS Discourse discussion
-https://discourse.ros.org/t/call-for-help-maintainership-of-the-ros-cross-compile-tool/26511 
+It is recommended to use a native cross-compilation method, which can be up to 8 times faster.
+See details in this ROS Discourse discussion:
+https://discourse.ros.org/t/call-for-help-maintainership-of-the-ros-cross-compile-tool/26511
 
 # ROS / ROS 2 Cross Compile Tool
 
