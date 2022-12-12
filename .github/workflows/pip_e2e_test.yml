@@ -1,10 +1,8 @@
 name: End-to-end testing for ros-cross-compile using PIP (Nightly Canary)
 on:
-  schedule:
-    # Run every morning Pacific Time.
-    # Random hour and minute to avoid creating excess traffic during popular times.
-    # Because the test takes a long time (> 30 min) to run, it is configured to run only once a day.
-    - cron:  '17 23 * * *'
+  pull_request:
+    # Running on pull requests to catch breaking changes as early as possible.
+    # Waiting for this test to pass is recommended, but contributors can use their discretion whether they want to or not.
 
 jobs:
   build_and_test_20_04:
