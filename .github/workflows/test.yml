@@ -4,10 +4,6 @@ on:
   push:
     branches:
       - master
-  schedule:
-    # Run every day. This helps detect flakiness,
-    # and broken external dependencies.
-    - cron:  '0 0 * * *'
 
 jobs:
   test_macOS:
